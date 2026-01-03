@@ -1,12 +1,12 @@
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { useAuth, useLogout } from '@/features/auth';
+import { View, Text, StyleSheet, Pressable } from 'react-native'
+import { useAuth, useLogout } from '@/features/auth'
 
 export function UserHeader() {
-  const { user, isAuthenticated } = useAuth();
-  const { mutate: logout, isPending } = useLogout();
+  const { user, isAuthenticated } = useAuth()
+  const { mutate: logout, isPending } = useLogout()
 
   if (!isAuthenticated || !user) {
-    return null;
+    return null
   }
 
   return (
@@ -16,19 +16,14 @@ export function UserHeader() {
       </View>
 
       <Pressable
-        style={({ pressed }) => [
-          styles.logoutButton,
-          pressed && styles.logoutButtonPressed,
-        ]}
+        style={({ pressed }) => [styles.logoutButton, pressed && styles.logoutButtonPressed]}
         onPress={() => logout()}
         disabled={isPending}
       >
-        <Text style={styles.logoutButtonText}>
-          {isPending ? 'Logging out...' : 'Logout'}
-        </Text>
+        <Text style={styles.logoutButtonText}>{isPending ? 'Logging out...' : 'Logout'}</Text>
       </Pressable>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -61,4 +56,4 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
-});
+})

@@ -43,16 +43,19 @@ npm run test:coverage
 ## ✅ What's Tested
 
 ### Shared Layer
+
 - **Utils**: `cn()` className utility function
 - **Hooks**: `useColorScheme` hook
 - **React Query**: QueryClientProvider configuration
 - **UI Components**: Text, Box, ThemedText components
 
 ### Entities Layer
+
 - **User Store**: Zustand store with persistence
 - **User API**: API calls (getCurrent, getById, update)
 
 ### Features Layer
+
 - **Auth Hooks**: useLogin, useLogout mutations
 - **Auth UI**: LoginForm component with validation
 
@@ -66,6 +69,7 @@ npm run test:coverage
 ## 📝 Test Utilities
 
 Available in `src/shared/lib/test-utils.tsx`:
+
 - `renderWithProviders()` - Render with necessary providers
 - `mockNavigation` - Mock navigation object
 - `mockRoute` - Mock route object

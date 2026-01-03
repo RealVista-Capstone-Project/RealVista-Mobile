@@ -1,25 +1,29 @@
-import { useForm, Controller } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
-import { useLogin } from '../api/use-login';
+import { useForm, Controller } from 'react-hook-form'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { View, Text, TextInput, Button, StyleSheet } from 'react-native'
+import { useLogin } from '../api/use-login'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-});
+})
 
-type LoginFormData = z.infer<typeof loginSchema>;
+type LoginFormData = z.infer<typeof loginSchema>
 
 export function LoginForm() {
-  const { mutate: login, isPending } = useLogin();
-  const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
+  const { mutate: login, isPending } = useLogin()
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-  });
+  })
 
   const onSubmit = (data: LoginFormData) => {
-    login(data);
-  };
+    login(data)
+  }
 
   return (
     <View style={styles.container}>
@@ -29,13 +33,13 @@ export function LoginForm() {
         <Text style={styles.label}>Email</Text>
         <Controller
           control={control}
-          name="email"
+          name='email'
           render={({ field: { onChange, value } }) => (
             <TextInput
               style={styles.input}
-              placeholder="Enter your email"
-              autoCapitalize="none"
-              keyboardType="email-address"
+              placeholder='Enter your email'
+              autoCapitalize='none'
+              keyboardType='email-address'
               onChangeText={onChange}
               value={value}
             />
@@ -48,11 +52,11 @@ export function LoginForm() {
         <Text style={styles.label}>Password</Text>
         <Controller
           control={control}
-          name="password"
+          name='password'
           render={({ field: { onChange, value } }) => (
             <TextInput
               style={styles.input}
-              placeholder="Enter your password"
+              placeholder='Enter your password'
               secureTextEntry
               onChangeText={onChange}
               value={value}
@@ -68,7 +72,7 @@ export function LoginForm() {
         disabled={isPending}
       />
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -100,4 +104,4 @@ const styles = StyleSheet.create({
     color: 'red',
     fontSize: 12,
   },
-});
+})

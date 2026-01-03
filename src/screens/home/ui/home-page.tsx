@@ -1,10 +1,9 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { useCurrentUser , useAuth } from '@/features/auth';
-
+import { View, Text, StyleSheet } from 'react-native'
+import { useCurrentUser, useAuth } from '@/features/auth'
 
 export function HomePage() {
-  const { data: user, isLoading } = useCurrentUser();
-  const { isAuthenticated } = useAuth();
+  const { data: user, isLoading } = useCurrentUser()
+  const { isAuthenticated } = useAuth()
 
   return (
     <View style={styles.container}>
@@ -20,7 +19,7 @@ export function HomePage() {
         <Text>You are not logged in</Text>
       )}
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -43,4 +42,4 @@ const styles = StyleSheet.create({
   userInfoText: {
     fontSize: 16,
   },
-});
+})

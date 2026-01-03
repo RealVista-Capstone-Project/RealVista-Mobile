@@ -1,10 +1,10 @@
-import React, { forwardRef, memo } from 'react';
-import { headingStyle } from './styles';
-import type { VariantProps } from '@gluestack-ui/utils/nativewind-utils';
+import React, { forwardRef, memo } from 'react'
+import { headingStyle } from './styles'
+import type { VariantProps } from '@gluestack-ui/utils/nativewind-utils'
 type IHeadingProps = VariantProps<typeof headingStyle> &
   React.ComponentPropsWithoutRef<'h1'> & {
-    as?: React.ElementType;
-  };
+    as?: React.ElementType
+  }
 
 const MappedHeading = memo(
   forwardRef<HTMLHeadingElement, IHeadingProps>(function MappedHeading(
@@ -42,7 +42,7 @@ const MappedHeading = memo(
             {...props}
             ref={ref}
           />
-        );
+        )
       case '2xl':
         return (
           <h2
@@ -60,7 +60,7 @@ const MappedHeading = memo(
             {...props}
             ref={ref}
           />
-        );
+        )
       case 'xl':
         return (
           <h3
@@ -78,7 +78,7 @@ const MappedHeading = memo(
             {...props}
             ref={ref}
           />
-        );
+        )
       case 'lg':
         return (
           <h4
@@ -96,7 +96,7 @@ const MappedHeading = memo(
             {...props}
             ref={ref}
           />
-        );
+        )
       case 'md':
         return (
           <h5
@@ -114,7 +114,7 @@ const MappedHeading = memo(
             {...props}
             ref={ref}
           />
-        );
+        )
       case 'sm':
       case 'xs':
         return (
@@ -133,7 +133,7 @@ const MappedHeading = memo(
             {...props}
             ref={ref}
           />
-        );
+        )
       default:
         return (
           <h4
@@ -151,25 +151,17 @@ const MappedHeading = memo(
             {...props}
             ref={ref}
           />
-        );
+        )
     }
   })
-);
+)
 
 const Heading = memo(
   forwardRef<HTMLHeadingElement, IHeadingProps>(function Heading(
     { className, size = 'lg', as: AsComp, ...props },
     ref
   ) {
-    const {
-      isTruncated,
-      bold,
-      underline,
-      strikeThrough,
-      sub,
-      italic,
-      highlight,
-    } = props;
+    const { isTruncated, bold, underline, strikeThrough, sub, italic, highlight } = props
 
     if (AsComp) {
       return (
@@ -188,15 +180,13 @@ const Heading = memo(
           {...props}
           ref={ref}
         />
-      );
+      )
     }
 
-    return (
-      <MappedHeading className={className} size={size} ref={ref} {...props} />
-    );
+    return <MappedHeading className={className} size={size} ref={ref} {...props} />
   })
-);
+)
 
-Heading.displayName = 'Heading';
+Heading.displayName = 'Heading'
 
-export { Heading };
+export { Heading }

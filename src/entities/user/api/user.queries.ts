@@ -1,6 +1,6 @@
-import { queryOptions } from '@tanstack/react-query';
-import { userApi } from './index';
-import { userKeys } from './keys';
+import { queryOptions } from '@tanstack/react-query'
+import { userApi } from './index'
+import { userKeys } from './keys'
 
 /**
  * User Query Factory
@@ -27,4 +27,4 @@ export const userQueries = {
       queryFn: () => userApi.getById(id).then((res) => res.payload),
       enabled: !!id,
     }),
-} as const;
+} as const

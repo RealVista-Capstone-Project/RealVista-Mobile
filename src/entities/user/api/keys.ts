@@ -7,4 +7,4 @@ export const userKeys = {
   current: () => [...userKeys.all, 'current'] as const,
   profile: () => [...userKeys.current(), 'profile'] as const,
   detail: (id: string) => [...userKeys.all, 'detail', id] as const,
-} as const;
+} as const
