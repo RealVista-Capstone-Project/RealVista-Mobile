@@ -11,6 +11,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "test": "jest",
+    "type-check": "tsc --noEmit",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
   },

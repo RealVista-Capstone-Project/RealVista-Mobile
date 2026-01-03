@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { useCurrentUser } from '@/features/auth';
-import { useAuth } from '@/features/auth';
+import { useCurrentUser , useAuth } from '@/features/auth';
+
 
 export function HomePage() {
   const { data: user, isLoading } = useCurrentUser();

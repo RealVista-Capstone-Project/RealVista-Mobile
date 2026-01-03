@@ -13,6 +13,7 @@ jest.mock('@/entities/user', () => ({
   },
 }));
 
+/* eslint-disable @typescript-eslint/no-require-imports */
 describe('useLogin', () => {
   let mockSetUser: jest.Mock;
   let mockSetToken: jest.Mock;
@@ -25,7 +26,7 @@ describe('useLogin', () => {
     mockSetUser = jest.fn();
     mockSetToken = jest.fn();
 
-    (useAuthStore as jest.Mock).mockImplementation((selector) => {
+    (useAuthStore as unknown as jest.Mock).mockImplementation((selector) => {
       const state = {
         user: null,
         isAuthenticated: false,

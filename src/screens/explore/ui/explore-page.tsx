@@ -18,7 +18,7 @@ export function ExplorePage() {
               Explore
             </Heading>
             <Text size="lg" className="mt-2 text-center text-gray-400">
-              Discover what's possible
+              Discover what&apos;s possible
             </Text>
           </Box>
 

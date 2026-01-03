@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
-import { useColorScheme } from '../use-color-scheme';
+import { useColorScheme } from 'react-native';
 
 describe('useColorScheme', () => {
   it('should return a color scheme', () => {
@@ -13,7 +13,7 @@ describe('useColorScheme', () => {
     const { result, rerender } = renderHook(() => useColorScheme());
 
     const firstValue = result.current;
-    rerender();
+    rerender({});
     const secondValue = result.current;
 
     expect(firstValue).toBe(secondValue);

@@ -1,7 +1,6 @@
 import { queryOptions } from '@tanstack/react-query';
 import { userApi } from './index';
 import { userKeys } from './keys';
-import type { User } from '../model/types';
 
 /**
  * User Query Factory

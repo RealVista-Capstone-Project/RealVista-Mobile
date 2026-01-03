@@ -1,6 +1,7 @@
-import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-native';
 import { useLogout } from '../use-logout';
 import { useAuthStore } from '@/entities/user';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Mock dependencies
@@ -18,7 +19,7 @@ describe('useLogout', () => {
     // Setup mock auth store logout function
     mockLogout = jest.fn();
 
-    (useAuthStore as jest.Mock).mockImplementation((selector) => {
+    (useAuthStore as unknown as jest.Mock).mockImplementation((selector) => {
       const state = {
         user: { id: '1', email: 'test@example.com' },
         isAuthenticated: true,
@@ -98,7 +99,7 @@ describe('useLogout', () => {
     await act(async () => {
       try {
         await result.current.mutateAsync();
-      } catch (e) {
+      } catch {
         // Error might be thrown
       }
     });

@@ -38,7 +38,7 @@ describe('ReactQueryProvider', () => {
 
   it('should configure QueryClient with default options', () => {
     const TestComponent2 = () => {
-      const queryClient = useQuery({
+      useQuery({
         queryKey: ['test2'],
         queryFn: async () => {
           throw new Error('Test error');

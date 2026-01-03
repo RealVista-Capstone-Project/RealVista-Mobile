@@ -4,7 +4,7 @@
  */
 
 import { render } from '@testing-library/react-native';
-import React, { ReactElement } from 'react';
+import { ReactElement } from 'react';
 
 /**
  * Custom render function that wraps components with necessary providers

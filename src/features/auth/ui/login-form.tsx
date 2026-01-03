@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
@@ -27,23 +27,37 @@ export function LoginForm() {
 
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your email"
-          autoCapitalize="none"
-          keyboardType="email-address"
-          onChangeText={(text) => control._fields.email?._f.onChange(text)}
+        <Controller
+          control={control}
+          name="email"
+          render={({ field: { onChange, value } }) => (
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your email"
+              autoCapitalize="none"
+              keyboardType="email-address"
+              onChangeText={onChange}
+              value={value}
+            />
+          )}
         />
         {errors.email && <Text style={styles.error}>{errors.email.message}</Text>}
       </View>
 
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Password</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your password"
-          secureTextEntry
-          onChangeText={(text) => control._fields.password?._f.onChange(text)}
+        <Controller
+          control={control}
+          name="password"
+          render={({ field: { onChange, value } }) => (
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your password"
+              secureTextEntry
+              onChangeText={onChange}
+              value={value}
+            />
+          )}
         />
         {errors.password && <Text style={styles.error}>{errors.password.message}</Text>}
       </View>

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '@/entities/user';
-import { userKeys } from '@/entities/user';
+
 
 export function useLogout() {
   const logout = useAuthStore((state) => state.logout);

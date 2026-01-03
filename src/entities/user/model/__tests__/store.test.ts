@@ -1,11 +1,12 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useAuthStore } from '../store';
-import type { User } from '../types';
+import type { User, AuthStore } from '../types';
+import type { StateCreator } from 'zustand';
 
 // Mock zustand persist to avoid AsyncStorage issues in tests
 jest.mock('zustand/middleware', () => ({
   ...jest.requireActual('zustand/middleware'),
-  persist: (config) => (set, get, api) => {
+  persist: (config: StateCreator<AuthStore>) => (set: any, get: any, api: any) => {
     // Return the config without persistence for testing
     const store = config(set, get, api);
     return store;

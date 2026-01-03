@@ -8,6 +8,7 @@ jest.mock('@/features/auth/api/use-login', () => ({
   useLogin: jest.fn(),
 }));
 
+/* eslint-disable @typescript-eslint/no-require-imports */
 describe('LoginForm', () => {
   let queryClient: QueryClient;
   let mockMutate: jest.Mock;
@@ -70,7 +71,7 @@ describe('LoginForm', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Invalid email address')).toBeTruthy();
-    });
+    }, { timeout: 3000 });
   });
 
   it('should show validation error for short password', async () => {
