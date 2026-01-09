@@ -1,13 +1,19 @@
 import { ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { HomePage } from '@/screens/home'
+import { RoleGuard } from '@/shared/lib/auth/role-guard'
 import { Box } from '@/shared/ui/box'
 import { Heading } from '@/shared/ui/heading'
 import { Text } from '@/shared/ui/text'
-import { HomePage } from '@/screens/home'
 import { UserHeader } from '@/widgets/user-header'
 
+import { useLogout } from '@/features/auth'
+import { Button } from 'react-native'
+
 export default function HomeScreen() {
+  const { mutate: logout } = useLogout()
+
   return (
     <SafeAreaView className='flex-1 bg-gray-950' edges={['top']}>
       <UserHeader />
@@ -23,8 +29,19 @@ export default function HomeScreen() {
             </Text>
           </Box>
 
+          <RoleGuard allowedRoles={['ADMIN']} fallback={null}>
+            <Box className='mb-6 rounded-2xl bg-red-900 p-6 shadow-lg'>
+              <Heading size='xl' className='text-white'>Admin Zone</Heading>
+              <Text className='text-gray-200'>Only admins can see this!</Text>
+            </Box>
+          </RoleGuard>
+
           {/* Home Page Content */}
           <HomePage />
+          
+          <Box className='mt-8 mb-8'>
+             <Button title="Logout" color="#ef4444" onPress={() => logout()} />
+          </Box>
         </Box>
       </ScrollView>
     </SafeAreaView>

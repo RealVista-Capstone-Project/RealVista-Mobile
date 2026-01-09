@@ -1,4 +1,4 @@
-import { useAuthStore, userApi } from '@/entities/user'
+import { useAuthStore } from '@/entities/user'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useMutation } from '@tanstack/react-query'
 
@@ -12,11 +12,29 @@ export function useLogin() {
   const setToken = useAuthStore((state) => state.setToken)
 
   return useMutation({
-    mutationFn: (credentials: LoginCredentials) => userApi.getCurrent(),
+    // mutationFn: (credentials: LoginCredentials) => userApi.getCurrent(),
+    mutationFn: async (credentials: LoginCredentials) => {
+      // Simulate network delay
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      const role = credentials.email.toLowerCase().includes('admin') ? 'ADMIN' : 'USER'
+
+      return {
+        payload: {
+          id: '1',
+          email: credentials.email,
+          name: 'Mock User',
+          role: role,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      }
+    },
     onSuccess: async (response) => {
       // Assuming your API returns token and user
       // Adjust this based on your actual API response
-      const user = response.payload
+      // const user = { ...response.payload, role: 'USER' as const } // Mocking role for now
+      const user = response.payload as any
 
       // Store token
       await AsyncStorage.setItem('token', 'dummy-token') // Replace with actual token from response

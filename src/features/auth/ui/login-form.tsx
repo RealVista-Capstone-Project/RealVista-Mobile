@@ -1,7 +1,7 @@
-import { useForm, Controller } from 'react-hook-form'
-import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native'
+import { Controller, useForm } from 'react-hook-form'
+import { Button, StyleSheet, Text, TextInput, View } from 'react-native'
+import { z } from 'zod'
 import { useLogin } from '../api/use-login'
 
 const loginSchema = z.object({
@@ -64,6 +64,13 @@ export function LoginForm() {
           )}
         />
         {errors.password && <Text style={styles.error}>{errors.password.message}</Text>}
+      </View>
+
+      <View style={{ marginBottom: 12, padding: 8, backgroundColor: '#f0f0f0', borderRadius: 4 }}>
+        <Text style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>Dev Mode: Mock Login</Text>
+        <Text style={{ fontSize: 12 }}>• Admin: admin@test.com</Text>
+        <Text style={{ fontSize: 12 }}>• User: user@test.com</Text>
+        <Text style={{ fontSize: 12 }}>• Password: any (min 6 chars)</Text>
       </View>
 
       <Button
