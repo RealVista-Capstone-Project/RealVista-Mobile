@@ -31,16 +31,18 @@ export default function HomeScreen() {
 
           <RoleGuard allowedRoles={['ADMIN']} fallback={null}>
             <Box className='mb-6 rounded-2xl bg-red-900 p-6 shadow-lg'>
-              <Heading size='xl' className='text-white'>Admin Zone</Heading>
+              <Heading size='xl' className='text-white'>
+                Admin Zone
+              </Heading>
               <Text className='text-gray-200'>Only admins can see this!</Text>
             </Box>
           </RoleGuard>
 
           {/* Home Page Content */}
           <HomePage />
-          
+
           <Box className='mt-8 mb-8'>
-             <Button title="Logout" color="#ef4444" onPress={() => logout()} />
+            <Button title='Logout' color='#ef4444' onPress={() => logout()} />
           </Box>
         </Box>
       </ScrollView>

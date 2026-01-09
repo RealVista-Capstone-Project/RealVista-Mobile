@@ -25,7 +25,6 @@ describe('useLogin', () => {
     // Setup mock auth store functions
     mockSetUser = jest.fn()
     mockSetToken = jest.fn()
-
     ;(useAuthStore as unknown as jest.Mock).mockImplementation((selector) => {
       const state = {
         user: null,

@@ -18,7 +18,6 @@ describe('useLogout', () => {
 
     // Setup mock auth store logout function
     mockLogout = jest.fn()
-
     ;(useAuthStore as unknown as jest.Mock).mockImplementation((selector) => {
       const state = {
         user: { id: '1', email: 'test@example.com' },

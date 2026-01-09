@@ -38,7 +38,7 @@ export default function RootLayout() {
     } else if (isAuthenticated && inAuthGroup) {
       router.replace('/(tabs)')
     }
-  }, [isAuthenticated, segments, isNavigationReady])
+  }, [isAuthenticated, segments, isNavigationReady, router])
 
   return (
     <AppProviders>
