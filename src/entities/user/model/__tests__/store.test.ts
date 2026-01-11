@@ -1,7 +1,7 @@
-import { renderHook, act } from '@testing-library/react-native'
-import { useAuthStore } from '../store'
-import type { User, AuthStore } from '../types'
+import { act, renderHook } from '@testing-library/react-native'
 import type { StateCreator } from 'zustand'
+import { useAuthStore } from '../store'
+import type { AuthStore, User } from '../types'
 
 // Mock zustand persist to avoid AsyncStorage issues in tests
 jest.mock('zustand/middleware', () => ({
@@ -18,6 +18,7 @@ describe('useAuthStore', () => {
     id: '1',
     email: 'test@example.com',
     name: 'Test User',
+    role: 'USER',
     createdAt: '2024-01-01',
     updatedAt: '2024-01-01',
   }
