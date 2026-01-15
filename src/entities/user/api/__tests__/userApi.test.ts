@@ -1,5 +1,5 @@
-import { userApi } from '../index'
 import http from '@/shared/lib/http'
+import { userApi } from '../index'
 
 // Mock the HTTP client
 jest.mock('@/shared/lib/http')
@@ -12,16 +12,22 @@ describe('userApi', () => {
   describe('getCurrent', () => {
     it('should call GET /user/profile', async () => {
       const mockUser = {
-        id: '1',
+        id: 1,
         email: 'test@example.com',
-        name: 'Test User',
+        firstName: 'Test',
+        lastName: 'User',
+        fullName: 'Test User',
+        role: 'USER',
+        status: 'ACTIVE',
         createdAt: '2024-01-01',
         updatedAt: '2024-01-01',
       }
 
       ;(http.get as jest.Mock).mockResolvedValue({
-        status: 200,
-        payload: mockUser,
+        success: true,
+        message: 'Success',
+        data: mockUser,
+        timestamp: '2024-01-01',
       })
 
       await userApi.getCurrent()
@@ -32,36 +38,49 @@ describe('userApi', () => {
 
     it('should return user data on success', async () => {
       const mockUser = {
-        id: '1',
+        id: 1,
         email: 'test@example.com',
-        name: 'Test User',
+        firstName: 'Test',
+        lastName: 'User',
+        fullName: 'Test User',
+        role: 'USER',
+        status: 'ACTIVE',
         createdAt: '2024-01-01',
         updatedAt: '2024-01-01',
       }
 
       ;(http.get as jest.Mock).mockResolvedValue({
-        status: 200,
-        payload: mockUser,
+        success: true,
+        message: 'Success',
+        data: mockUser,
+        timestamp: '2024-01-01',
       })
 
       const result = await userApi.getCurrent()
 
-      expect(result.payload).toEqual(mockUser)
+      expect(result.data).toEqual(mockUser)
     })
   })
 
   describe('getById', () => {
     it('should call GET /users/:id with correct id', async () => {
       const mockUser = {
-        id: '123',
+        id: 123,
         email: 'user@example.com',
+        firstName: 'Test',
+        lastName: 'User',
+        fullName: 'Test User',
+        role: 'USER',
+        status: 'ACTIVE',
         createdAt: '2024-01-01',
         updatedAt: '2024-01-01',
       }
 
       ;(http.get as jest.Mock).mockResolvedValue({
-        status: 200,
-        payload: mockUser,
+        success: true,
+        message: 'Success',
+        data: mockUser,
+        timestamp: '2024-01-01',
       })
 
       await userApi.getById('123')
@@ -71,37 +90,50 @@ describe('userApi', () => {
 
     it('should return user data for specific id', async () => {
       const mockUser = {
-        id: '456',
+        id: 456,
         email: 'specific@example.com',
+        firstName: 'Specific',
+        lastName: 'User',
+        fullName: 'Specific User',
+        role: 'USER',
+        status: 'ACTIVE',
         createdAt: '2024-01-01',
         updatedAt: '2024-01-01',
       }
 
       ;(http.get as jest.Mock).mockResolvedValue({
-        status: 200,
-        payload: mockUser,
+        success: true,
+        message: 'Success',
+        data: mockUser,
+        timestamp: '2024-01-01',
       })
 
       const result = await userApi.getById('456')
 
-      expect(result.payload).toEqual(mockUser)
+      expect(result.data).toEqual(mockUser)
     })
   })
 
   describe('update', () => {
     it('should call PUT /user/profile with data', async () => {
-      const updateData = { name: 'Updated Name' }
+      const updateData = { firstName: 'Updated Name' }
       const mockUpdatedUser = {
-        id: '1',
+        id: 1,
         email: 'test@example.com',
-        name: 'Updated Name',
+        firstName: 'Updated Name',
+        lastName: 'User',
+        fullName: 'Updated Name User',
+        role: 'USER',
+        status: 'ACTIVE',
         createdAt: '2024-01-01',
         updatedAt: '2024-01-02',
       }
 
       ;(http.put as jest.Mock).mockResolvedValue({
-        status: 200,
-        payload: mockUpdatedUser,
+        success: true,
+        message: 'Success',
+        data: mockUpdatedUser,
+        timestamp: '2024-01-01',
       })
 
       await userApi.update(updateData)
@@ -110,38 +142,50 @@ describe('userApi', () => {
     })
 
     it('should return updated user data', async () => {
-      const updateData = { name: 'Updated Name', email: 'newemail@example.com' }
+      const updateData = { firstName: 'Updated Name', email: 'newemail@example.com' }
       const mockUpdatedUser = {
-        id: '1',
+        id: 1,
         email: 'newemail@example.com',
-        name: 'Updated Name',
+        firstName: 'Updated Name',
+        lastName: 'User',
+        fullName: 'Updated Name User',
+        role: 'USER',
+        status: 'ACTIVE',
         createdAt: '2024-01-01',
         updatedAt: '2024-01-02',
       }
 
       ;(http.put as jest.Mock).mockResolvedValue({
-        status: 200,
-        payload: mockUpdatedUser,
+        success: true,
+        message: 'Success',
+        data: mockUpdatedUser,
+        timestamp: '2024-01-01',
       })
 
       const result = await userApi.update(updateData)
 
-      expect(result.payload).toEqual(mockUpdatedUser)
+      expect(result.data).toEqual(mockUpdatedUser)
     })
 
     it('should handle partial updates', async () => {
-      const partialData = { name: 'New Name Only' }
+      const partialData = { firstName: 'New Name Only' }
       const mockUser = {
-        id: '1',
+        id: 1,
         email: 'test@example.com',
-        name: 'New Name Only',
+        firstName: 'New Name Only',
+        lastName: 'User',
+        fullName: 'New Name Only User',
+        role: 'USER',
+        status: 'ACTIVE',
         createdAt: '2024-01-01',
         updatedAt: '2024-01-01',
       }
 
       ;(http.put as jest.Mock).mockResolvedValue({
-        status: 200,
-        payload: mockUser,
+        success: true,
+        message: 'Success',
+        data: mockUser,
+        timestamp: '2024-01-01',
       })
 
       await userApi.update(partialData)
