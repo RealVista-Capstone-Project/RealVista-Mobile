@@ -4,10 +4,14 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as Google from 'expo-auth-session/providers/google'
 import { Link } from 'expo-router'
 import * as WebBrowser from 'expo-web-browser'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { Button, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { z } from 'zod'
+
+import { Ionicons } from '@expo/vector-icons'
+import LogoGoogle from '../../../../assets/images/google-logo.svg'
+import LogoApp from '../../../../assets/images/logo.svg'
 
 WebBrowser.maybeCompleteAuthSession()
 
@@ -21,6 +25,7 @@ type LoginFormData = z.infer<typeof loginSchema>
 export function LoginForm() {
   const { mutate: login, isPending: isLoginPending } = useLogin()
   const { mutate: googleLogin, isPending: isGoogleLoginPending } = useGoogleLogin()
+  const [showPassword, setShowPassword] = useState(false)
 
   const [, response, promptAsync] = Google.useAuthRequest({
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
@@ -56,107 +61,139 @@ export function LoginForm() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Email</Text>
-        <Controller
-          control={control}
-          name='email'
-          render={({ field: { onChange, value } }) => (
-            <TextInput
-              style={styles.input}
-              placeholder='Enter your email'
-              autoCapitalize='none'
-              keyboardType='email-address'
-              onChangeText={onChange}
-              value={value}
-            />
-          )}
-        />
-        {errors.email && <Text style={styles.error}>{errors.email.message}</Text>}
+    <View className='flex-1 bg-white'>
+      {/* Header */}
+      <View className='mb-10 border-b border-gray-100 pb-4'>
+        <View className='flex-row items-center'>
+          <LogoApp width={32} height={32} className='mr-3' />
+          <Text className='text-xl text-brand-secondary font-jakarta-bold'>RealVista</Text>
+        </View>
       </View>
 
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Password</Text>
-        <Controller
-          control={control}
-          name='password'
-          render={({ field: { onChange, value } }) => (
-            <TextInput
-              style={styles.input}
-              placeholder='Enter your password'
-              secureTextEntry
-              onChangeText={onChange}
-              value={value}
-            />
-          )}
-        />
-        {errors.password && <Text style={styles.error}>{errors.password.message}</Text>}
+      {/* Welcome Text */}
+      <View className='mb-8 items-center'>
+        <Text className='mb-2 text-[32px] leading-tight text-text-main font-jakarta-bold text-center'>
+          Welcome back
+        </Text>
+        <Text className='text-base text-text-muted font-jakarta text-center'>
+          Welcome back! Please enter your details.
+        </Text>
       </View>
 
-      <Button
-        title={isLoginPending ? 'Logging in...' : 'Login'}
-        onPress={handleSubmit(onSubmit)}
-        disabled={isLoginPending || isGoogleLoginPending}
-      />
+      {/* Form */}
+      <View className='space-y-6'>
+        {/* Email */}
+        <View>
+          <Text className='mb-2 text-sm text-text-main font-jakarta-medium'>Email</Text>
+          <Controller
+            control={control}
+            name='email'
+            render={({ field: { onChange, value } }) => (
+              <TextInput
+                className='h-[48px] rounded-lg border border-input-border bg-input-bg px-4 text-base text-text-main font-jakarta-medium'
+                placeholder='hi@example.com'
+                placeholderTextColor='#9EA3AE'
+                autoCapitalize='none'
+                keyboardType='email-address'
+                onChangeText={onChange}
+                value={value}
+              />
+            )}
+          />
+          {errors.email && (
+            <Text className='mt-1 text-sm text-red-500 font-jakarta'>{errors.email.message}</Text>
+          )}
+        </View>
 
-      <Button
-        title={isGoogleLoginPending ? 'Signing in with Google...' : 'Login with Google'}
-        onPress={() => promptAsync()}
-        disabled={isLoginPending || isGoogleLoginPending}
-        color='#DB4437'
-      />
+        {/* Password */}
+        <View>
+          <Text className='mb-2 text-sm text-text-main font-jakarta-medium'>Password</Text>
+          <Controller
+            control={control}
+            name='password'
+            render={({ field: { onChange, value } }) => (
+              <View className='relative'>
+                <TextInput
+                  className='h-[48px] rounded-lg border border-input-border bg-input-bg pl-4 pr-12 text-base text-text-main font-jakarta-medium'
+                  placeholder='Enter password'
+                  placeholderTextColor='#9EA3AE'
+                  secureTextEntry={!showPassword}
+                  onChangeText={onChange}
+                  value={value}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                  className='absolute bottom-0 right-0 top-0 items-center justify-center px-4'
+                >
+                  <Ionicons
+                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={20}
+                    color='#9EA3AE'
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
+          />
+          {errors.password && (
+            <Text className='mt-1 text-sm text-red-500 font-jakarta'>
+              {errors.password.message}
+            </Text>
+          )}
+        </View>
 
-      <View style={styles.footer}>
-        <Text>Don&apos;t have an account? </Text>
-        <Link href={'/(auth)/sign-up' as any} asChild>
-          <TouchableOpacity>
-            <Text style={styles.link}>Sign Up</Text>
+        {/* Forgot Password */}
+        <View className='items-end'>
+          <TouchableOpacity className='py-1'>
+            <Text className='text-sm font-bold text-brand-primary font-jakarta-bold'>
+              Forgot Password?
+            </Text>
           </TouchableOpacity>
-        </Link>
+        </View>
+
+        {/* Login Button */}
+        <TouchableOpacity
+          onPress={handleSubmit(onSubmit)}
+          disabled={isLoginPending}
+          testID='login-button'
+          className='h-[48px] w-full items-center justify-center rounded-lg bg-brand-primary active:opacity-90 mt-2'
+        >
+          {isLoginPending ? (
+            <ActivityIndicator color='white' testID='login-loading' />
+          ) : (
+            <Text className='text-base font-bold text-white font-jakarta-bold' testID='login-text'>
+              Login
+            </Text>
+          )}
+        </TouchableOpacity>
+
+        {/* Google Login */}
+        <TouchableOpacity
+          onPress={() => promptAsync()}
+          disabled={isGoogleLoginPending}
+          className='h-[48px] w-full flex-row items-center justify-center rounded-lg border border-gray-200 bg-white active:bg-gray-50 mt-4'
+        >
+          {isGoogleLoginPending ? (
+            <ActivityIndicator color='#000' />
+          ) : (
+            <>
+              <LogoGoogle width={20} height={20} style={{ marginRight: 8 }} />
+              <Text className='text-base font-bold text-text-main font-jakarta-bold'>
+                Continue with Google
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        {/* Footer */}
+        <View className='mt-6 flex-row justify-center'>
+          <Text className='text-text-muted font-jakarta'>Don&apos;t have an account? </Text>
+          <Link href={'/(auth)/sign-up' as any} asChild>
+            <TouchableOpacity>
+              <Text className='font-bold text-text-main font-jakarta-bold'>Sign up for free</Text>
+            </TouchableOpacity>
+          </Link>
+        </View>
       </View>
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    gap: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  inputContainer: {
-    gap: 8,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-  },
-  error: {
-    color: 'red',
-    fontSize: 12,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 16,
-  },
-  link: {
-    color: 'blue',
-    fontWeight: 'bold',
-  },
-})

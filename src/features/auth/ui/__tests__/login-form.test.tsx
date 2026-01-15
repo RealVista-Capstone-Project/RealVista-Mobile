@@ -57,23 +57,30 @@ describe('LoginForm', () => {
   it('should render login form correctly', () => {
     render(<LoginForm />, { wrapper })
 
-    const loginElements = screen.getAllByText('Login')
-    expect(loginElements).toHaveLength(2) // Title and button
+    expect(screen.getAllByText(/Welcome back/i).length).toBeGreaterThan(0)
+    expect(screen.getByTestId('login-text')).toBeTruthy()
     expect(screen.getByText('Email')).toBeTruthy()
     expect(screen.getByText('Password')).toBeTruthy()
   })
 
+  // ... (intermediate tests unchanged logic, but I need to make sure I don't delete them again!)
+  // Wait, replace_file_content works on line ranges.
+  // I will target SPECIFIC line ranges to avoid deleting the middle.
+  // I need to be careful.
+  // I'll update 'should render' block first.
+  // Then update 'should disable' block separately.
+
   it('should render email input with correct placeholder', () => {
     render(<LoginForm />, { wrapper })
 
-    const emailInput = screen.getByPlaceholderText('Enter your email')
+    const emailInput = screen.getByPlaceholderText('hi@example.com')
     expect(emailInput).toBeTruthy()
   })
 
   it('should render password input with secure text entry', () => {
     render(<LoginForm />, { wrapper })
 
-    const passwordInput = screen.getByPlaceholderText('Enter your password')
+    const passwordInput = screen.getByPlaceholderText('Enter password')
     expect(passwordInput).toBeTruthy()
     expect(passwordInput.props.secureTextEntry).toBe(true)
   })
@@ -81,9 +88,8 @@ describe('LoginForm', () => {
   it('should show validation error for invalid email', async () => {
     render(<LoginForm />, { wrapper })
 
-    const emailInput = screen.getByPlaceholderText('Enter your email')
-    const loginElements = screen.getAllByText('Login')
-    const loginButton = loginElements[1] // Button is the second "Login" text
+    const emailInput = screen.getByPlaceholderText('hi@example.com')
+    const loginButton = screen.getByTestId('login-button')
 
     fireEvent.changeText(emailInput, 'invalid-email')
     fireEvent.press(loginButton)
@@ -99,10 +105,9 @@ describe('LoginForm', () => {
   it('should show validation error for short password', async () => {
     render(<LoginForm />, { wrapper })
 
-    const emailInput = screen.getByPlaceholderText('Enter your email')
-    const passwordInput = screen.getByPlaceholderText('Enter your password')
-    const loginElements = screen.getAllByText('Login')
-    const loginButton = loginElements[1]
+    const emailInput = screen.getByPlaceholderText('hi@example.com')
+    const passwordInput = screen.getByPlaceholderText('Enter password')
+    const loginButton = screen.getByTestId('login-button')
 
     fireEvent.changeText(emailInput, 'test@example.com')
     fireEvent.changeText(passwordInput, '12345')
@@ -116,10 +121,9 @@ describe('LoginForm', () => {
   it('should call login mutation with valid credentials', async () => {
     render(<LoginForm />, { wrapper })
 
-    const emailInput = screen.getByPlaceholderText('Enter your email')
-    const passwordInput = screen.getByPlaceholderText('Enter your password')
-    const loginElements = screen.getAllByText('Login')
-    const loginButton = loginElements[1]
+    const emailInput = screen.getByPlaceholderText('hi@example.com')
+    const passwordInput = screen.getByPlaceholderText('Enter password')
+    const loginButton = screen.getByTestId('login-button')
 
     fireEvent.changeText(emailInput, 'test@example.com')
     fireEvent.changeText(passwordInput, 'password123')
@@ -141,8 +145,8 @@ describe('LoginForm', () => {
     })
 
     render(<LoginForm />, { wrapper })
-
-    expect(screen.getByText('Logging in...')).toBeTruthy()
+    expect(screen.getByTestId('login-loading')).toBeTruthy()
+    expect(screen.queryByTestId('login-text')).toBeNull()
   })
 
   it('should disable button when isPending is true', () => {
@@ -154,25 +158,26 @@ describe('LoginForm', () => {
 
     render(<LoginForm />, { wrapper })
 
-    const loginButton = screen.getByText('Logging in...')
-    expect(loginButton.props.disabled).toBe(true)
+    const loginButton = screen.getByTestId('login-button')
+
+    // Check truthiness of disabled prop or accessibilityState
+    // TouchableOpacity often puts disabled into accessibilityState
+    const isDisabled = loginButton.props.disabled || loginButton.props.accessibilityState?.disabled
+    expect(isDisabled).toBeTruthy()
   })
 
   it('should enable button when isPending is false', () => {
     render(<LoginForm />, { wrapper })
-
-    const loginElements = screen.getAllByText('Login')
-    const loginButton = loginElements[1]
+    const loginButton = screen.getByTestId('login-button')
     expect(loginButton.props.disabled).toBe(false)
   })
 
   it('should not call login mutation with invalid email', async () => {
     render(<LoginForm />, { wrapper })
 
-    const emailInput = screen.getByPlaceholderText('Enter your email')
-    const passwordInput = screen.getByPlaceholderText('Enter your password')
-    const loginElements = screen.getAllByText('Login')
-    const loginButton = loginElements[1]
+    const emailInput = screen.getByPlaceholderText('hi@example.com')
+    const passwordInput = screen.getByPlaceholderText('Enter password')
+    const loginButton = screen.getByTestId('login-button')
 
     fireEvent.changeText(emailInput, 'invalid-email')
     fireEvent.changeText(passwordInput, 'password123')
@@ -187,10 +192,9 @@ describe('LoginForm', () => {
   it('should not call login mutation with short password', async () => {
     render(<LoginForm />, { wrapper })
 
-    const emailInput = screen.getByPlaceholderText('Enter your email')
-    const passwordInput = screen.getByPlaceholderText('Enter your password')
-    const loginElements = screen.getAllByText('Login')
-    const loginButton = loginElements[1]
+    const emailInput = screen.getByPlaceholderText('hi@example.com')
+    const passwordInput = screen.getByPlaceholderText('Enter password')
+    const loginButton = screen.getByTestId('login-button')
 
     fireEvent.changeText(emailInput, 'test@example.com')
     fireEvent.changeText(passwordInput, '12345')
@@ -205,8 +209,7 @@ describe('LoginForm', () => {
   it('should handle empty fields', async () => {
     render(<LoginForm />, { wrapper })
 
-    const loginElements = screen.getAllByText('Login')
-    const loginButton = loginElements[1]
+    const loginButton = screen.getByTestId('login-button')
     fireEvent.press(loginButton)
 
     await waitFor(() => {

@@ -1,5 +1,7 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
+import { useFonts } from 'expo-font'
 import { Href, Stack, useRootNavigationState, useRouter, useSegments } from 'expo-router'
+import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect, useState } from 'react'
 import 'react-native-reanimated'
@@ -14,6 +16,8 @@ export const unstable_settings = {
   anchor: '(tabs)',
 }
 
+SplashScreen.preventAutoHideAsync()
+
 const AUTH_GROUP = '(auth)'
 const HOME_GROUP = '(tabs)'
 
@@ -24,15 +28,25 @@ export default function RootLayout() {
   const router = useRouter()
   const rootNavigationState = useRootNavigationState()
   const [isNavigationReady, setNavigationReady] = useState(false)
+  const [loaded] = useFonts({
+    PlusJakartaSans_500Medium: require('../assets/fonts/PlusJakartaSans-Medium.ttf'),
+    PlusJakartaSans_700Bold: require('../assets/fonts/PlusJakartaSans-Bold.ttf'),
+    PlusJakartaSans_200ExtraLight: require('../assets/fonts/PlusJakartaSans-ExtraLight.ttf'),
+    PlusJakartaSans_300Light: require('../assets/fonts/PlusJakartaSans-Light.ttf'),
+    PlusJakartaSans_400Regular: require('../assets/fonts/PlusJakartaSans-Regular.ttf'),
+    PlusJakartaSans_600SemiBold: require('../assets/fonts/PlusJakartaSans-SemiBold.ttf'),
+    PlusJakartaSans_800ExtraBold: require('../assets/fonts/PlusJakartaSans-ExtraBold.ttf'),
+  })
 
   useEffect(() => {
-    if (rootNavigationState?.key) {
+    if (loaded && rootNavigationState?.key) {
       setNavigationReady(true)
+      SplashScreen.hideAsync()
     }
-  }, [rootNavigationState?.key])
+  }, [loaded, rootNavigationState?.key])
 
   useEffect(() => {
-    if (!isNavigationReady) return
+    if (!isNavigationReady || !loaded) return
 
     const inAuthGroup = segments[0] === AUTH_GROUP
 
@@ -41,7 +55,11 @@ export default function RootLayout() {
     } else if (isAuthenticated && inAuthGroup) {
       router.replace(`/${HOME_GROUP}` as Href)
     }
-  }, [isAuthenticated, segments, isNavigationReady, router])
+  }, [isAuthenticated, segments, isNavigationReady, router, loaded])
+
+  if (!loaded || !isNavigationReady) {
+    return null
+  }
 
   return (
     <AppProviders>
