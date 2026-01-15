@@ -22,18 +22,12 @@ export function LoginForm() {
   const { mutate: login, isPending: isLoginPending } = useLogin()
   const { mutate: googleLogin, isPending: isGoogleLoginPending } = useGoogleLogin()
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
+  const [, response, promptAsync] = Google.useAuthRequest({
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
     scopes: ['profile', 'email'],
   })
-
-  useEffect(() => {
-    if (request) {
-      console.log('Redirect URI:', request.redirectUri)
-    }
-  }, [request])
 
   useEffect(() => {
     if (response?.type === 'success') {
