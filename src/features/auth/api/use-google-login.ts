@@ -4,9 +4,9 @@ import { useMutation } from '@tanstack/react-query'
 import { router } from 'expo-router'
 import { Alert } from 'react-native'
 
-export const useLogin = () => {
+export const useGoogleLogin = () => {
   return useMutation({
-    mutationFn: userApi.login,
+    mutationFn: userApi.loginGoogle,
     onSuccess: async (res) => {
       // res is ApiResponse<AuthResponse>
       if (res.success && res.data.access_token) {
@@ -17,14 +17,14 @@ export const useLogin = () => {
         setToken(res.data.access_token)
         setIsAuthenticated(true)
 
-        Alert.alert('Success', 'Login successful')
-        router.replace('/(tabs)') // Adjust route as needed, checking app structure
+        Alert.alert('Success', 'Google Login successful')
+        router.replace('/(tabs)')
       } else {
-        Alert.alert('Error', res.message || 'Login failed')
+        Alert.alert('Error', res.message || 'Google Login failed')
       }
     },
     onError: (error: any) => {
-      Alert.alert('Error', error.message || 'Login failed')
+      Alert.alert('Error', error.message || 'Google Login failed')
     },
   })
 }

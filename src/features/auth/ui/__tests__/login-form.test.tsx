@@ -1,11 +1,30 @@
-import React from 'react'
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react-native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react-native'
+import React from 'react'
 import { LoginForm } from '../login-form'
 
 // Mock the useLogin hook
 jest.mock('@/features/auth/api/use-login', () => ({
   useLogin: jest.fn(),
+}))
+
+jest.mock('@/features/auth/api/use-google-login', () => ({
+  useGoogleLogin: jest.fn().mockReturnValue({
+    mutate: jest.fn(),
+    isPending: false,
+  }),
+}))
+
+jest.mock('expo-auth-session/providers/google', () => ({
+  useAuthRequest: jest.fn().mockReturnValue([
+    null, // request
+    null, // response
+    jest.fn(), // promptAsync
+  ]),
+}))
+
+jest.mock('expo-web-browser', () => ({
+  maybeCompleteAuthSession: jest.fn(),
 }))
 
 /* eslint-disable @typescript-eslint/no-require-imports */
