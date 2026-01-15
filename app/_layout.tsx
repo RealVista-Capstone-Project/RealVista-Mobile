@@ -1,5 +1,5 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
-import { Stack, useRootNavigationState, useRouter, useSegments } from 'expo-router'
+import { Href, Stack, useRootNavigationState, useRouter, useSegments } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect, useState } from 'react'
 import 'react-native-reanimated'
@@ -13,6 +13,9 @@ import '../global.css'
 export const unstable_settings = {
   anchor: '(tabs)',
 }
+
+const AUTH_GROUP = '(auth)'
+const HOME_GROUP = '(tabs)'
 
 export default function RootLayout() {
   const colorScheme = useColorScheme()
@@ -31,12 +34,12 @@ export default function RootLayout() {
   useEffect(() => {
     if (!isNavigationReady) return
 
-    const inAuthGroup = segments[0] === '(auth)'
+    const inAuthGroup = segments[0] === AUTH_GROUP
 
     if (!isAuthenticated && !inAuthGroup) {
-      router.replace('/(auth)/login')
+      router.replace(`/${AUTH_GROUP}/login` as Href)
     } else if (isAuthenticated && inAuthGroup) {
-      router.replace('/(tabs)')
+      router.replace(`/${HOME_GROUP}` as Href)
     }
   }, [isAuthenticated, segments, isNavigationReady, router])
 
