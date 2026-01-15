@@ -1,4 +1,4 @@
-import { ScrollView } from 'react-native'
+import { Button, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { HomePage } from '@/screens/home'
@@ -9,7 +9,6 @@ import { Text } from '@/shared/ui/text'
 import { UserHeader } from '@/widgets/user-header'
 
 import { useLogout } from '@/features/auth'
-import { Button } from 'react-native'
 
 export default function HomeScreen() {
   const { mutate: logout } = useLogout()

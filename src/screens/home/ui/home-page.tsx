@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet } from 'react-native'
-import { useCurrentUser, useAuth } from '@/features/auth'
+import { useAuth, useCurrentUser } from '@/features/auth'
+import { StyleSheet, Text, View } from 'react-native'
 
 export function HomePage() {
   const { data: user, isLoading } = useCurrentUser()
@@ -13,7 +13,7 @@ export function HomePage() {
         <Text>Loading...</Text>
       ) : isAuthenticated && user ? (
         <View style={styles.userInfo}>
-          <Text style={styles.userInfoText}>Hello, {user.name || user.email}!</Text>
+          <Text style={styles.userInfoText}>Hello, {user.fullName || user.email}!</Text>
         </View>
       ) : (
         <Text>You are not logged in</Text>
