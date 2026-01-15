@@ -3,8 +3,10 @@
  */
 
 export interface ApiResponse<T> {
-  payload: T
-  message?: string
+  success: boolean
+  message: string
+  data: T
+  timestamp: string
   errors?: Record<string, string[]>
 }
 

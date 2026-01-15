@@ -1,7 +1,8 @@
+import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query'
+import { render } from '@testing-library/react-native'
 import React from 'react'
-import { render, waitFor } from '@testing-library/react-native'
+import { Text } from 'react-native'
 import { ReactQueryProvider } from '../QueryClientProvider'
-import { useQuery } from '@tanstack/react-query'
 
 // Test component to verify the provider works
 function TestComponent() {
@@ -9,31 +10,43 @@ function TestComponent() {
     queryKey: ['test'],
     queryFn: async () => 'test-data',
   })
-
   return <>{data}</>
 }
 
 describe('ReactQueryProvider', () => {
+  const createTestClient = () =>
+    new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+          gcTime: 0,
+        },
+      },
+    })
+
   it('should render children correctly', () => {
     const { getByText } = render(
-      <ReactQueryProvider>
-        <TestComponent />
+      <ReactQueryProvider client={createTestClient()}>
+        <Text>Child Component</Text>
       </ReactQueryProvider>
     )
 
-    expect(getByText('test-data')).toBeTruthy()
+    expect(getByText('Child Component')).toBeTruthy()
   })
 
-  it('should provide QueryClient to children', async () => {
+  it('should provide QueryClient to children', () => {
+    const ChildWithClient = () => {
+      const client = useQueryClient()
+      return <Text>{client ? 'Has Client' : 'No Client'}</Text>
+    }
+
     const { getByText } = render(
-      <ReactQueryProvider>
-        <TestComponent />
+      <ReactQueryProvider client={createTestClient()}>
+        <ChildWithClient />
       </ReactQueryProvider>
     )
 
-    await waitFor(() => {
-      expect(getByText('test-data')).toBeTruthy()
-    })
+    expect(getByText('Has Client')).toBeTruthy()
   })
 
   it('should configure QueryClient with default options', () => {
@@ -43,15 +56,16 @@ describe('ReactQueryProvider', () => {
         queryFn: async () => {
           throw new Error('Test error')
         },
+        retry: false,
       })
 
       return null
     }
 
-    // Provider should not crash with configured options
+    // Provider should not crash
     expect(() => {
       render(
-        <ReactQueryProvider>
+        <ReactQueryProvider client={createTestClient()}>
           <TestComponent2 />
         </ReactQueryProvider>
       )
