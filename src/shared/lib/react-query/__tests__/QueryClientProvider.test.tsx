@@ -4,15 +4,6 @@ import React from 'react'
 import { Text } from 'react-native'
 import { ReactQueryProvider } from '../QueryClientProvider'
 
-// Test component to verify the provider works
-function TestComponent() {
-  const { data } = useQuery({
-    queryKey: ['test'],
-    queryFn: async () => 'test-data',
-  })
-  return <>{data}</>
-}
-
 describe('ReactQueryProvider', () => {
   const createTestClient = () =>
     new QueryClient({

@@ -213,4 +213,54 @@ describe('userApi', () => {
       await expect(userApi.getById('999')).rejects.toEqual(mockError)
     })
   })
+
+  describe('login', () => {
+    it('should call POST /auth/login with credentials', async () => {
+      const loginData = { email: 'test@example.com', password: 'password' }
+      const mockResponse = {
+        success: true,
+        data: { access_token: 'valid-token' },
+      }
+      ;(http.post as jest.Mock).mockResolvedValue(mockResponse)
+
+      await userApi.login(loginData)
+
+      expect(http.post).toHaveBeenCalledWith('/auth/login', loginData)
+    })
+  })
+
+  describe('register', () => {
+    it('should call POST /auth/register with user data', async () => {
+      const registerData = {
+        email: 'new@example.com',
+        password: 'password',
+        firstName: 'John',
+        lastName: 'Doe',
+      }
+      const mockResponse = {
+        success: true,
+        data: { id: 1, ...registerData },
+      }
+      ;(http.post as jest.Mock).mockResolvedValue(mockResponse)
+
+      await userApi.register(registerData)
+
+      expect(http.post).toHaveBeenCalledWith('/auth/register', registerData)
+    })
+  })
+
+  describe('loginGoogle', () => {
+    it('should call POST /auth/login-google-mobile with idToken', async () => {
+      const googleData = { idToken: 'google-token' }
+      const mockResponse = {
+        success: true,
+        data: { access_token: 'google-access-token' },
+      }
+      ;(http.post as jest.Mock).mockResolvedValue(mockResponse)
+
+      await userApi.loginGoogle(googleData)
+
+      expect(http.post).toHaveBeenCalledWith('/auth/login-google-mobile', googleData)
+    })
+  })
 })
