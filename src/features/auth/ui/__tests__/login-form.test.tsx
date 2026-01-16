@@ -169,7 +169,8 @@ describe('LoginForm', () => {
   it('should enable button when isPending is false', () => {
     render(<LoginForm />, { wrapper })
     const loginButton = screen.getByTestId('login-button')
-    expect(loginButton.props.disabled).toBe(false)
+    const isDisabled = loginButton.props.disabled || loginButton.props.accessibilityState?.disabled
+    expect(isDisabled).toBeFalsy()
   })
 
   it('should not call login mutation with invalid email', async () => {
