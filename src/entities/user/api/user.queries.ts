@@ -10,21 +10,21 @@ export const userQueries = {
   all: () =>
     queryOptions({
       queryKey: userKeys.all,
-      queryFn: () => userApi.getCurrent().then((res) => res.payload),
+      queryFn: () => userApi.getCurrent().then((res) => res.data),
       staleTime: 5 * 60 * 1000, // 5 minutes
     }),
 
   current: () =>
     queryOptions({
       queryKey: userKeys.current(),
-      queryFn: () => userApi.getCurrent().then((res) => res.payload),
+      queryFn: () => userApi.getCurrent().then((res) => res.data),
       staleTime: 5 * 60 * 1000, // 5 minutes
     }),
 
   detail: (id: string) =>
     queryOptions({
       queryKey: userKeys.detail(id),
-      queryFn: () => userApi.getById(id).then((res) => res.payload),
+      queryFn: () => userApi.getById(id).then((res) => res.data),
       enabled: !!id,
     }),
 } as const

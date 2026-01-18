@@ -1,29 +1,30 @@
 import { useAuthStore, userApi } from '@/entities/user'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useMutation } from '@tanstack/react-query'
+import { router } from 'expo-router'
+import { Alert } from 'react-native'
 
-interface LoginCredentials {
-  email: string
-  password: string
-}
-
-export function useLogin() {
-  const setUser = useAuthStore((state) => state.setUser)
-  const setToken = useAuthStore((state) => state.setToken)
-
+export const useLogin = () => {
   return useMutation({
-    mutationFn: (credentials: LoginCredentials) => userApi.getCurrent(),
-    onSuccess: async (response) => {
-      // Assuming your API returns token and user
-      // Adjust this based on your actual API response
-      const user = response.payload
+    mutationFn: userApi.login,
+    onSuccess: async (res) => {
+      // res is ApiResponse<AuthResponse>
+      if (res.success && res.data.access_token) {
+        await AsyncStorage.setItem('token', res.data.access_token)
 
-      // Store token
-      await AsyncStorage.setItem('token', 'dummy-token') // Replace with actual token from response
+        // Update user store
+        const { setToken, setIsAuthenticated } = useAuthStore.getState()
+        setToken(res.data.access_token)
+        setIsAuthenticated(true)
 
-      // Update Zustand store
-      setUser(user)
-      setToken('dummy-token') // Replace with actual token from response
+        Alert.alert('Success', 'Login successful')
+        router.replace('/(tabs)') // Adjust route as needed, checking app structure
+      } else {
+        Alert.alert('Error', res.message || 'Login failed')
+      }
+    },
+    onError: (error: any) => {
+      Alert.alert('Error', error.message || 'Login failed')
     },
   })
 }
