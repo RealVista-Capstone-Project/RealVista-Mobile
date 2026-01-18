@@ -251,7 +251,7 @@ describe('userApi', () => {
 
   describe('loginGoogle', () => {
     it('should call POST /auth/login-google-mobile with idToken', async () => {
-      const googleData = { idToken: 'google-token' }
+      const googleData = { idToken: 'google-token', platform: 'android' as const }
       const mockResponse = {
         success: true,
         data: { access_token: 'google-access-token' },

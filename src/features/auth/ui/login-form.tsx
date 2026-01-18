@@ -6,7 +6,7 @@ import { Link } from 'expo-router'
 import * as WebBrowser from 'expo-web-browser'
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { z } from 'zod'
 
 import { Ionicons } from '@expo/vector-icons'
@@ -35,11 +35,15 @@ export function LoginForm() {
   })
 
   useEffect(() => {
+    console.log(Platform.OS)
     if (response?.type === 'success') {
       const { id_token } = response.params
       const token = id_token
       if (token) {
-        googleLogin({ idToken: token })
+        googleLogin({
+          idToken: token,
+          platform: Platform.OS === 'ios' ? 'ios' : 'android',
+        })
       }
     }
   }, [response, googleLogin])

@@ -7,6 +7,6 @@ export const userApi = {
   update: (data: Partial<User>) => http.put<User>('/user/profile', data),
   login: (data: LoginPayload) => http.post<AuthResponse>('/auth/login', data),
   register: (data: RegisterPayload) => http.post<User>('/auth/register', data),
-  loginGoogle: (data: { idToken: string }) =>
+  loginGoogle: (data: { idToken: string; platform: 'android' | 'ios' }) =>
     http.post<AuthResponse>('/auth/login-google-mobile', data),
 } as const
