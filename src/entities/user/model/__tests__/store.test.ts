@@ -1,7 +1,7 @@
-import { renderHook, act } from '@testing-library/react-native'
-import { useAuthStore } from '../store'
-import type { User, AuthStore } from '../types'
+import { act, renderHook } from '@testing-library/react-native'
 import type { StateCreator } from 'zustand'
+import { useAuthStore } from '../store'
+import type { AuthStore, User } from '../types'
 
 // Mock zustand persist to avoid AsyncStorage issues in tests
 jest.mock('zustand/middleware', () => ({
@@ -15,9 +15,13 @@ jest.mock('zustand/middleware', () => ({
 
 describe('useAuthStore', () => {
   const mockUser: User = {
-    id: '1',
+    id: 1,
     email: 'test@example.com',
-    name: 'Test User',
+    firstName: 'Test',
+    lastName: 'User',
+    fullName: 'Test User',
+    role: 'USER',
+    status: 'ACTIVE',
     createdAt: '2024-01-01',
     updatedAt: '2024-01-01',
   }
@@ -84,8 +88,8 @@ describe('useAuthStore', () => {
   it('should handle multiple setUser calls', () => {
     const { result } = renderHook(() => useAuthStore())
 
-    const user1: User = { ...mockUser, id: '1', name: 'User 1' }
-    const user2: User = { ...mockUser, id: '2', name: 'User 2' }
+    const user1: User = { ...mockUser, id: 1, firstName: 'User 1' }
+    const user2: User = { ...mockUser, id: 2, firstName: 'User 2' }
 
     act(() => {
       result.current.setUser(user1)

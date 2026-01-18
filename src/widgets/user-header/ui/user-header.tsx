@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet, Pressable } from 'react-native'
 import { useAuth, useLogout } from '@/features/auth'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 export function UserHeader() {
   const { user, isAuthenticated } = useAuth()
@@ -12,7 +12,7 @@ export function UserHeader() {
   return (
     <View style={styles.container}>
       <View style={styles.userInfo}>
-        <Text style={styles.userName}>{user.name || user.email}</Text>
+        <Text style={styles.userName}>{user.fullName || user.email}</Text>
       </View>
 
       <Pressable

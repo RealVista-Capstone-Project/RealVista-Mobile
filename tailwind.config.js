@@ -19,6 +19,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        'brand-primary': '#7065F0',
+        'brand-secondary': '#100A55',
+        'input-bg': '#F7F7FD',
+        'input-border': '#E0DEF7',
+        'text-main': '#000929',
+        'text-muted': '#9EA3AE',
         primary: {
           0: 'rgb(var(--color-primary-0)/<alpha-value>)',
           50: 'rgb(var(--color-primary-50)/<alpha-value>)',
@@ -178,7 +184,11 @@ module.exports = {
         heading: undefined,
         body: undefined,
         mono: undefined,
-        jakarta: ['var(--font-plus-jakarta-sans)'],
+        jakarta: ['PlusJakartaSans_400Regular'],
+        'jakarta-medium': ['PlusJakartaSans_500Medium'],
+        'jakarta-semibold': ['PlusJakartaSans_600SemiBold'],
+        'jakarta-bold': ['PlusJakartaSans_700Bold'],
+        'jakarta-extrabold': ['PlusJakartaSans_800ExtraBold'],
         roboto: ['var(--font-roboto)'],
         code: ['var(--font-source-code-pro)'],
         inter: ['var(--font-inter)'],

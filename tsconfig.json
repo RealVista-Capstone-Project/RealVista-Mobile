@@ -6,7 +6,8 @@
     "paths": {
       "@/*": ["src/*"],
       "tailwind.config": ["./tailwind.config.js"]
-    }
+    },
+    "jsx": "react-native"
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts", "nativewind-env.d.ts"]
 }

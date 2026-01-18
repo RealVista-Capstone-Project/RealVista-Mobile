@@ -19,6 +19,7 @@ const mockAsyncStorage = {
 }
 
 jest.mock('@react-native-async-storage/async-storage', () => ({
+  __esModule: true,
   default: mockAsyncStorage,
 }))
 

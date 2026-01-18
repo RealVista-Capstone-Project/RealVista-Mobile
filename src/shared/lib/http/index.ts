@@ -1,14 +1,36 @@
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
+import type { ApiResponse, EntityError, HttpError } from '@/shared/types'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import type { ApiResponse, HttpError, EntityError } from '@/shared/types'
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
+import Constants from 'expo-constants'
+import { Platform } from 'react-native'
+
+const getBaseUrl = (): string => {
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL
+  }
+
+  if (__DEV__) {
+    const debuggerHost = Constants.expoConfig?.hostUri
+    const ip = debuggerHost?.split(':')[0]
+
+    if (ip) {
+      return `http://${ip}:8080/api/v1`
+    }
+
+    if (Platform.OS === 'android') {
+      return 'http://10.0.2.2:8080/api/v1'
+    }
+
+    return 'http://localhost:8080/api/v1'
+  }
+  return 'https://your-api.com/api'
+}
 
 class HttpClient {
   private client: AxiosInstance
   private baseURL: string
 
-  constructor(
-    baseURL: string = __DEV__ ? 'http://localhost:4000/api' : 'https://your-api.com/api'
-  ) {
+  constructor(baseURL: string = getBaseUrl()) {
     this.baseURL = baseURL
     this.client = axios.create({
       baseURL: this.baseURL,
