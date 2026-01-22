@@ -45,12 +45,22 @@ export default function RootLayout() {
     }
   }, [loaded, rootNavigationState?.key])
 
+  // TODO: Remove this block before merging - for reviewer UI testing only
+  // useEffect(() => {
+  //   if (!isNavigationReady || !loaded) return
+  //   router.replace('/dev' as Href)
+  // }, [isNavigationReady, router, loaded])
+
   useEffect(() => {
     if (!isNavigationReady || !loaded) return
 
-    // Temporary: Navigate to dev screen for UI testing
-    router.replace('/dev' as Href)
-    return
+    const inAuthGroup = segments[0] === _AUTH_GROUP
+
+    if (!isAuthenticated && !inAuthGroup) {
+      router.replace(`/${_AUTH_GROUP}/login` as Href)
+    } else if (isAuthenticated && inAuthGroup) {
+      router.replace(`/${_HOME_GROUP}` as Href)
+    }
   }, [isAuthenticated, segments, isNavigationReady, router, loaded])
 
   if (!loaded || !isNavigationReady) {
