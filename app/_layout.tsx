@@ -18,8 +18,8 @@ export const unstable_settings = {
 
 SplashScreen.preventAutoHideAsync()
 
-const AUTH_GROUP = '(auth)'
-const HOME_GROUP = '(tabs)'
+const _AUTH_GROUP = '(auth)'
+const _HOME_GROUP = '(tabs)'
 
 export default function RootLayout() {
   const colorScheme = useColorScheme()

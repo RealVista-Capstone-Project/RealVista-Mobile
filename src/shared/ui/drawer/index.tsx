@@ -1,17 +1,12 @@
 'use client'
-import React from 'react'
 import { createModal as createDrawer } from '@gluestack-ui/core/modal/creator'
-import {
-  Motion,
-  AnimatePresence,
-  createMotionComponent,
-  MotionComponentProps,
-} from '@legendapp/motion'
-import { tva, withStyleContext, useStyleContext } from '@gluestack-ui/utils/nativewind-utils'
+import { tva, useStyleContext, withStyleContext } from '@gluestack-ui/utils/nativewind-utils'
+import { AnimatePresence, Motion, MotionComponentProps } from '@legendapp/motion'
+import React from 'react'
 
-import { cssInterop } from 'nativewind'
 import type { VariantProps } from '@gluestack-ui/utils/nativewind-utils'
-import { Pressable, View, Dimensions } from 'react-native'
+import { cssInterop } from 'nativewind'
+import { Dimensions, Pressable, View } from 'react-native'
 
 type IAnimatedPressableProps = React.ComponentProps<typeof Pressable> &
   MotionComponentProps<typeof Pressable, any, unknown, unknown, unknown>
@@ -277,20 +272,19 @@ const DrawerHeader = React.forwardRef<
   )
 })
 
-const DrawerBody = React.forwardRef<
-  React.ComponentRef<typeof UIDrawer.Body>,
-  IDrawerBodyProps
->(function DrawerBody({ className, ...props }, ref) {
-  return (
-    <UIDrawer.Body
-      ref={ref}
-      {...props}
-      className={drawerBodyStyle({
-        class: className,
-      })}
-    />
-  )
-})
+const DrawerBody = React.forwardRef<React.ComponentRef<typeof UIDrawer.Body>, IDrawerBodyProps>(
+  function DrawerBody({ className, ...props }, ref) {
+    return (
+      <UIDrawer.Body
+        ref={ref}
+        {...props}
+        className={drawerBodyStyle({
+          class: className,
+        })}
+      />
+    )
+  }
+)
 
 const DrawerFooter = React.forwardRef<
   React.ComponentRef<typeof UIDrawer.Footer>,
@@ -333,9 +327,9 @@ DrawerCloseButton.displayName = 'DrawerCloseButton'
 export {
   Drawer,
   DrawerBackdrop,
-  DrawerContent,
-  DrawerCloseButton,
-  DrawerHeader,
   DrawerBody,
+  DrawerCloseButton,
+  DrawerContent,
   DrawerFooter,
+  DrawerHeader,
 }

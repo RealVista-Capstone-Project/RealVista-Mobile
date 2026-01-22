@@ -8,20 +8,20 @@ export function AppHeader() {
   const { toggleDrawer } = useDrawerStore()
 
   return (
-    <View className="flex-row items-center justify-between border-b border-border bg-white px-4 py-3">
+    <View className='flex-row items-center justify-between border-b border-border bg-white px-4 py-3'>
       {/* Hamburger Menu Button */}
       <Pressable
         onPress={toggleDrawer}
-        className="h-10 w-10 items-center justify-center rounded-lg active:bg-grey-100"
+        className='h-10 w-10 items-center justify-center rounded-lg active:bg-grey-100'
       >
-        <IconSymbol name="line.3.horizontal" size={24} color="#100a55" />
+        <IconSymbol name='line.3.horizontal' size={24} color='#100a55' />
       </Pressable>
 
       {/* Title */}
-      <Text className="font-jakarta-semibold text-base text-main-secondary">Real Estate</Text>
+      <Text className='font-jakarta-semibold text-base text-main-secondary'>Real Estate</Text>
 
       {/* Placeholder for right side (avatar, notifications, etc.) */}
-      <Box className="h-10 w-10" />
+      <Box className='h-10 w-10' />
     </View>
   )
 }

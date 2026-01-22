@@ -1,7 +1,8 @@
 import { useDrawerStore } from '@/shared/stores/drawer-store'
-import { Drawer, DrawerBackdrop, DrawerBody, DrawerContent } from '@/shared/ui/drawer'
+import { Drawer, DrawerBackdrop, DrawerBody, DrawerContent, DrawerFooter } from '@/shared/ui/drawer'
 import { IconSymbol } from '@/shared/ui/icon-symbol'
-import { Pressable, Text, View } from 'react-native'
+import { Text, TouchableOpacity, View } from 'react-native'
+import LogoFill from '../../../../assets/images/logo-fill.svg'
 
 type MenuItem = {
   id: string
@@ -33,36 +34,55 @@ export function SidebarDrawer() {
   const isItemActive = (itemId: string) => activeItem === itemId
 
   return (
-    <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)} size='md' anchor='left'>
+    <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)} size='full' anchor='left'>
       <DrawerBackdrop />
-      <DrawerContent className='bg-white'>
-        <DrawerBody>
-          <View style={{ gap: 32 }}>
-            {/* Main Menu */}
-            <View style={{ gap: 16 }}>
-              {MENU_ITEMS.map((item) => (
-                <MenuItemComponent
-                  key={item.id}
-                  item={item}
-                  isActive={isItemActive(item.id)}
-                  onPress={() => handleMenuItemPress(item.id)}
-                />
-              ))}
-            </View>
-
-            {/* Help & Settings */}
-            <View style={{ gap: 16 }}>
-              {HELP_ITEMS.map((item) => (
-                <MenuItemComponent
-                  key={item.id}
-                  item={item}
-                  isActive={isItemActive(item.id)}
-                  onPress={() => handleMenuItemPress(item.id)}
-                />
-              ))}
-            </View>
+      <DrawerContent className='bg-white' style={{ flex: 1 }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingVertical: 16,
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <LogoFill width={40} height={40} />
+            <Text style={{ fontSize: 18, fontWeight: '700', color: '#100A55' }}>RealVista</Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => setIsOpen(false)}
+            style={{ padding: 8 }}
+            activeOpacity={0.7}
+          >
+            <IconSymbol name='xmark' size={24} color='#6B7280' />
+          </TouchableOpacity>
+        </View>
+        <DrawerBody style={{ flex: 1 }}>
+          {/* Main Menu */}
+          <View style={{ gap: 16 }}>
+            {MENU_ITEMS.map((item) => (
+              <MenuItemComponent
+                key={item.id}
+                item={item}
+                isActive={isItemActive(item.id)}
+                onPress={() => handleMenuItemPress(item.id)}
+              />
+            ))}
           </View>
         </DrawerBody>
+        <DrawerFooter style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+          {/* Help & Settings */}
+          <View style={{ gap: 16, width: '100%' }}>
+            {HELP_ITEMS.map((item) => (
+              <MenuItemComponent
+                key={item.id}
+                item={item}
+                isActive={isItemActive(item.id)}
+                onPress={() => handleMenuItemPress(item.id)}
+              />
+            ))}
+          </View>
+        </DrawerFooter>
       </DrawerContent>
     </Drawer>
   )
@@ -76,7 +96,7 @@ type MenuItemProps = {
 
 function MenuItemComponent({ item, isActive, onPress }: MenuItemProps) {
   return (
-    <Pressable onPress={onPress} style={{ height: 48, width: '100%' }}>
+    <TouchableOpacity onPress={onPress} style={{ height: 48, width: '100%' }} activeOpacity={0.7}>
       <View
         style={{
           height: 48,
@@ -105,6 +125,6 @@ function MenuItemComponent({ item, isActive, onPress }: MenuItemProps) {
           {item.label}
         </Text>
       </View>
-    </Pressable>
+    </TouchableOpacity>
   )
 }
