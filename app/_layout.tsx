@@ -48,13 +48,9 @@ export default function RootLayout() {
   useEffect(() => {
     if (!isNavigationReady || !loaded) return
 
-    const inAuthGroup = segments[0] === AUTH_GROUP
-
-    if (!isAuthenticated && !inAuthGroup) {
-      router.replace(`/${AUTH_GROUP}/login` as Href)
-    } else if (isAuthenticated && inAuthGroup) {
-      router.replace(`/${HOME_GROUP}` as Href)
-    }
+    // Temporary: Navigate to dev screen for UI testing
+    router.replace('/dev' as Href)
+    return
   }, [isAuthenticated, segments, isNavigationReady, router, loaded])
 
   if (!loaded || !isNavigationReady) {
@@ -66,6 +62,7 @@ export default function RootLayout() {
       <GluestackUIProvider mode='dark'>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack>
+            <Stack.Screen name='dev' options={{ headerShown: false }} />
             <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
             <Stack.Screen name='(auth)/login' options={{ headerShown: false }} />
             <Stack.Screen name='modal' options={{ presentation: 'modal', title: 'Modal' }} />
