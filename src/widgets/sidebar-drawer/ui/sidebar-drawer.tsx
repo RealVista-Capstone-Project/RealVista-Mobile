@@ -104,6 +104,7 @@ function MenuItemComponent({ item, isActive, onPress }: MenuItemProps) {
           flexDirection: 'row',
           alignItems: 'center',
           gap: 12,
+          paddingHorizontal: 12,
           borderRadius: 8,
           backgroundColor: isActive ? '#F0EFFE' : 'transparent',
         }}
