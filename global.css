@@ -65,11 +65,7 @@
   --color-purple-98: var(--purple-98);
 
   /* Border Radius */
-  --radius-sm: var(--radius-sm);
-  --radius-md: var(--radius-md);
   --radius-lg: 0.625rem;
-  --radius-xl: var(--radius-xl);
-  --radius-2xl: var(--radius-2xl);
 }
 
 :root {
