@@ -6,7 +6,8 @@ import { RoleGuard } from '@/shared/lib/auth/role-guard'
 import { Box } from '@/shared/ui/box'
 import { Heading } from '@/shared/ui/heading'
 import { Text } from '@/shared/ui/text'
-import { UserHeader } from '@/widgets/user-header'
+import { AppHeader } from '@/widgets/app-header'
+import { SidebarDrawer } from '@/widgets/sidebar-drawer'
 
 import { useLogout } from '@/features/auth'
 
@@ -15,7 +16,8 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView className='flex-1 bg-gray-950' edges={['top']}>
-      <UserHeader />
+      <AppHeader />
+      <SidebarDrawer />
       <ScrollView className='flex-1 bg-gray-950'>
         <Box className='p-4'>
           {/* Welcome Section */}

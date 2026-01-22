@@ -18,8 +18,8 @@ export const unstable_settings = {
 
 SplashScreen.preventAutoHideAsync()
 
-const AUTH_GROUP = '(auth)'
-const HOME_GROUP = '(tabs)'
+const _AUTH_GROUP = '(auth)'
+const _HOME_GROUP = '(tabs)'
 
 export default function RootLayout() {
   const colorScheme = useColorScheme()
@@ -45,15 +45,21 @@ export default function RootLayout() {
     }
   }, [loaded, rootNavigationState?.key])
 
+  // TODO: Remove this block before merging - for reviewer UI testing only
+  // useEffect(() => {
+  //   if (!isNavigationReady || !loaded) return
+  //   router.replace('/dev' as Href)
+  // }, [isNavigationReady, router, loaded])
+
   useEffect(() => {
     if (!isNavigationReady || !loaded) return
 
-    const inAuthGroup = segments[0] === AUTH_GROUP
+    const inAuthGroup = segments[0] === _AUTH_GROUP
 
     if (!isAuthenticated && !inAuthGroup) {
-      router.replace(`/${AUTH_GROUP}/login` as Href)
+      router.replace(`/${_AUTH_GROUP}/login` as Href)
     } else if (isAuthenticated && inAuthGroup) {
-      router.replace(`/${HOME_GROUP}` as Href)
+      router.replace(`/${_HOME_GROUP}` as Href)
     }
   }, [isAuthenticated, segments, isNavigationReady, router, loaded])
 
@@ -66,6 +72,7 @@ export default function RootLayout() {
       <GluestackUIProvider mode='dark'>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack>
+            <Stack.Screen name='dev' options={{ headerShown: false }} />
             <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
             <Stack.Screen name='(auth)/login' options={{ headerShown: false }} />
             <Stack.Screen name='modal' options={{ presentation: 'modal', title: 'Modal' }} />
