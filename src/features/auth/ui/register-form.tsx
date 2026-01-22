@@ -188,7 +188,11 @@ export function RegisterForm() {
         />
       </View>
 
-      <Button className='mt-4' onPress={handleSubmit(onSubmit)} isDisabled={isPending}>
+      <Button
+        className='mt-4 bg-brand-primary'
+        onPress={handleSubmit(onSubmit)}
+        isDisabled={isPending}
+      >
         {isPending && <ButtonSpinner color='white' />}
         <ButtonText>{isPending ? 'Creating Account...' : 'Sign Up'}</ButtonText>
       </Button>
