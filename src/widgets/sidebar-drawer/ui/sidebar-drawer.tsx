@@ -43,6 +43,10 @@ export function SidebarDrawer() {
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingVertical: 16,
+            paddingTop: 30,
+            paddingBottom: 24,
+            borderBottomWidth: 1,
+            borderBottomColor: '#E5E7EB',
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
