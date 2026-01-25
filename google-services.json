@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "187808183162",
+    "firebase_url": "https://realvista-483603-default-rtdb.firebaseio.com",
+    "project_id": "realvista-483603",
+    "storage_bucket": "realvista-483603.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:187808183162:android:c145004d57c5062e4b1cc3",
+        "android_client_info": {
+          "package_name": "com.sep.realvista"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "187808183162-e15dlt9d47q0253t6d877ni63mkhf6cp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sep.realvista",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "187808183162-d1c7epojk3pgqkrn7fgidnabqdea3bl5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMuq2ZBkIODxg2yWMGt7I1D4HzvZYOdxM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "187808183162-d1c7epojk3pgqkrn7fgidnabqdea3bl5.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "187808183162-5kqt2r5vj7betgaq4i2p2cte1hmcn4jf.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.sep.realvista"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

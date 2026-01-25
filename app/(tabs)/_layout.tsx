@@ -58,6 +58,15 @@ export default function TabLayout() {
           ),
         }}
       />
+
+      {/*Added FCM Test tab */}
+      <Tabs.Screen
+        name='fcm-test'
+        options={{
+          title: 'FCM Test',
+          tabBarIcon: () => <Text>🔔</Text>,
+        }}
+      />
     </Tabs>
   )
 }

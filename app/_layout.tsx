@@ -1,4 +1,5 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
+import { requestNotificationPermission, onForegroundMessage } from '@/shared/lib/firebase/fcm'
 import { useFonts } from 'expo-font'
 import { Href, Stack, useRootNavigationState, useRouter, useSegments } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
@@ -62,6 +63,24 @@ export default function RootLayout() {
       router.replace(`/${_HOME_GROUP}` as Href)
     }
   }, [isAuthenticated, segments, isNavigationReady, router, loaded])
+
+  // Global Notification Listener
+  useEffect(() => {
+    // 1. Request Permission on App Start (optional, or wait for user action)
+    requestNotificationPermission().then((granted) => {
+      if (granted) {
+        console.log('Global notification permission granted')
+      }
+    })
+
+    // 2. Listen for foreground messages globally
+    const unsubscribe = onForegroundMessage((remoteMessage) => {
+      console.log('Global Foreground Notification:', remoteMessage.notification)
+      // You can show a toast or custom UI here
+    })
+
+    return () => unsubscribe()
+  }, [])
 
   if (!loaded || !isNavigationReady) {
     return null
