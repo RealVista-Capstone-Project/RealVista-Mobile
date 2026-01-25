@@ -1,9 +1,9 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
-import { useFCMMobile } from '@/features/auth/api/use-fcm-mobile';
+import React from 'react'
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native'
+import { useFCMMobile } from '@/features/auth/api/use-fcm-mobile'
 
 export function FCMTestPage() {
-  const { token, error, isLoading } = useFCMMobile();
+  const { token, error, isLoading } = useFCMMobile()
 
   return (
     <ScrollView style={styles.container}>
@@ -12,7 +12,7 @@ export function FCMTestPage() {
 
         {isLoading && (
           <View style={styles.section}>
-            <ActivityIndicator size="large" color="#3b82f6" />
+            <ActivityIndicator size='large' color='#3b82f6' />
             <Text style={styles.loadingText}>Setting up FCM...</Text>
           </View>
         )}
@@ -30,26 +30,16 @@ export function FCMTestPage() {
             <ScrollView horizontal style={styles.tokenScroll}>
               <Text style={styles.tokenText}>{token}</Text>
             </ScrollView>
-            <Text style={styles.hint}>
-              Token has been sent to backend automatically!
-            </Text>
+            <Text style={styles.hint}>Token has been sent to backend automatically!</Text>
           </View>
         )}
 
         <View style={styles.infoSection}>
           <Text style={styles.infoTitle}>Instructions:</Text>
-          <Text style={styles.infoText}>
-            1. Make sure backend is running on your computer
-          </Text>
-          <Text style={styles.infoText}>
-            2. Check console for FCM token
-          </Text>
-          <Text style={styles.infoText}>
-            3. Backend should send test notification
-          </Text>
-          <Text style={styles.infoText}>
-            4. You should see alert popup
-          </Text>
+          <Text style={styles.infoText}>1. Make sure backend is running on your computer</Text>
+          <Text style={styles.infoText}>2. Check console for FCM token</Text>
+          <Text style={styles.infoText}>3. Backend should send test notification</Text>
+          <Text style={styles.infoText}>4. You should see alert popup</Text>
         </View>
 
         <View style={styles.debugSection}>
@@ -62,7 +52,7 @@ export function FCMTestPage() {
         </View>
       </View>
     </ScrollView>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -178,4 +168,4 @@ const styles = StyleSheet.create({
     color: '#57534e',
     marginBottom: 4,
   },
-});
+})
