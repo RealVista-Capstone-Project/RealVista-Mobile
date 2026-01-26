@@ -10,7 +10,7 @@ export function PropertyHeader() {
       <TouchableOpacity className='flex-row items-center gap-1 text-main-primary'>
         <Icon as={ChevronLeftIcon} className='w-4 h-4 text-main-primary' />
         <Text size='lg' bold className='text-main-primary'>
-          Back to map
+          Về trang chủ
         </Text>
       </TouchableOpacity>
     </Box>

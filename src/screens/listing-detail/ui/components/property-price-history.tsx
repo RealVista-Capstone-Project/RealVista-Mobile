@@ -5,7 +5,7 @@ export function PropertyPriceHistory() {
   return (
     <Box className='mb-8'>
       <Text bold className='mb-8 text-main-black text-xl'>
-        Rent Price History for St. Crystal
+        Lịch sử giá thuê tại St. Crystal
       </Text>
 
       <Box className='rounded-lg border border-purple-96 bg-white p-6 text-base'>
@@ -16,11 +16,11 @@ export function PropertyPriceHistory() {
               28/12/2021
             </Text>
             <Text bold className='text-main-black'>
-              $2,700/mo
+              $2,700/tháng
             </Text>
           </Box>
           <Text bold className='mb-2 text-main-black'>
-            Listed for Sale
+            Niêm yết bán
           </Text>
           <Text className='text-brand-primary' size='sm'>
             Estatery
@@ -36,11 +36,11 @@ export function PropertyPriceHistory() {
               10/10/2021
             </Text>
             <Text bold className='text-main-black'>
-              $2,600/mo
+              $2,600/tháng
             </Text>
           </Box>
           <Text bold className='mb-2 text-main-black'>
-            PriceChange
+            Thay đổi giá
           </Text>
           <Text className='text-brand-primary' size='sm'>
             Estatery
@@ -56,14 +56,14 @@ export function PropertyPriceHistory() {
               03/04/2020
             </Text>
             <Text bold className='text-main-black'>
-              $2,000/mo
+              $2,000/tháng
             </Text>
           </Box>
           <Text bold className='mb-2 text-main-black'>
-            Rented
+            Đã cho thuê
           </Text>
           <Text className='text-brand-primary' size='sm'>
-            Public Records
+            Hồ sơ công khai
           </Text>
         </Box>
 
@@ -76,14 +76,14 @@ export function PropertyPriceHistory() {
               25/11/2019
             </Text>
             <Text bold className='text-main-black'>
-              $1,900/mo
+              $1,900/tháng
             </Text>
           </Box>
           <Text bold className='mb-2 text-main-black'>
             Black Friday
           </Text>
           <Text className='text-brand-primary' size='sm'>
-            Public Records
+            Hồ sơ công khai
           </Text>
         </Box>
 
@@ -96,14 +96,14 @@ export function PropertyPriceHistory() {
               09/02/2019
             </Text>
             <Text bold className='text-main-black'>
-              $1,800/mo
+              $1,800/tháng
             </Text>
           </Box>
           <Text bold className='mb-2 text-main-black'>
-            Listed for Sale
+            Niêm yết bán
           </Text>
           <Text className='text-brand-primary' size='sm'>
-            Public Records
+            Hồ sơ công khai
           </Text>
         </Box>
       </Box>

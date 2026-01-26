@@ -1,8 +1,7 @@
-import { TouchableOpacity } from 'react-native'
-
 import { Box } from '@/shared/ui/box'
 import IconLucide from '@/shared/ui/icon-lucide/icon'
 import { Text } from '@/shared/ui/text'
+import { TouchableOpacity } from 'react-native'
 
 interface ApplyAppBarProps {
   price?: string
@@ -13,7 +12,7 @@ interface ApplyAppBarProps {
 export function ApplyAppBar({
   price = '$2,700',
   onPress,
-  buttonLabel = 'Apply Now',
+  buttonLabel = 'Đăng ký ngay',
 }: ApplyAppBarProps) {
   return (
     <Box
@@ -34,7 +33,7 @@ export function ApplyAppBar({
         {/* Price Section */}
         <Box className='flex-col gap-1'>
           <Text className='text-main-black/50' size='sm'>
-            Rent price
+            Giá thuê
           </Text>
           <Box className='flex-row items-end gap-0.5'>
             <Text
@@ -49,7 +48,7 @@ export function ApplyAppBar({
               {price}
             </Text>
             <Text className='text-main-black/50 pb-1' size='sm' style={{ lineHeight: 20 }}>
-              /month
+              /tháng
             </Text>
           </Box>
         </Box>

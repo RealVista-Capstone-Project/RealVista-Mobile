@@ -10,13 +10,13 @@ export function PropertyActions() {
       <TouchableOpacity className='flex-1 flex-row items-center justify-center gap-2 rounded-lg border-2 border-purple-92 px-6 py-3 bg-purple-98'>
         <IconLucide size={20} name='Share2' color='#7065f0' />
         <Text bold className='text-main-primary'>
-          Share
+          Chia sẻ
         </Text>
       </TouchableOpacity>
       <TouchableOpacity className='flex-1 flex-row items-center justify-center gap-2 rounded-lg border-2 border-purple-92 px-6 py-3 bg-purple-98'>
         <IconLucide size={20} name='Heart' color='#7065f0' />
         <Text bold className='text-main-primary'>
-          Favorite
+          Yêu thích
         </Text>
       </TouchableOpacity>
     </Box>

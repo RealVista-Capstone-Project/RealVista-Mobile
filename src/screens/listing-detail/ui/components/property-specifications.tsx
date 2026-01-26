@@ -15,7 +15,7 @@ export function PropertySpecifications({ beds, baths }: PropertySpecificationsPr
         {/* Bed */}
         <Box className='w-20'>
           <Text className='mb-4 text-main-black/50' size='sm'>
-            Bed
+            Phòng ngủ
           </Text>
           <Box className='flex-row items-center gap-2'>
             <IconLucide size={20} name='BedDouble' color='#808494' />
@@ -28,7 +28,7 @@ export function PropertySpecifications({ beds, baths }: PropertySpecificationsPr
         {/* Bath */}
         <Box className='w-20'>
           <Text className='mb-4 text-main-black/50' size='sm'>
-            Bath
+            Phòng tắm
           </Text>
           <Box className='flex-row items-center gap-2'>
             <IconLucide size={20} name='Bath' color='#808494' />
@@ -41,7 +41,7 @@ export function PropertySpecifications({ beds, baths }: PropertySpecificationsPr
         {/* Square Area */}
         <Box className='w-24'>
           <Text className='mb-4 text-main-black/50' size='sm'>
-            Sqft
+            Diện tích
           </Text>
           <Box className='flex-row items-center gap-2'>
             <IconLucide size={20} name='Layers2' color='#808494' />
@@ -56,10 +56,10 @@ export function PropertySpecifications({ beds, baths }: PropertySpecificationsPr
       <Box className='flex-row gap-5'>
         <Box className='w-36'>
           <Text className='mb-4 text-main-black/50' size='sm'>
-            Repair Quality
+            Chất lượng
           </Text>
           <Box className='flex-row items-center gap-2'>
-            <IconLucide size={20} name='Wrench' color='#808494' />
+            <IconLucide size={20} name='PaintbrushVertical' color='#808494' />
             <Text size='lg' bold className='text-main-black'>
               Modern Loft
             </Text>
@@ -69,12 +69,12 @@ export function PropertySpecifications({ beds, baths }: PropertySpecificationsPr
         {/* Status */}
         <Box className='w-28'>
           <Text className='mb-4 text-main-black/50' size='sm'>
-            Status
+            Trạng thái
           </Text>
           <Box className='flex-row items-center gap-2'>
             <IconLucide size={20} name='CircleCheck' color='#808494' />
             <Text size='lg' bold className='text-main-black'>
-              Active
+              Hoạt động
             </Text>
           </Box>
         </Box>

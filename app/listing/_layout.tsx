@@ -1,5 +1,5 @@
-import { ApplyAppBar } from '@/shared/ui'
 import { Box } from '@/shared/ui/box'
+import { ApplyAppBar } from '@/widgets/apply-appbar'
 import { Tabs } from 'expo-router'
 import { View } from 'react-native'
 
@@ -24,8 +24,8 @@ export default function ListingLayout() {
 
       <ApplyAppBar
         price='$2,700'
-        buttonLabel='Apply Now'
-        onPress={() => console.log('Apply Now pressed')}
+        buttonLabel='Đăng ký ngay'
+        onPress={() => console.log('Đăng ký ngay pressed')}
       />
     </Box>
   )

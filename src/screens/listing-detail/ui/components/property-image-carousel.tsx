@@ -36,7 +36,7 @@ export function PropertyImageCarousel({ images }: PropertyImageCarouselProps) {
         >
           <IconLucide size={20} name='Image' color='#7065f0' />
           <Text bold className='ml-2 text-lg text-main-black'>
-            View all photos
+            Xem ảnh
           </Text>
         </TouchableOpacity>
       </Box>

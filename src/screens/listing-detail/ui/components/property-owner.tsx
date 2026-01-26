@@ -17,7 +17,7 @@ export function PropertyOwner({ agent }: PropertyOwnerProps) {
   return (
     <Box className='mb-6 rounded-lg border border-purple-92 bg-purple-98 p-6'>
       <Text className='mb-6 text-main-black/50' size='sm'>
-        Listed by property owner
+        Liệt kê bởi chủ sở hữu bất động sản
       </Text>
 
       <Box>
@@ -42,13 +42,13 @@ export function PropertyOwner({ agent }: PropertyOwnerProps) {
         <Box className='gap-2 pt-4'>
           <TouchableOpacity className='mb-3 rounded-lg bg-purple-94 px-6 py-3'>
             <Text bold className='text-center text-brand-primary'>
-              Ask a question
+              Hỏi thêm
             </Text>
           </TouchableOpacity>
           <TouchableOpacity className='flex-row items-center justify-center gap-2 rounded-lg bg-purple-94 px-6 py-3'>
             <IconLucide size={20} name='Info' color='#7065f0' />
             <Text bold className='text-brand-primary'>
-              Get more info
+              Xem thêm thông tin
             </Text>
           </TouchableOpacity>
         </Box>
