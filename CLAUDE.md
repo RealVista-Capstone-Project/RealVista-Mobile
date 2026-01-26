@@ -35,36 +35,147 @@ Run a specific test file: `npm test -- path/to/test.spec.tsx`
 - **Fonts**: Plus Jakarta Sans (multiple weights)
 - **Icons**: Lucide React Native, Expo Vector Icons, SF Symbols (IconSymbol)
 
-### Directory Structure
+### Feature-Slice Design Architecture
+
+This codebase follows **Feature-Slice Design (FSD)** architecture, which organizes code by business features rather than technical layers.
+
+#### Core FSD Layers
+
+**entities/** (Domain Layer)
+- Business entities and core business logic
+- Agnostic of frameworks and UI
+- Examples: `src/entities/user/` - User entity with auth state management
+- Structure: `model/` (state, types), `api/` (data access, queries)
+
+**features/** (Feature Layers)
+- Self-contained feature modules
+- Each feature contains everything needed for that business capability
+- Structure:
+  - `model/` - Feature-specific state and types
+  - `api/` - Data fetching hooks and queries
+  - `ui/` - Feature-specific UI components
+  - `index.ts` - Public API barrel export
+- Examples: `src/features/auth/` - Authentication (login, register, logout)
+
+**shared/** (Shared Layer)
+- Code reused across multiple features
+- Split by technical concern:
+  - `ui/` - Generic reusable UI components (Button, Input, Text, Box, etc.)
+  - `lib/` - Utilities (http client, react-query setup, custom hooks)
+  - `config/` - App configuration (providers, constants)
+  - `types/` - Global TypeScript types
+  - `constants/` - App-wide constants
+
+**widgets/** (Compose UI Layer)
+- High-level UI components composed from features and shared UI
+- Cross-feature composition
+- Examples: `MainLayout`, `SidebarDrawer`, `TopNav`, `UserHeader`
+
+**screens/** (Routing Layer)
+- Screen-level components that orchestrate features and widgets
+- Thin layer that wires together features
+- Maps to file-based routes in `app/`
+
+#### FSD Rules
+1. **Import Rule**: Modules can only import from lower layers
+   - `entities` ← `features` ← `shared` ← `widgets` ← `screens`
+   - Never import upward (e.g., features cannot import from screens)
+   - Cross-feature imports go through shared layer
+2. **Public API**: Each folder exports public API via `index.ts` barrel files
+3. **Segments**: Each slice (entities, features, shared, widgets) is self-contained
+4. **Absolute Imports**: Use `@/` prefix for imports from src root
+
+#### Key Architectural Patterns
+
+**Entity Structure**:
+```tsx
+entities/user/
+├── model/
+│   ├── store.ts        # Zustand store (auth state)
+│   └── types.ts        # User types
+├── api/
+│   ├── user.queries.ts # React Query definitions
+│   ├── index.ts        # Barrel exports
+│   └── __tests__/
+└── index.ts            # Public API
+```
+
+**Feature Structure**:
+```tsx
+features/auth/
+├── model/
+│   └── use-auth.ts    # Auth state composition
+├── api/
+│   ├── use-login.ts   # Login mutation hook
+│   ├── use-logout.ts  # Logout hook
+│   └── index.ts
+├── ui/
+│   ├── login-form.tsx # Login UI component
+│   ├── register-form.tsx
+│   └── __tests__/
+└── index.ts
+```
+
+**Component Import Paths**:
+- Shared UI: `@/shared/ui/button` or `components/ui/button`
+- Entities: `@/entities/user` (exposes public API via index.ts)
+- Features: `@/features/auth` (exposes public API via index.ts)
+- Widgets: `@/widgets/main-layout`
+
+**State Management Strategy**:
+- **Domain State** (entities): Zustand stores for global domain entities
+- **Server State** (features): React Query for API data, mutations, caching
+- **UI State** (components): React useState, useEffect for local UI state
+- Keep server state out of Zustand - let React Query handle it
+
+**Data Flow**:
+1. UI component calls feature hook: `useLogin()`
+2. Feature hook uses React Query mutation from entities: `userApi.login()`
+3. Mutation updates Zustand store: `useAuthStore.getState().setUser()`
+4. State changes trigger re-renders across components
+
+## Directory Structure
 ```
 src/
-├── entities/         # Business entities and data models
-│   └── user/         # User entity with auth state
-├── features/         # Feature-based modules
+├── entities/         # Domain business logic and state
+│   └── user/         # User entity with auth
+├── features/         # Feature modules (self-contained)
 │   └── auth/         # Authentication feature
-├── screens/          # Screen components (file-based routing)
-├── shared/           # Shared utilities and components
-│   ├── config/       # App providers configuration
-│   ├── lib/          # Utilities (http, react-query, hooks)
-│   ├── ui/           # Reusable UI components
-│   └── types/        # Shared TypeScript types
-└── widgets/          # High-level UI widgets
+├── screens/          # Screen orchestrators (file-based routing)
+├── shared/           # Cross-cutting technical concerns
+│   ├── config/       # Providers, app configuration
+│   ├── lib/          # HTTP, React Query, utilities
+│   ├── ui/           # Generic UI components
+│   └── types/        # Shared types
+└── widgets/          # Composed UI components
 ```
+
+### Routing
+- File-based routing via Expo Router
+- Auth group: `app/(auth)/` - login, sign-up (protected routes)
+- Tabs group: `app/(tabs)/` - main app navigation
+- Special routes: `app/listing-detail.tsx` - property detail page
+- Currently redirects to `/listing-detail` for development (see `app/_layout.tsx:54`)
+- Screen components are thin orchestrators in `src/screens/`
 
 ### Component Organization
 
-**UI Components** (`src/shared/ui/`):
+**Shared UI Components** (`src/shared/ui/`):
 - Platform-specific implementations (`.ios.tsx`, `.web.tsx`)
-- Core components: Box, Text, Button, Input, Icon, Divider
+- Core components: Box, Text, Button, Input, Icon, Divider, Avatar
 - Components export from both `@/shared/ui/component` and `components/ui/component`
-
-**Features** (`src/features/`):
-- Feature folders contain: `api/`, `model/`, `ui/`, and `index.ts` barrel export
-- Auth feature includes login/register forms and auth hooks
+- These are generic, reusable building blocks
 
 **Widgets** (`src/widgets/`):
-- Composed UI components (SidebarDrawer, TopNav, UserHeader)
-- MainLayout wrapper for screen structure
+- High-level composed components using features + shared UI
+- Examples: MainLayout, SidebarDrawer, TopNav, UserHeader
+- May use multiple features (e.g., SidebarDrawer uses auth + user features)
+- Cross-feature composition happens here
+
+**Screens** (`src/screens/`):
+- Orchestrate features and widgets for specific routes
+- Should be thin - delegate logic to features
+- Example: `screens/listing-detail/ui/listing-detail-page.tsx` uses property data but could extract property entity
 
 ### Routing
 - File-based routing via Expo Router

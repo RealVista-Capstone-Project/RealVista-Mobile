@@ -5,14 +5,12 @@ import { Box } from '@/shared/ui/box'
 import { HapticTab } from '@/shared/ui/haptic-tab'
 import { IconSymbol } from '@/shared/ui/icon-symbol'
 import { Text } from '@/shared/ui/text'
-import { TopNav } from '@/widgets/top-nav'
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: true,
-        header: () => <TopNav />,
         tabBarButton: HapticTab,
         tabBarStyle: {
           backgroundColor: '#1a1a1a',

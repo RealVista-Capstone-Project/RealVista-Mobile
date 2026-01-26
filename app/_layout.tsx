@@ -51,7 +51,7 @@ export default function RootLayout() {
   // TODO: Remove this block before merging - for reviewer UI testing only
   useEffect(() => {
     if (!isNavigationReady || !loaded) return
-    router.replace('/listing-detail' as Href)
+    router.replace('/listing/listing-detail' as Href)
   }, [isNavigationReady, router, loaded])
 
   // useEffect(() => {
@@ -92,7 +92,7 @@ export default function RootLayout() {
               <Stack.Screen name='(auth)/login' options={{ headerShown: false }} />
               <Stack.Screen name='modal' options={{ presentation: 'modal', title: 'Modal' }} />
               <Stack.Screen
-                name='listing-detail'
+                name='listing'
                 options={{
                   headerShown: true,
                   header: () => <TopNav />,

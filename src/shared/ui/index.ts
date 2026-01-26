@@ -1,3 +1,4 @@
+export * from './apply-appbar'
 export * from './box'
 export * from './haptic-tab'
 export * from './icon-symbol'
