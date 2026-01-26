@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { Dimensions, Image, ScrollView, StyleSheet, TouchableOpacity } from 'react-native'
-import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated'
+import { Image, ScrollView, StyleSheet, TouchableOpacity } from 'react-native'
 
 import { Box } from '@/shared/ui/box'
 import { Heading } from '@/shared/ui/heading'
@@ -8,8 +7,6 @@ import { ChevronLeftIcon, Icon } from '@/shared/ui/icon'
 import IconLucide from '@/shared/ui/icon-lucide/icon'
 import { IconSymbol } from '@/shared/ui/icon-symbol'
 import { Text } from '@/shared/ui/text'
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window')
 
 interface Property {
   id: string
@@ -43,6 +40,7 @@ const mockProperty: Property = {
     'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800',
     'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800',
     'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=800',
+    'https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=800',
   ],
   agent: {
     name: 'Sarah Johnson',
@@ -55,15 +53,6 @@ const mockProperty: Property = {
 export function ListingDetailPage() {
   const [property] = useState<Property>(mockProperty)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
-  const scrollX = useSharedValue(0)
-
-  const handleScroll = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollX.value = event.contentOffset.x
-      const index = Math.round(event.contentOffset.x / SCREEN_WIDTH)
-      setActiveImageIndex(index)
-    },
-  })
 
   return (
     <Box className='flex-1 bg-white p-6'>
@@ -104,29 +93,50 @@ export function ListingDetailPage() {
             </Text>
           </TouchableOpacity>
         </Box>
-        {/* Image Carousel */}
-        <Box className='h-80 w-full'>
-          <Animated.ScrollView
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
-          >
-            {property.images.map((image, index) => (
-              <Image key={index} source={{ uri: image }} style={styles.image} resizeMode='cover' />
-            ))}
-          </Animated.ScrollView>
-
-          {/* Pagination Dots */}
-          <Box className='absolute bottom-4 left-0 right-0 flex-row justify-center gap-2'>
-            {property.images.map((_, index) => (
-              <Box
+        {/* Image Carousel with Featured Image and Thumbnails */}
+        <Box className='mb-6'>
+          {/* Main Image with overlay button */}
+          <Box className='relative mb-3 rounded-2xl overflow-hidden'>
+            <Image
+              source={{ uri: property.images[activeImageIndex] }}
+              style={{ width: '100%', height: 220 }}
+              className='rounded-2xl'
+              resizeMode='cover'
+            />
+            <TouchableOpacity
+              className='absolute bottom-4 right-4 flex-row items-center bg-white/90 px-5 py-3 rounded-xl shadow-lg'
+              style={{
+                shadowColor: '#000',
+                shadowOpacity: 0.08,
+                shadowRadius: 8,
+                shadowOffset: { width: 0, height: 2 },
+              }}
+              onPress={() => {
+                /* TODO: handle view all photos */
+              }}
+            >
+              <IconSymbol size={24} name='photo.on.rectangle' color='#7065f0' />
+              <Text bold className='ml-2 text-lg text-[#2d2d2d]'>
+                View all photos
+              </Text>
+            </TouchableOpacity>
+          </Box>
+          {/* Thumbnails below main image */}
+          <Box className='flex-row gap-3'>
+            {property.images.slice(0, 2).map((image, index) => (
+              <TouchableOpacity
                 key={index}
-                className={`h-2 rounded-full ${
-                  index === activeImageIndex ? 'w-6 bg-white' : 'w-2 bg-white/50'
-                }`}
-              />
+                onPress={() => setActiveImageIndex(index)}
+                className={`flex-1 rounded-xl border-2 ${activeImageIndex === index ? 'border-purple-500' : 'border-transparent'}`}
+                style={{ overflow: 'hidden' }}
+              >
+                <Image
+                  source={{ uri: image }}
+                  style={{ width: '100%', height: 100 }}
+                  className='rounded-xl'
+                  resizeMode='cover'
+                />
+              </TouchableOpacity>
             ))}
           </Box>
         </Box>
@@ -243,9 +253,9 @@ export function ListingDetailPage() {
 }
 
 const styles = StyleSheet.create({
-  image: {
-    height: 320,
-    width: SCREEN_WIDTH,
+  thumbnail: {
+    height: 108,
+    width: 163,
   },
   avatar: {
     height: 56,
