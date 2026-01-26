@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Image, ScrollView, StyleSheet, TouchableOpacity } from 'react-native'
+import { Image, ScrollView, TouchableOpacity } from 'react-native'
 
+import { DatePicker } from '@/shared/ui/bna/date-picker'
 import { Box } from '@/shared/ui/box'
-import { Heading } from '@/shared/ui/heading'
+import { Divider } from '@/shared/ui/divider'
 import { ChevronLeftIcon, Icon } from '@/shared/ui/icon'
 import IconLucide from '@/shared/ui/icon-lucide/icon'
 import { IconSymbol } from '@/shared/ui/icon-symbol'
@@ -141,125 +142,379 @@ export function ListingDetailPage() {
           </Box>
         </Box>
 
-        {/* Property Info */}
-        <Box className='pt-4'>
-          <Text size='3xl' bold className='mb-2 text-gray-900'>
-            {property.price}
-          </Text>
-          <Heading size='lg' className='mb-2 text-gray-900'>
-            {property.title}
-          </Heading>
-          <Box className='mb-4 flex-row items-center gap-2'>
-            <IconSymbol size={16} name='location.fill' color='#ef4444' />
-            <Text size='sm' className='flex-1 text-gray-600'>
-              {property.location}
-            </Text>
-          </Box>
+        {/* Specifications Card */}
+        <Box className='mb-6 rounded-lg border border-[#F0EFFB]  bg-white p-6'>
+          {/* First Row: Sqft, Bed, Bath, Status */}
+          <Box className='mb-6 flex-row justify-between'>
+            {/* Bed */}
+            <Box className='w-20'>
+              <Text className='mb-4 text-[#000929]/50' size='sm'>
+                Bed
+              </Text>
+              <Box className='flex-row items-center gap-2'>
+                <IconLucide size={20} name='BedDouble' color='#808494' />
+                <Text size='lg' bold className='text-[#000929]'>
+                  {property.beds}
+                </Text>
+              </Box>
+            </Box>
 
-          {/* Property Details */}
-          <Box className='mb-6 flex-row justify-between rounded-xl border border-gray-200 bg-gray-50 p-4'>
-            <Box className='items-center'>
-              <IconSymbol size={24} name='bed.double.fill' color='#3b82f6' />
-              <Text size='lg' bold className='mt-1 text-gray-900'>
-                {property.beds}
+            {/* Bath */}
+            <Box className='w-20'>
+              <Text className='mb-4 text-[#000929]/50' size='sm'>
+                Bath
               </Text>
-              <Text size='xs' className='text-gray-500'>
-                Beds
-              </Text>
+              <Box className='flex-row items-center gap-2'>
+                <IconLucide size={20} name='Bath' color='#808494' />
+                <Text size='lg' bold className='text-[#000929]'>
+                  {property.baths}
+                </Text>
+              </Box>
             </Box>
-            <Box className='items-center'>
-              <IconSymbol size={24} name='drop.fill' color='#3b82f6' />
-              <Text size='lg' bold className='mt-1 text-gray-900'>
-                {property.baths}
-              </Text>
-              <Text size='xs' className='text-gray-500'>
-                Baths
-              </Text>
-            </Box>
-            <Box className='items-center'>
-              <IconSymbol size={24} name='square.fill' color='#3b82f6' />
-              <Text size='lg' bold className='mt-1 text-gray-900'>
-                {property.sqft}
-              </Text>
-              <Text size='xs' className='text-gray-500'>
+            {/* Square Area */}
+            <Box className='w-24'>
+              <Text className='mb-4 text-[#000929]/50' size='sm'>
                 Sqft
               </Text>
+              <Box className='flex-row items-center gap-2'>
+                <IconLucide size={20} name='Layers2' color='#808494' />
+                <Text size='lg' bold className='text-[#000929]'>
+                  6x7.5 m²
+                </Text>
+              </Box>
             </Box>
           </Box>
 
-          {/* Description */}
-          <Box className='mb-6'>
-            <Heading size='md' className='mb-3 text-gray-900'>
-              Description
-            </Heading>
-            <Text size='sm' className='leading-relaxed text-gray-600'>
-              {property.description}
-            </Text>
+          {/* Second Row: Repair Quality */}
+          <Box className='flex-row gap-5'>
+            <Box className='w-36'>
+              <Text className='mb-4 text-[#000929]/50' size='sm'>
+                Repair Quality
+              </Text>
+              <Box className='flex-row items-center gap-2'>
+                <IconLucide size={20} name='Wrench' color='#808494' />
+                <Text size='lg' bold className='text-[#000929]'>
+                  Modern Loft
+                </Text>
+              </Box>
+            </Box>
+            {/* Status */}
+            <Box className='w-28'>
+              <Text className='mb-4 text-[#000929]/50' size='sm'>
+                Status
+              </Text>
+              <Box className='flex-row items-center gap-2'>
+                <IconLucide size={20} name='CircleCheck' color='#808494' />
+                <Text size='lg' bold className='text-[#000929]'>
+                  Active
+                </Text>
+              </Box>
+            </Box>
           </Box>
+        </Box>
 
-          {/* Agent Info */}
-          <Box className='mb-4'>
-            <Heading size='md' className='mb-3 text-gray-900'>
-              Agent
-            </Heading>
-            <Box className='flex-row items-center rounded-xl border border-gray-200 bg-gray-50 p-4'>
-              <Image source={{ uri: property.agent.avatar }} style={styles.avatar} />
-              <Box className='ml-3 flex-1'>
-                <Text size='md' bold className='text-gray-900'>
+        {/* About this home */}
+        <Box className='mb-8'>
+          <Text size='xl' bold className='mb-4 text-[#000929]'>
+            About this home
+          </Text>
+          <Text className='mb-2 text-[#6c727f]'>
+            Check out that Custom Backyard Entertaining space! 3237sqft, 4 Bedrooms, 2 Bathrooms
+            house on a Lake .
+          </Text>
+          <Text bold className='text-[#7065f0]'>
+            Read more
+          </Text>
+        </Box>
+
+        {/* Property Owner Card */}
+        <Box className='mb-6 rounded-lg border border-purple-92 bg-purple-98 p-6'>
+          <Text className='mb-6 text-[#000929]/50' size='sm'>
+            Listed by property owner
+          </Text>
+
+          <Box>
+            {/* Owner Info */}
+            <Box className='flex-row gap-4'>
+              <Image
+                source={{ uri: property.agent.avatar }}
+                className='h-14 w-14 rounded-full'
+                style={{ width: 56, height: 56, borderRadius: 28 }}
+              />
+              <Box className='justify-center'>
+                <Text bold className='text-[#000929]'>
                   {property.agent.name}
                 </Text>
-                <Box className='mt-1 flex-row items-center gap-1'>
-                  <IconSymbol size={14} name='star.fill' color='#fbbf24' />
-                  <Text size='sm' className='text-gray-600'>
-                    {property.agent.rating} ({property.agent.reviews} reviews)
-                  </Text>
-                </Box>
+                <Text className='mt-1 text-[#000929]/50' size='sm'>
+                  Rich Capital Properties LLC
+                </Text>
               </Box>
-              <TouchableOpacity className='ml-3 rounded-full bg-blue-500 px-4 py-2'>
-                <Text size='sm' bold className='text-white'>
-                  Contact
+            </Box>
+
+            {/* Action Buttons */}
+            <Box className='gap-2 pt-4'>
+              <TouchableOpacity className='mb-3 rounded-lg bg-purple-94 px-6 py-3'>
+                <Text bold className='text-center text-brand-primary'>
+                  Ask a question
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity className='flex-row items-center justify-center gap-2 rounded-lg bg-purple-94 px-6 py-3'>
+                <IconLucide size={20} name='Info' color='#7065f0' />
+                <Text bold className='text-brand-primary'>
+                  Get more info
                 </Text>
               </TouchableOpacity>
             </Box>
           </Box>
         </Box>
-      </ScrollView>
 
-      {/* Bottom Action Bar */}
-      <Box className='border-t border-gray-200 bg-white p-4 pb-8'>
-        <Box className='flex-row gap-3'>
-          <TouchableOpacity className='flex-1 flex-row items-center justify-center rounded-xl bg-blue-500 py-3'>
-            <IconSymbol size={20} name='phone.fill' color='#fff' />
-            <Text size='md' bold className='ml-2 text-white'>
-              Call
+        {/* Request a Home Tour Card */}
+        <Box className='mb-6 rounded-lg border border-purple-92 bg-white p-6'>
+          <Text size='lg' bold className='mb-6 text-main-black'>
+            Request a home tour
+          </Text>
+
+          {/* Date Picker */}
+          <DatePicker label='Select Date' placeholder='Choose a date' />
+
+          {/* Request Button */}
+          <TouchableOpacity className='my-4 flex-row items-center justify-center gap-2 rounded-lg bg-main-secondary px-8 py-4'>
+            <IconLucide size={24} name='MapPin' color='#fff' />
+            <Text bold className='text-white'>
+              Request tour
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity className='flex-1 flex-row items-center justify-center rounded-xl border-2 border-blue-500 py-3'>
-            <IconSymbol size={20} name='message.fill' color='#3b82f6' />
-            <Text size='md' bold className='ml-2 text-blue-500'>
-              Message
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity className='flex-1 flex-row items-center justify-center rounded-xl bg-green-500 py-3'>
-            <IconSymbol size={20} name='calendar' color='#fff' />
-            <Text size='md' bold className='ml-2 text-white'>
-              Tour
-            </Text>
-          </TouchableOpacity>
+
+          <Text className='text-center text-[#6c727f]' size='xs'>
+            It&apos;s free, with no obligation - cancel anytime.
+          </Text>
         </Box>
-      </Box>
+
+        <Divider className='my-6' />
+
+        {/* Rental Features */}
+        <Box className='mb-8'>
+          <Text size='xl' bold className='mb-8 text-main-black'>
+            Rental features
+          </Text>
+
+          <Box className='gap-5 text-base'>
+            {/* Listed on */}
+            <Box className='flex-row items-center justify-between'>
+              <Box className='flex-row items-center gap-2'>
+                <Text className='text-main-black/50'>Listed on</Text>
+                <Box className='flex-row items-center gap-2'>
+                  <Text bold className='text-[#0e0854]'>
+                    Estatery
+                  </Text>
+                  <IconLucide size={16} name='CircleCheck' color='#7065f0' />
+                </Box>
+              </Box>
+              <Text bold className='text-main-black'>
+                1 week
+              </Text>
+            </Box>
+
+            {/* Date available */}
+            <Box className='flex-row items-center justify-between'>
+              <Text className='text-main-black/50'>Date available</Text>
+              <Text bold className='text-main-black'>
+                Available now
+              </Text>
+            </Box>
+
+            {/* Type */}
+            <Box className='flex-row items-center justify-between'>
+              <Text className='text-main-black/50'>Type</Text>
+              <Text bold className='text-main-black'>
+                Home
+              </Text>
+            </Box>
+
+            {/* Laundry */}
+            <Box className='flex-row items-center justify-between'>
+              <Text className='text-main-black/50'>Laundry</Text>
+              <Text bold className='text-main-black'>
+                In unit
+              </Text>
+            </Box>
+
+            {/* Cooling */}
+            <Box className='flex-row items-center justify-between'>
+              <Text className='text-main-black/50'>Cooling</Text>
+              <Text bold className='text-main-black'>
+                Air Conditioner
+              </Text>
+            </Box>
+
+            {/* Heating */}
+            <Box className='flex-row items-center justify-between'>
+              <Text className='text-main-black/50'>Heating</Text>
+              <Text bold className='text-main-black'>
+                Forced Air
+              </Text>
+            </Box>
+
+            {/* City */}
+            <Box className='flex-row items-center justify-between'>
+              <Text className='text-main-black/50'>City</Text>
+              <Text bold className='text-main-black'>
+                Miami
+              </Text>
+            </Box>
+
+            {/* Size */}
+            <Box className='flex-row items-center justify-between'>
+              <Text className='text-main-black/50'>Size</Text>
+              <Text bold className='text-main-black'>
+                2,173 sqft
+              </Text>
+            </Box>
+
+            {/* Lot Size */}
+            <Box className='flex-row items-center justify-between'>
+              <Text className='text-main-black/50'>Lot Size</Text>
+              <Text bold className='text-main-black'>
+                9,060 sqft
+              </Text>
+            </Box>
+
+            {/* Parking Area */}
+            <Box className='flex-row items-center justify-between'>
+              <Text className='text-main-black/50'>Parking Area</Text>
+              <Text bold className='text-main-black'>
+                Yes
+              </Text>
+            </Box>
+
+            {/* Deposit & Fees */}
+            <Box className='flex-row items-center justify-between'>
+              <Text className='text-main-black/50'>Deposit & Fees</Text>
+              <Text bold className='text-main-black'>
+                $2,700
+              </Text>
+            </Box>
+          </Box>
+        </Box>
+
+        <Divider className='my-6' />
+        {/* Rent Price History */}
+        <Box className='mb-8'>
+          <Text bold className='mb-8 text-main-black text-xl'>
+            Rent Price History for St. Crystal
+          </Text>
+
+          <Box className='rounded-lg border border-purple-96 bg-white p-6 text-base'>
+            {/* Timeline Entry 1 - Most Recent */}
+            <Box className='mb-6'>
+              <Box className='mb-2 flex-row items-center justify-between'>
+                <Text className='text-gray-500' size='sm'>
+                  28/12/2021
+                </Text>
+                <Text bold className='text-main-black'>
+                  $2,700/mo
+                </Text>
+              </Box>
+              <Text bold className='mb-2 text-main-black'>
+                Listed for Sale
+              </Text>
+              <Text className='text-brand-primary' size='sm'>
+                Estatery
+              </Text>
+            </Box>
+
+            <Box className='mb-6 h-[1.5px] bg-purple-96' />
+
+            {/* Timeline Entry 2 */}
+            <Box className='mb-6'>
+              <Box className='mb-2 flex-row items-center justify-between'>
+                <Text className='text-gray-500' size='sm'>
+                  10/10/2021
+                </Text>
+                <Text bold className='text-main-black'>
+                  $2,600/mo
+                </Text>
+              </Box>
+              <Text bold className='mb-2 text-main-black'>
+                PriceChange
+              </Text>
+              <Text className='text-brand-primary' size='sm'>
+                Estatery
+              </Text>
+            </Box>
+
+            <Box className='mb-6 h-[1.5px] bg-purple-96' />
+
+            {/* Timeline Entry 3 */}
+            <Box className='mb-6'>
+              <Box className='mb-2 flex-row items-center justify-between'>
+                <Text className='text-gray-500' size='sm'>
+                  03/04/2020
+                </Text>
+                <Text bold className='text-main-black'>
+                  $2,000/mo
+                </Text>
+              </Box>
+              <Text bold className='mb-2 text-main-black'>
+                Rented
+              </Text>
+              <Text className='text-brand-primary' size='sm'>
+                Public Records
+              </Text>
+            </Box>
+
+            <Box className='mb-6 h-[1.5px] bg-purple-96' />
+
+            {/* Timeline Entry 4 */}
+            <Box className='mb-6'>
+              <Box className='mb-2 flex-row items-center justify-between'>
+                <Text className='text-gray-500' size='sm'>
+                  25/11/2019
+                </Text>
+                <Text bold className='text-main-black'>
+                  $1,900/mo
+                </Text>
+              </Box>
+              <Text bold className='mb-2 text-main-black'>
+                Black Friday
+              </Text>
+              <Text className='text-brand-primary' size='sm'>
+                Public Records
+              </Text>
+            </Box>
+
+            <Box className='mb-6 h-[1.5px] bg-purple-96' />
+
+            {/* Timeline Entry 5 - Oldest */}
+            <Box>
+              <Box className='mb-2 flex-row items-center justify-between'>
+                <Text className='text-gray-500' size='sm'>
+                  09/02/2019
+                </Text>
+                <Text bold className='text-main-black'>
+                  $1,800/mo
+                </Text>
+              </Box>
+              <Text bold className='mb-2 text-main-black'>
+                Listed for Sale
+              </Text>
+              <Text className='text-brand-primary' size='sm'>
+                Public Records
+              </Text>
+            </Box>
+          </Box>
+        </Box>
+
+        {/* Legal Disclaimer */}
+        <Text className='mt-8 text-gray-500 text-left' size='sm' style={{ lineHeight: 20 }}>
+          You agree to Estatery&apos;s Terms of Use & Privacy Policy. By choosing to contact a
+          property, you also agree that Estatery Group, landlords, and property managers may call or
+          text you about any inquiries you submit through our services, which may involve use of
+          automated means and prerecorded/artificial voices. You don&apos;t need to consent as a
+          condition of renting any property, or buying any other goods or services. Message/data
+          rates may apply.
+        </Text>
+      </ScrollView>
     </Box>
   )
 }
-
-const styles = StyleSheet.create({
-  thumbnail: {
-    height: 108,
-    width: 163,
-  },
-  avatar: {
-    height: 56,
-    width: 56,
-    borderRadius: 28,
-  },
-})
