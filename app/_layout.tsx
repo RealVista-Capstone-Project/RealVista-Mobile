@@ -88,7 +88,6 @@ export default function RootLayout() {
                   header: () => null, // Custom header per screen
                 }}
               />
-              <Stack.Screen name='dev' options={{ headerShown: false }} />
               <Stack.Screen name='(auth)/login' options={{ headerShown: false }} />
               <Stack.Screen name='modal' options={{ presentation: 'modal', title: 'Modal' }} />
               <Stack.Screen
