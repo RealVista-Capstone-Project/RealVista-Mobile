@@ -1,5 +1,5 @@
-import { PropertySearchPage } from '@/screens/property-search'
+import { RentPage } from '@/screens/rent/ui/rent-page'
 
-export default function ExploreScreen() {
-  return <PropertySearchPage />
+export default function RentPageScreen() {
+  return <RentPage />
 }

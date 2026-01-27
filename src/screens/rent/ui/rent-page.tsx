@@ -51,7 +51,7 @@ const MOCK_PROPERTIES: PropertyData[] = [
   },
 ]
 
-export function PropertySearchPage() {
+export function RentPage() {
   const [searchText, setSearchText] = useState('Houston')
   const [properties, setProperties] = useState<PropertyData[]>(MOCK_PROPERTIES)
 
