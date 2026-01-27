@@ -46,22 +46,22 @@ export default function RootLayout() {
   }, [loaded, rootNavigationState?.key])
 
   // TODO: Remove this block before merging - for reviewer UI testing only
-  // useEffect(() => {
-  //   if (!isNavigationReady || !loaded) return
-  //   router.replace('/dev' as Href)
-  // }, [isNavigationReady, router, loaded])
-
   useEffect(() => {
     if (!isNavigationReady || !loaded) return
+    router.replace('/explore' as Href)
+  }, [isNavigationReady, router, loaded])
 
-    const inAuthGroup = segments[0] === _AUTH_GROUP
+  // useEffect(() => {
+  //   if (!isNavigationReady || !loaded) return
 
-    if (!isAuthenticated && !inAuthGroup) {
-      router.replace(`/${_AUTH_GROUP}/login` as Href)
-    } else if (isAuthenticated && inAuthGroup) {
-      router.replace(`/${_HOME_GROUP}` as Href)
-    }
-  }, [isAuthenticated, segments, isNavigationReady, router, loaded])
+  //   const inAuthGroup = segments[0] === _AUTH_GROUP
+
+  //   if (!isAuthenticated && !inAuthGroup) {
+  //     router.replace(`/${_AUTH_GROUP}/login` as Href)
+  //   } else if (isAuthenticated && inAuthGroup) {
+  //     router.replace(`/${_HOME_GROUP}` as Href)
+  //   }
+  // }, [isAuthenticated, segments, isNavigationReady, router, loaded])
 
   if (!loaded || !isNavigationReady) {
     return null
@@ -72,7 +72,7 @@ export default function RootLayout() {
       <GluestackUIProvider mode='dark'>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack>
-            <Stack.Screen name='dev' options={{ headerShown: false }} />
+            <Stack.Screen name='explore' options={{ headerShown: false }} />
             <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
             <Stack.Screen name='(auth)/login' options={{ headerShown: false }} />
             <Stack.Screen name='modal' options={{ presentation: 'modal', title: 'Modal' }} />

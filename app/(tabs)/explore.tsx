@@ -1,5 +1,5 @@
-import { ExplorePage } from '@/screens/explore'
+import { PropertySearchPage } from '@/screens/property-search'
 
 export default function ExploreScreen() {
-  return <ExplorePage />
+  return <PropertySearchPage />
 }
