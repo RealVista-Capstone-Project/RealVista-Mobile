@@ -5,11 +5,14 @@ import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect, useState } from 'react'
 import 'react-native-reanimated'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useAuthStore } from '@/entities/user'
 import { AppProviders } from '@/shared/config/providers'
 import { useColorScheme } from '@/shared/lib/hooks/use-color-scheme'
 import { GluestackUIProvider } from '@/shared/ui/gluestack-ui-provider'
+import { SidebarDrawer } from '@/widgets/sidebar-drawer'
+import { TopNav } from '@/widgets/top-nav'
 import '../global.css'
 
 export const unstable_settings = {
@@ -71,13 +74,32 @@ export default function RootLayout() {
     <AppProviders>
       <GluestackUIProvider mode='dark'>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack>
-            <Stack.Screen name='explore' options={{ headerShown: false }} />
-            <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
-            <Stack.Screen name='(auth)/login' options={{ headerShown: false }} />
-            <Stack.Screen name='modal' options={{ presentation: 'modal', title: 'Modal' }} />
-          </Stack>
-          <StatusBar style='auto' />
+          <SafeAreaView className='flex-1 bg-gray-50' edges={['top', 'left', 'right']}>
+            <SidebarDrawer />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+              }}
+            >
+              <Stack.Screen
+                name='(tabs)'
+                options={{
+                  headerShown: true,
+                  header: () => null, // Custom header per screen
+                }}
+              />
+              <Stack.Screen name='(auth)/login' options={{ headerShown: false }} />
+              <Stack.Screen name='modal' options={{ presentation: 'modal', title: 'Modal' }} />
+              <Stack.Screen
+                name='listing'
+                options={{
+                  headerShown: true,
+                  header: () => <TopNav />,
+                }}
+              />
+            </Stack>
+            <StatusBar style='auto' />
+          </SafeAreaView>
         </ThemeProvider>
       </GluestackUIProvider>
     </AppProviders>

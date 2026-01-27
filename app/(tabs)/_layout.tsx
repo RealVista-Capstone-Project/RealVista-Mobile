@@ -2,15 +2,15 @@ import { Tabs } from 'expo-router'
 import React from 'react'
 
 import { Box } from '@/shared/ui/box'
+import { HapticTab } from '@/shared/ui/haptic-tab'
 import { IconSymbol } from '@/shared/ui/icon-symbol'
 import { Text } from '@/shared/ui/text'
-import { HapticTab } from '@/shared/ui/haptic-tab'
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
         tabBarButton: HapticTab,
         tabBarStyle: {
           backgroundColor: '#1a1a1a',
