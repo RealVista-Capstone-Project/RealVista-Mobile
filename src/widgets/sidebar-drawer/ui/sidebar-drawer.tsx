@@ -11,8 +11,7 @@ type MenuItem = {
 }
 
 const MENU_ITEMS: MenuItem[] = [
-  { id: 'Dashboard', label: 'Dashboard', icon: 'dashboard' },
-  { id: 'Explore', label: 'Explore', icon: 'explore' },
+  { id: 'Rent', label: 'Rent', icon: 'rent' },
   { id: 'Favorited', label: 'Favorited', icon: 'heart' },
   { id: 'My listings', label: 'My listings', icon: 'apartment' },
   { id: 'Appointments', label: 'Appointments', icon: 'calendar' },
