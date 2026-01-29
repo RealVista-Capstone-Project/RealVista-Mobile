@@ -372,7 +372,7 @@ export function PropertyFilterModal({
                     }}
                     activeOpacity={0.7}
                   >
-                    <IconSymbol name='minus' size={14} color='#9EA3AE' weight='medium' />
+                    <IconSymbol name='minus' size={28} color='#FFFF' weight='medium' />
                   </TouchableOpacity>
                   <Text
                     className="font-['PlusJakartaSans_600SemiBold'] text-base text-[#000929]"
@@ -397,7 +397,7 @@ export function PropertyFilterModal({
                     }}
                     activeOpacity={0.7}
                   >
-                    <IconSymbol name='plus' size={14} color='#FFFFFF' weight='medium' />
+                    <IconSymbol name='plus' size={28} color='#FFFFFF' weight='medium' />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -432,7 +432,7 @@ export function PropertyFilterModal({
                     }}
                     activeOpacity={0.7}
                   >
-                    <IconSymbol name='minus' size={14} color='#9EA3AE' />
+                    <IconSymbol name='minus' size={28} color='#FFFF' weight='medium' />
                   </TouchableOpacity>
                   <Text
                     className="font-['PlusJakartaSans_600SemiBold'] text-base text-[#000929]"
@@ -457,7 +457,7 @@ export function PropertyFilterModal({
                     }}
                     activeOpacity={0.7}
                   >
-                    <IconSymbol name='plus' size={14} color='#FFFFFF' />
+                    <IconSymbol name='plus' size={28} color='#FFFFFF' weight='medium' />
                   </TouchableOpacity>
                 </View>
               </View>
