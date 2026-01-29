@@ -3,7 +3,7 @@ import React from 'react'
 import { Image, TouchableOpacity, View } from 'react-native'
 import { ClipPath, Defs, G, Path, Rect, Svg } from 'react-native-svg'
 
-export interface PropertyData {
+export interface RealVistaPropertyCardData {
   id: string
   image: string
   title: string
@@ -18,19 +18,19 @@ export interface PropertyData {
   isFavorite?: boolean
 }
 
-interface PropertyCardProps {
-  property: PropertyData
+interface RealVistaPropertyCardProps {
+  property: RealVistaPropertyCardData
   onToggleFavorite?: (id: string) => void
   onClick?: (id: string) => void
   className?: string
 }
 
-export function PropertyCard({
+export function RealVistaPropertyCard({
   property,
   onToggleFavorite,
   onClick,
   className = '',
-}: PropertyCardProps) {
+}: RealVistaPropertyCardProps) {
   const handleFavoriteClick = (e: any) => {
     onToggleFavorite?.(property.id)
   }

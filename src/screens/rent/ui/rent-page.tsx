@@ -1,6 +1,9 @@
 import { Box } from '@/shared/ui/box'
 import { OpenMapsButton } from '@/shared/ui/open-maps-button'
-import { PropertyCard, type PropertyData } from '@/shared/ui/property-card'
+import {
+  RealVistaPropertyCard,
+  type RealVistaPropertyCardData,
+} from '@/shared/ui/realvista-property-listing-card'
 import { RealVistaPropertySearchBar } from '@/shared/ui/realvista-property-listing-search-bar'
 import React, { useState } from 'react'
 import { ScrollView, View } from 'react-native'
@@ -8,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Path, Svg } from 'react-native-svg'
 
 // Mock property data based on Figma designs
-const MOCK_PROPERTIES: PropertyData[] = [
+const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
   {
     id: '1',
     image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800',
@@ -221,7 +224,7 @@ const MOCK_PROPERTIES: PropertyData[] = [
 
 export function RentPage() {
   const [searchText, setSearchText] = useState('Houston')
-  const [properties, setProperties] = useState<PropertyData[]>(MOCK_PROPERTIES)
+  const [properties, setProperties] = useState<RealVistaPropertyCardData[]>(MOCK_PROPERTIES)
 
   const handleFilterPress = () => {
     console.log('Filter pressed')
@@ -261,11 +264,11 @@ export function RentPage() {
           {/* Property Listings */}
           <View className='gap-6'>
             {properties.map((property) => (
-              <PropertyCard
+              <RealVistaPropertyCard
                 key={property.id}
                 property={property}
-                onPress={() => handlePropertyPress(property.id)}
-                onFavoritePress={() => handleFavoritePress(property.id)}
+                onClick={() => handlePropertyPress(property.id)}
+                onToggleFavorite={() => handleFavoritePress(property.id)}
               />
             ))}
           </View>
