@@ -123,27 +123,36 @@ export function PropertyFilterModal({
         </View>
 
         {/* Header */}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingTop: 8,
-            paddingBottom: 16,
-            borderBottomWidth: 1,
-            borderBottomColor: '#E5E6EB',
-          }}
-        >
-          <TouchableOpacity onPress={onClose} style={{ padding: 8 }} activeOpacity={0.7}>
-            <IconSymbol name='xmark' size={24} color='#9EA3AE' />
-          </TouchableOpacity>
-          <Text
-            className="font-['PlusJakartaSans_700Bold'] text-xl text-[#100A55]"
-            style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 18, color: '#100A55' }}
+        <View>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingTop: 8,
+              paddingBottom: 16,
+            }}
           >
-            Filters
-          </Text>
-          <View style={{ width: 40 }} />
+            <TouchableOpacity onPress={onClose} style={{ padding: 8 }} activeOpacity={0.7}>
+              <IconSymbol name='xmark' size={24} color='#9EA3AE' />
+            </TouchableOpacity>
+            <Text
+              className="font-['PlusJakartaSans_700Bold'] text-xl text-[#100A55]"
+              style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 18, color: '#100A55' }}
+            >
+              Filters
+            </Text>
+            <View style={{ width: 40 }} />
+          </View>
+          {/* Full-width separator line */}
+          <View
+            style={{
+              height: 1,
+              backgroundColor: '#E5E6EB',
+              marginLeft: -20,
+              marginRight: -20,
+            }}
+          />
         </View>
 
         <DrawerBody style={{ flex: 1, paddingTop: 24 }}>
@@ -189,6 +198,15 @@ export function PropertyFilterModal({
                 ))}
               </View>
             </View>
+
+            {/* Separator Line */}
+            <View
+              style={{
+                height: 1,
+                backgroundColor: '#E5E6EB',
+                marginBottom: 32,
+              }}
+            />
 
             {/* Price Range Section */}
             <View style={{ marginBottom: 32 }}>
@@ -299,6 +317,15 @@ export function PropertyFilterModal({
                 </View>
               </View>
             </View>
+
+            {/* Separator Line */}
+            <View
+              style={{
+                height: 1,
+                backgroundColor: '#E5E6EB',
+                marginBottom: 32,
+              }}
+            />
 
             {/* Features Section */}
             <View style={{ marginBottom: 32 }}>
@@ -435,6 +462,15 @@ export function PropertyFilterModal({
                 </View>
               </View>
             </View>
+
+            {/* Separator Line */}
+            <View
+              style={{
+                height: 1,
+                backgroundColor: '#E5E6EB',
+                marginBottom: 32,
+              }}
+            />
 
             {/* Rental Period Section */}
             <View style={{ marginBottom: 16 }}>
