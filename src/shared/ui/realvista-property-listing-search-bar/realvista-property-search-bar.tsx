@@ -15,7 +15,7 @@ type RealVistaPropertySearchBarProps = {
 export function RealVistaPropertySearchBar({
   value: controlledValue,
   onChangeText,
-  placeholder = 'Search location',
+  placeholder = 'Tìm kiếm địa điểm',
   onFilterPress,
   onFiltersChange,
   className = '',
@@ -25,7 +25,7 @@ export function RealVistaPropertySearchBar({
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
   const [filters, setFilters] = useState<FilterValues>({
     category: [],
-    priceRange: { min: 1000, max: 1234567 },
+    priceRange: { min: 5000000, max: 100000000 },
     bedrooms: 0,
     bathrooms: 0,
     rentalPeriod: 'Any',

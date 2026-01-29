@@ -138,8 +138,8 @@ export function RealVistaPropertyCard({
                 color: '#7065F0',
               }}
             >
-              {property.currency || '$'}
               {property.price.toLocaleString()}
+              {property.currency || '₫'}
             </Text>
             <Text
               className="font-['PlusJakartaSans_500Medium']"
@@ -150,7 +150,7 @@ export function RealVistaPropertyCard({
                 color: '#6C727F',
               }}
             >
-              /month
+              /tháng
             </Text>
           </View>
 
@@ -220,7 +220,7 @@ export function RealVistaPropertyCard({
                 color: '#6C727F',
               }}
             >
-              {property.beds} Beds
+              {property.beds} Giường
             </Text>
           </View>
 
@@ -236,7 +236,7 @@ export function RealVistaPropertyCard({
                 color: '#6C727F',
               }}
             >
-              {property.bathrooms} Bathrooms
+              {property.bathrooms} Phòng tắm
             </Text>
           </View>
 

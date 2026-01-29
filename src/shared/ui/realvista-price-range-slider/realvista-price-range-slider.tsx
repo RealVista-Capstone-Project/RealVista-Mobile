@@ -21,7 +21,7 @@ export function RealVistaPriceRangeSlider({
   onMinChange,
   onMaxChange,
   histogramData,
-  title = 'Price Range',
+  title = 'Khoảng giá',
 }: RealVistaPriceRangeSliderProps) {
   // Calculate the maximum value for histogram normalization
   const maxHistogramValue = Math.max(...histogramData)

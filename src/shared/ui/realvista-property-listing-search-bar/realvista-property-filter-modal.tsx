@@ -21,14 +21,14 @@ interface RealVistaPropertyFilterModalProps {
 
 const CATEGORIES = ['Houses', 'Rooms', 'Apartment'] as const
 const RENTAL_PERIODS = [
-  { value: 'Any', label: 'Any' },
-  { value: '1-12', label: '1 - 12 months' },
-  { value: '13-24', label: '13 - 24 months' },
-  { value: '24+', label: '24+ months' },
+  { value: 'Any', label: 'Bất kỳ' },
+  { value: '1-12', label: '1 - 12 tháng' },
+  { value: '13-24', label: '13 - 24 tháng' },
+  { value: '24+', label: '24+ tháng' },
 ] as const
 
-const MIN_PRICE = 1000
-const MAX_PRICE = 1234567
+const MIN_PRICE = 5000000
+const MAX_PRICE = 100000000
 
 export function RealVistaPropertyFilterModal({
   isOpen,
@@ -147,7 +147,7 @@ export function RealVistaPropertyFilterModal({
               className="font-['PlusJakartaSans_700Bold'] text-xl text-[#100A55]"
               style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 18, color: '#100A55' }}
             >
-              Filters
+              Bộ lọc
             </Text>
             <View style={{ width: 40 }} />
           </View>
@@ -174,7 +174,7 @@ export function RealVistaPropertyFilterModal({
                 className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-[#000929]"
                 style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16, marginBottom: 16 }}
               >
-                Category
+                Danh mục
               </Text>
               <View style={{ flexDirection: 'row', gap: 12 }}>
                 {CATEGORIES.map((category) => (
@@ -248,7 +248,7 @@ export function RealVistaPropertyFilterModal({
                   color: '#000929',
                 }}
               >
-                Features
+                Tiện nghi
               </Text>
               {/* Bedroom Counter */}
               <View
@@ -267,7 +267,7 @@ export function RealVistaPropertyFilterModal({
                     color: '#000929',
                   }}
                 >
-                  Bedroom
+                  Phòng ngủ
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
                   <TouchableOpacity
@@ -327,7 +327,7 @@ export function RealVistaPropertyFilterModal({
                     color: '#000929',
                   }}
                 >
-                  Bathroom
+                  Phòng tắm
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
                   <TouchableOpacity
@@ -393,7 +393,7 @@ export function RealVistaPropertyFilterModal({
                   color: '#000929',
                 }}
               >
-                Rental Period
+                Thời hạn thuê
               </Text>
               <View style={{ gap: 12 }}>
                 {RENTAL_PERIODS.map((period) => (
@@ -464,7 +464,7 @@ export function RealVistaPropertyFilterModal({
               className="font-['PlusJakartaSans_700Bold'] text-base text-[#7065F0]"
               style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16 }}
             >
-              Reset
+              Đặt lại
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -483,7 +483,7 @@ export function RealVistaPropertyFilterModal({
               className="font-['PlusJakartaSans_700Bold'] text-base text-white"
               style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16 }}
             >
-              Apply
+              Áp dụng
             </Text>
           </TouchableOpacity>
         </DrawerFooter>

@@ -11,15 +11,15 @@ type MenuItem = {
 }
 
 const MENU_ITEMS: MenuItem[] = [
-  { id: 'Rent', label: 'Rent', icon: 'rent' },
-  { id: 'Favorited', label: 'Favorited', icon: 'heart' },
-  { id: 'My listings', label: 'My listings', icon: 'apartment' },
-  { id: 'Appointments', label: 'Appointments', icon: 'calendar' },
+  { id: 'Rent', label: 'Thuê', icon: 'rent' },
+  { id: 'Favorited', label: 'Yêu thích', icon: 'heart' },
+  { id: 'My listings', label: 'Tin đăng của tôi', icon: 'apartment' },
+  { id: 'Appointments', label: 'Lịch hẹn', icon: 'calendar' },
 ]
 
 const HELP_ITEMS: MenuItem[] = [
-  { id: 'Help', label: 'Help', icon: 'help' },
-  { id: 'Settings', label: 'Settings', icon: 'settings' },
+  { id: 'Help', label: 'Trợ giúp', icon: 'help' },
+  { id: 'Settings', label: 'Cài đặt', icon: 'settings' },
 ]
 
 export function SidebarDrawer() {
