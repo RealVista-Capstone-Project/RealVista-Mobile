@@ -1,8 +1,7 @@
 import { Box } from '@/shared/ui/box'
 import { OpenMapsButton } from '@/shared/ui/open-maps-button'
 import { PropertyCard, type PropertyData } from '@/shared/ui/property-card'
-import { PropertySearchBar } from '@/shared/ui/property-search-bar'
-import { Text } from '@/shared/ui/text'
+import { PropertySearchBar } from '@/shared/ui/realvista-property-listing-search-bar'
 import React, { useState } from 'react'
 import { ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -82,23 +81,6 @@ export function RentPage() {
     <SafeAreaView className='flex-1 bg-white' edges={['top']}>
       <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
         <Box className='px-4 py-6'>
-          {/* Breadcrumb Navigation */}
-          <View className='mb-4 flex-row items-center gap-2'>
-            <Text
-              className="font-['PlusJakartaSans_500Medium'] text-sm text-gray-400"
-              style={{ fontFamily: 'PlusJakartaSans_500Medium', fontSize: 14 }}
-            >
-              Home
-            </Text>
-            <ChevronIcon />
-            <Text
-              className="font-['PlusJakartaSans_600SemiBold'] text-sm text-[#000929]"
-              style={{ fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 14 }}
-            >
-              Search
-            </Text>
-          </View>
-
           {/* Search Bar */}
           <PropertySearchBar
             value={searchText}

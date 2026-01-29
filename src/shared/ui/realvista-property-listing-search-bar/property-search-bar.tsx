@@ -1,12 +1,14 @@
 import React, { useState } from 'react'
 import { TextInput, TouchableOpacity, View } from 'react-native'
 import { Circle, Path, Svg } from 'react-native-svg'
+import { PropertyFilterModal, type FilterValues } from './property-filter-modal'
 
-interface PropertySearchBarProps {
+type PropertySearchBarProps = {
   value?: string
   onChangeText?: (text: string) => void
   placeholder?: string
   onFilterPress?: () => void
+  onFiltersChange?: (filters: FilterValues) => void
   className?: string
 }
 
@@ -15,10 +17,31 @@ export function PropertySearchBar({
   onChangeText,
   placeholder = 'Search location',
   onFilterPress,
+  onFiltersChange,
   className = '',
 }: PropertySearchBarProps) {
   const [internalValue, setInternalValue] = useState('')
   const [isFocused, setIsFocused] = useState(false)
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
+  const [filters, setFilters] = useState<FilterValues>({
+    category: null,
+    priceRange: { min: 1000, max: 1234567 },
+    bedrooms: 0,
+    bathrooms: 0,
+    rentalPeriod: 'Any',
+  })
+
+  const handleFilterPress = () => {
+    console.log('Filter pressed')
+    setIsFilterModalOpen(true)
+    onFilterPress?.()
+  }
+
+  const handleApplyFilters = (newFilters: FilterValues) => {
+    setFilters(newFilters)
+    setIsFilterModalOpen(false)
+    onFiltersChange?.(newFilters)
+  }
 
   const value = controlledValue !== undefined ? controlledValue : internalValue
   const handleChangeText = (text: string) => {
@@ -32,37 +55,47 @@ export function PropertySearchBar({
   const hasValue = value.length > 0
 
   return (
-    <View
-      className={`flex-row items-center rounded-lg border-2 bg-[#F7F7FD] px-4 py-3 ${
-        isFocused ? 'border-[#7065F0]' : 'border-[#E0DEF7]'
-      } ${className}`}
-    >
-      {/* Search Icon */}
-      <View className='mr-3'>
-        <SearchIcon color={isFocused || hasValue ? '#7065F0' : '#7065F0'} />
+    <>
+      <View
+        className={`flex-row items-center rounded-lg border-2 bg-[#F7F7FD] px-4 py-3 ${
+          isFocused ? 'border-[#7065F0]' : 'border-[#E0DEF7]'
+        } ${className}`}
+      >
+        {/* Search Icon */}
+        <View className='mr-3'>
+          <SearchIcon color={isFocused || hasValue ? '#7065F0' : '#7065F0'} />
+        </View>
+
+        {/* Text Input */}
+        <TextInput
+          value={value}
+          onChangeText={handleChangeText}
+          placeholder={placeholder}
+          placeholderTextColor='#9CA3AF'
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          className="flex-1 font-['PlusJakartaSans_500Medium'] text-base text-[#000929]"
+          style={{ fontFamily: 'PlusJakartaSans_500Medium', fontSize: 16 }}
+        />
+
+        {/* Filter Button */}
+        <TouchableOpacity
+          onPress={handleFilterPress}
+          className='ml-3 h-10 w-10 items-center justify-center rounded-lg bg-[#7065F0]'
+          activeOpacity={0.7}
+        >
+          <FilterIcon />
+        </TouchableOpacity>
       </View>
 
-      {/* Text Input */}
-      <TextInput
-        value={value}
-        onChangeText={handleChangeText}
-        placeholder={placeholder}
-        placeholderTextColor='#9CA3AF'
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        className="flex-1 font-['PlusJakartaSans_500Medium'] text-base text-[#000929]"
-        style={{ fontFamily: 'PlusJakartaSans_500Medium', fontSize: 16 }}
+      {/* Filter Modal */}
+      <PropertyFilterModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        filters={filters}
+        onApply={handleApplyFilters}
       />
-
-      {/* Filter Button */}
-      <TouchableOpacity
-        onPress={onFilterPress}
-        className='ml-3 h-10 w-10 items-center justify-center rounded-lg bg-[#7065F0]'
-        activeOpacity={0.7}
-      >
-        <FilterIcon />
-      </TouchableOpacity>
-    </View>
+    </>
   )
 }
 
