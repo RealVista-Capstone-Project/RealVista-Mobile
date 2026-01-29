@@ -24,7 +24,7 @@ export function RealVistaPropertySearchBar({
   const [isFocused, setIsFocused] = useState(false)
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
   const [filters, setFilters] = useState<FilterValues>({
-    category: null,
+    category: [],
     priceRange: { min: 1000, max: 1234567 },
     bedrooms: 0,
     bathrooms: 0,

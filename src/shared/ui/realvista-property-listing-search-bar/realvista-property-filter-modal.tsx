@@ -5,7 +5,7 @@ import { IconSymbol } from '../icon-symbol'
 import { RealVistaPriceRangeSlider } from '../realvista-price-range-slider'
 
 export interface FilterValues {
-  category: 'Houses' | 'Rooms' | 'Apartment' | null
+  category: ('Houses' | 'Rooms' | 'Apartment')[]
   priceRange: { min: number; max: number }
   bedrooms: number
   bathrooms: number
@@ -40,7 +40,7 @@ export function RealVistaPropertyFilterModal({
 
   const handleReset = () => {
     const defaultFilters: FilterValues = {
-      category: null,
+      category: [],
       priceRange: { min: MIN_PRICE, max: MAX_PRICE },
       bedrooms: 0,
       bathrooms: 0,
@@ -55,10 +55,15 @@ export function RealVistaPropertyFilterModal({
   }
 
   const updateCategory = (category: (typeof CATEGORIES)[number]) => {
-    setLocalFilters((prev) => ({
-      ...prev,
-      category: prev.category === category ? null : category,
-    }))
+    setLocalFilters((prev) => {
+      const isSelected = prev.category.includes(category)
+      return {
+        ...prev,
+        category: isSelected
+          ? prev.category.filter((c) => c !== category)
+          : [...prev.category, category],
+      }
+    })
   }
 
   const updateBedrooms = (increment: boolean) => {
@@ -180,9 +185,11 @@ export function RealVistaPropertyFilterModal({
                       paddingHorizontal: 20,
                       paddingVertical: 12,
                       borderRadius: 8,
-                      backgroundColor: localFilters.category === category ? '#7065F0' : '#FFFFFF',
+                      backgroundColor: localFilters.category.includes(category)
+                        ? '#7065F0'
+                        : '#FFFFFF',
                       borderWidth: 1,
-                      borderColor: localFilters.category === category ? '#7065F0' : '#E0DEF7',
+                      borderColor: localFilters.category.includes(category) ? '#7065F0' : '#E0DEF7',
                     }}
                     activeOpacity={0.7}
                   >
@@ -191,7 +198,7 @@ export function RealVistaPropertyFilterModal({
                       style={{
                         fontFamily: 'PlusJakartaSans_600SemiBold',
                         fontSize: 14,
-                        color: localFilters.category === category ? '#FFFFFF' : '#000929',
+                        color: localFilters.category.includes(category) ? '#FFFFFF' : '#000929',
                       }}
                     >
                       {category}
@@ -269,7 +276,7 @@ export function RealVistaPropertyFilterModal({
                       width: 32,
                       height: 32,
                       borderRadius: 16,
-                      backgroundColor: '#E5E6EB',
+                      backgroundColor: localFilters.bedrooms >= 1 ? '#7065F0' : '#E5E6EB',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
@@ -329,7 +336,7 @@ export function RealVistaPropertyFilterModal({
                       width: 32,
                       height: 32,
                       borderRadius: 16,
-                      backgroundColor: '#E5E6EB',
+                      backgroundColor: localFilters.bathrooms >= 1 ? '#7065F0' : '#E5E6EB',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
