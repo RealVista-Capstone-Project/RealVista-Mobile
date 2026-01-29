@@ -1,6 +1,6 @@
 import Slider from '@react-native-community/slider'
 import React, { useState } from 'react'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { Drawer, DrawerBackdrop, DrawerBody, DrawerContent, DrawerFooter } from '../drawer'
 import { IconSymbol } from '../icon-symbol'
 
@@ -103,13 +103,25 @@ export function PropertyFilterModal({
   }, [isOpen, filters])
 
   return (
-    <Drawer isOpen={isOpen} onClose={onClose} size='lg' anchor='bottom'>
+    <Drawer isOpen={isOpen} onClose={onClose} size='full' anchor='bottom'>
       <DrawerBackdrop />
       <DrawerContent
         className='rounded-t-3xl bg-white'
-        style={{ paddingBottom: 32 }}
+        style={{ paddingBottom: 32, maxHeight: '95%', display: 'flex', flexDirection: 'column' }}
         collapsable={false}
       >
+        {/* Drag Indicator */}
+        <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 8 }}>
+          <View
+            style={{
+              width: 56,
+              height: 5,
+              borderRadius: 32,
+              backgroundColor: '#E5E6EB',
+            }}
+          />
+        </View>
+
         {/* Header */}
         <View
           style={{
@@ -119,15 +131,15 @@ export function PropertyFilterModal({
             paddingTop: 8,
             paddingBottom: 16,
             borderBottomWidth: 1,
-            borderBottomColor: '#F3F4F6',
+            borderBottomColor: '#E5E6EB',
           }}
         >
           <TouchableOpacity onPress={onClose} style={{ padding: 8 }} activeOpacity={0.7}>
-            <IconSymbol name='xmark' size={24} color='#6B7280' />
+            <IconSymbol name='xmark' size={24} color='#9EA3AE' />
           </TouchableOpacity>
           <Text
             className="font-['PlusJakartaSans_700Bold'] text-xl text-[#100A55]"
-            style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 20 }}
+            style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 18, color: '#100A55' }}
           >
             Filters
           </Text>
@@ -135,270 +147,358 @@ export function PropertyFilterModal({
         </View>
 
         <DrawerBody style={{ flex: 1, paddingTop: 24 }}>
-          {/* Category Section */}
-          <View style={{ marginBottom: 32 }}>
-            <Text
-              className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-[#000929]"
-              style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16, marginBottom: 16 }}
-            >
-              Category
-            </Text>
-            <View style={{ flexDirection: 'row', gap: 12 }}>
-              {CATEGORIES.map((category) => (
-                <TouchableOpacity
-                  key={category}
-                  onPress={() => updateCategory(category)}
-                  style={{
-                    paddingHorizontal: 20,
-                    paddingVertical: 12,
-                    borderRadius: 8,
-                    backgroundColor: localFilters.category === category ? '#7065F0' : '#FFFFFF',
-                    borderWidth: 1,
-                    borderColor: localFilters.category === category ? '#7065F0' : '#E0DEF7',
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Text
-                    className="font-['PlusJakartaSans_600SemiBold'] text-sm"
+          <ScrollView
+            showsVerticalScrollIndicator={true}
+            bounces={true}
+            contentContainerStyle={{ paddingBottom: 16 }}
+          >
+            {/* Category Section */}
+            <View style={{ marginBottom: 32 }}>
+              <Text
+                className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-[#000929]"
+                style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16, marginBottom: 16 }}
+              >
+                Category
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                {CATEGORIES.map((category) => (
+                  <TouchableOpacity
+                    key={category}
+                    onPress={() => updateCategory(category)}
                     style={{
-                      fontFamily: 'PlusJakartaSans_600SemiBold',
-                      fontSize: 14,
-                      color: localFilters.category === category ? '#FFFFFF' : '#000929',
+                      paddingHorizontal: 20,
+                      paddingVertical: 12,
+                      borderRadius: 8,
+                      backgroundColor: localFilters.category === category ? '#7065F0' : '#FFFFFF',
+                      borderWidth: 1,
+                      borderColor: localFilters.category === category ? '#7065F0' : '#E0DEF7',
                     }}
+                    activeOpacity={0.7}
                   >
-                    {category}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          {/* Price Range Section */}
-          <View style={{ marginBottom: 32 }}>
-            <Text
-              className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-[#000929]"
-              style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16, marginBottom: 16 }}
-            >
-              Price Range
-            </Text>
-            <View style={{ paddingHorizontal: 8 }}>
-              {/* Price Range Sliders */}
-              <View style={{ marginBottom: 16 }}>
-                <Slider
-                  style={{ width: '100%', height: 40 }}
-                  minimumValue={MIN_PRICE}
-                  maximumValue={MAX_PRICE}
-                  value={localFilters.priceRange.min}
-                  onValueChange={updateMinPrice}
-                  minimumTrackTintColor='#7065F0'
-                  maximumTrackTintColor='#E0DEF7'
-                  thumbTintColor='#7065F0'
-                />
-                <Slider
-                  style={{ width: '100%', height: 40, marginTop: -20 }}
-                  minimumValue={MIN_PRICE}
-                  maximumValue={MAX_PRICE}
-                  value={localFilters.priceRange.max}
-                  onValueChange={updateMaxPrice}
-                  minimumTrackTintColor='#7065F0'
-                  maximumTrackTintColor='#E0DEF7'
-                  thumbTintColor='#7065F0'
-                />
-              </View>
-              {/* Price Labels */}
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text
-                  className="font-['PlusJakartaSans_700Bold'] text-base text-[#000929]"
-                  style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16 }}
-                >
-                  ${localFilters.priceRange.min.toLocaleString()}
-                </Text>
-                <Text
-                  className="font-['PlusJakartaSans_700Bold'] text-base text-[#000929]"
-                  style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16 }}
-                >
-                  ${localFilters.priceRange.max.toLocaleString()}
-                </Text>
+                    <Text
+                      className="font-['PlusJakartaSans_600SemiBold'] text-sm"
+                      style={{
+                        fontFamily: 'PlusJakartaSans_600SemiBold',
+                        fontSize: 14,
+                        color: localFilters.category === category ? '#FFFFFF' : '#000929',
+                      }}
+                    >
+                      {category}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
-          </View>
 
-          {/* Features Section */}
-          <View style={{ marginBottom: 32 }}>
-            <Text
-              className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-[#000929]"
-              style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16, marginBottom: 16 }}
-            >
-              Features
-            </Text>
-            {/* Bedroom Counter */}
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: 16,
-              }}
-            >
+            {/* Price Range Section */}
+            <View style={{ marginBottom: 32 }}>
               <Text
-                className="font-['PlusJakartaSans_500Medium'] text-base text-[#000929]"
-                style={{ fontFamily: 'PlusJakartaSans_500Medium', fontSize: 16 }}
+                className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-[#000929]"
+                style={{
+                  fontFamily: 'PlusJakartaSans_700Bold',
+                  fontSize: 18,
+                  marginBottom: 16,
+                  color: '#000929',
+                }}
               >
-                Bedroom
+                Price Range
               </Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-                <TouchableOpacity
-                  onPress={() => updateBedrooms(false)}
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 16,
-                    backgroundColor: '#E0DEF7',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <IconSymbol name='minus' size={16} color='#7065F0' />
-                </TouchableOpacity>
-                <Text
-                  className="font-['PlusJakartaSans_600SemiBold'] text-base text-[#000929]"
-                  style={{
-                    fontFamily: 'PlusJakartaSans_600SemiBold',
-                    fontSize: 16,
-                    minWidth: 24,
-                    textAlign: 'center',
-                  }}
-                >
-                  {localFilters.bedrooms}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => updateBedrooms(true)}
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 16,
-                    backgroundColor: '#7065F0',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <IconSymbol name='plus' size={16} color='#FFFFFF' />
-                </TouchableOpacity>
-              </View>
-            </View>
-            {/* Bathroom Counter */}
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <Text
-                className="font-['PlusJakartaSans_500Medium'] text-base text-[#000929]"
-                style={{ fontFamily: 'PlusJakartaSans_500Medium', fontSize: 16 }}
-              >
-                Bathroom
-              </Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-                <TouchableOpacity
-                  onPress={() => updateBathrooms(false)}
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 16,
-                    backgroundColor: '#E0DEF7',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <IconSymbol name='minus' size={16} color='#7065F0' />
-                </TouchableOpacity>
-                <Text
-                  className="font-['PlusJakartaSans_600SemiBold'] text-base text-[#000929]"
-                  style={{
-                    fontFamily: 'PlusJakartaSans_600SemiBold',
-                    fontSize: 16,
-                    minWidth: 24,
-                    textAlign: 'center',
-                  }}
-                >
-                  {localFilters.bathrooms}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => updateBathrooms(true)}
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 16,
-                    backgroundColor: '#7065F0',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <IconSymbol name='plus' size={16} color='#FFFFFF' />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-
-          {/* Rental Period Section */}
-          <View style={{ marginBottom: 24 }}>
-            <Text
-              className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-[#000929]"
-              style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16, marginBottom: 16 }}
-            >
-              Rental Period
-            </Text>
-            <View style={{ gap: 12 }}>
-              {RENTAL_PERIODS.map((period) => (
-                <TouchableOpacity
-                  key={period.value}
-                  onPress={() => updateRentalPeriod(period.value)}
+              <View style={{ paddingHorizontal: 8 }}>
+                {/* Price Histogram */}
+                <View
                   style={{
                     flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 12,
+                    alignItems: 'flex-end',
+                    height: 80,
+                    marginBottom: 8,
+                    gap: 4,
                   }}
-                  activeOpacity={0.7}
                 >
                   <View
+                    style={{ flex: 1, height: '30%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
+                  />
+                  <View
+                    style={{ flex: 1, height: '45%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
+                  />
+                  <View
+                    style={{ flex: 1, height: '60%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
+                  />
+                  <View
+                    style={{ flex: 1, height: '75%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
+                  />
+                  <View
+                    style={{ flex: 1, height: '90%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
+                  />
+                  <View
+                    style={{ flex: 1, height: '70%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
+                  />
+                  <View
+                    style={{ flex: 1, height: '55%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
+                  />
+                  <View
+                    style={{ flex: 1, height: '65%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
+                  />
+                  <View
+                    style={{ flex: 1, height: '40%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
+                  />
+                  <View
+                    style={{ flex: 1, height: '75%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
+                  />
+                  <View
+                    style={{ flex: 1, height: '50%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
+                  />
+                  <View
+                    style={{ flex: 1, height: '35%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
+                  />
+                </View>
+                {/* Price Range Sliders */}
+                <View style={{ marginBottom: 16 }}>
+                  <Slider
+                    style={{ width: '100%', height: 40 }}
+                    minimumValue={MIN_PRICE}
+                    maximumValue={MAX_PRICE}
+                    value={localFilters.priceRange.min}
+                    onValueChange={updateMinPrice}
+                    minimumTrackTintColor='#7065F0'
+                    maximumTrackTintColor='#E0DEF7'
+                    thumbTintColor='#7065F0'
+                  />
+                  <Slider
+                    style={{ width: '100%', height: 40, marginTop: -20 }}
+                    minimumValue={MIN_PRICE}
+                    maximumValue={MAX_PRICE}
+                    value={localFilters.priceRange.max}
+                    onValueChange={updateMaxPrice}
+                    minimumTrackTintColor='#7065F0'
+                    maximumTrackTintColor='#E0DEF7'
+                    thumbTintColor='#7065F0'
+                  />
+                </View>
+                {/* Price Labels */}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text
+                    className="font-['PlusJakartaSans_700Bold'] text-base text-[#000929]"
                     style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 12,
-                      borderWidth: 2,
-                      borderColor:
-                        localFilters.rentalPeriod === period.value ? '#7065F0' : '#D1D5DB',
+                      fontFamily: 'PlusJakartaSans_700Bold',
+                      fontSize: 16,
+                      color: '#000929',
+                    }}
+                  >
+                    ${localFilters.priceRange.min.toLocaleString()}
+                  </Text>
+                  <Text
+                    className="font-['PlusJakartaSans_700Bold'] text-base text-[#000929]"
+                    style={{
+                      fontFamily: 'PlusJakartaSans_700Bold',
+                      fontSize: 16,
+                      color: '#000929',
+                    }}
+                  >
+                    ${localFilters.priceRange.max.toLocaleString()}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Features Section */}
+            <View style={{ marginBottom: 32 }}>
+              <Text
+                className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-[#000929]"
+                style={{
+                  fontFamily: 'PlusJakartaSans_700Bold',
+                  fontSize: 18,
+                  marginBottom: 16,
+                  color: '#000929',
+                }}
+              >
+                Features
+              </Text>
+              {/* Bedroom Counter */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 16,
+                }}
+              >
+                <Text
+                  className="font-['PlusJakartaSans_500Medium'] text-base text-[#000929]"
+                  style={{
+                    fontFamily: 'PlusJakartaSans_500Medium',
+                    fontSize: 16,
+                    color: '#000929',
+                  }}
+                >
+                  Bedroom
+                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+                  <TouchableOpacity
+                    onPress={() => updateBedrooms(false)}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      backgroundColor: '#E5E6EB',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
+                    activeOpacity={0.7}
                   >
-                    {localFilters.rentalPeriod === period.value && (
-                      <View
-                        style={{
-                          width: 12,
-                          height: 12,
-                          borderRadius: 6,
-                          backgroundColor: '#7065F0',
-                        }}
-                      />
-                    )}
-                  </View>
+                    <IconSymbol name='minus' size={16} color='#9EA3AE' />
+                  </TouchableOpacity>
                   <Text
-                    className="font-['PlusJakartaSans_500Medium'] text-base text-[#000929]"
-                    style={{ fontFamily: 'PlusJakartaSans_500Medium', fontSize: 16 }}
+                    className="font-['PlusJakartaSans_600SemiBold'] text-base text-[#000929]"
+                    style={{
+                      fontFamily: 'PlusJakartaSans_600SemiBold',
+                      fontSize: 16,
+                      minWidth: 24,
+                      textAlign: 'center',
+                    }}
                   >
-                    {period.label}
+                    {localFilters.bedrooms}
                   </Text>
-                </TouchableOpacity>
-              ))}
+                  <TouchableOpacity
+                    onPress={() => updateBedrooms(true)}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      backgroundColor: '#7065F0',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <IconSymbol name='plus' size={16} color='#FFFFFF' />
+                  </TouchableOpacity>
+                </View>
+              </View>
+              {/* Bathroom Counter */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <Text
+                  className="font-['PlusJakartaSans_500Medium'] text-base text-[#000929]"
+                  style={{
+                    fontFamily: 'PlusJakartaSans_500Medium',
+                    fontSize: 16,
+                    color: '#000929',
+                  }}
+                >
+                  Bathroom
+                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+                  <TouchableOpacity
+                    onPress={() => updateBathrooms(false)}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      backgroundColor: '#E5E6EB',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <IconSymbol name='minus' size={16} color='#9EA3AE' />
+                  </TouchableOpacity>
+                  <Text
+                    className="font-['PlusJakartaSans_600SemiBold'] text-base text-[#000929]"
+                    style={{
+                      fontFamily: 'PlusJakartaSans_600SemiBold',
+                      fontSize: 16,
+                      minWidth: 24,
+                      textAlign: 'center',
+                    }}
+                  >
+                    {localFilters.bathrooms}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => updateBathrooms(true)}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      backgroundColor: '#7065F0',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <IconSymbol name='plus' size={16} color='#FFFFFF' />
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
-          </View>
+
+            {/* Rental Period Section */}
+            <View style={{ marginBottom: 16 }}>
+              <Text
+                className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-[#000929]"
+                style={{
+                  fontFamily: 'PlusJakartaSans_700Bold',
+                  fontSize: 18,
+                  marginBottom: 16,
+                  color: '#000929',
+                }}
+              >
+                Rental Period
+              </Text>
+              <View style={{ gap: 12 }}>
+                {RENTAL_PERIODS.map((period) => (
+                  <TouchableOpacity
+                    key={period.value}
+                    onPress={() => updateRentalPeriod(period.value)}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 12,
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: 12,
+                        borderWidth: 2,
+                        borderColor:
+                          localFilters.rentalPeriod === period.value ? '#7065F0' : '#D1D5DB',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {localFilters.rentalPeriod === period.value && (
+                        <View
+                          style={{
+                            width: 12,
+                            height: 12,
+                            borderRadius: 6,
+                            backgroundColor: '#7065F0',
+                          }}
+                        />
+                      )}
+                    </View>
+                    <Text
+                      className="font-['PlusJakartaSans_500Medium'] text-base text-[#000929]"
+                      style={{
+                        fontFamily: 'PlusJakartaSans_500Medium',
+                        fontSize: 16,
+                        color: '#000929',
+                      }}
+                    >
+                      {period.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </ScrollView>
         </DrawerBody>
 
         <DrawerFooter style={{ flexDirection: 'row', gap: 12, paddingTop: 16 }}>
