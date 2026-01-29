@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import { TextInput, TouchableOpacity, View } from 'react-native'
 import { Circle, Path, Svg } from 'react-native-svg'
-import { PropertyFilterModal, type FilterValues } from './property-filter-modal'
+import { RealVistaPropertyFilterModal, type FilterValues } from './realvista-property-filter-modal'
 
-type PropertySearchBarProps = {
+type RealVistaPropertySearchBarProps = {
   value?: string
   onChangeText?: (text: string) => void
   placeholder?: string
@@ -12,14 +12,14 @@ type PropertySearchBarProps = {
   className?: string
 }
 
-export function PropertySearchBar({
+export function RealVistaPropertySearchBar({
   value: controlledValue,
   onChangeText,
   placeholder = 'Search location',
   onFilterPress,
   onFiltersChange,
   className = '',
-}: PropertySearchBarProps) {
+}: RealVistaPropertySearchBarProps) {
   const [internalValue, setInternalValue] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
@@ -89,7 +89,7 @@ export function PropertySearchBar({
       </View>
 
       {/* Filter Modal */}
-      <PropertyFilterModal
+      <RealVistaPropertyFilterModal
         isOpen={isFilterModalOpen}
         onClose={() => setIsFilterModalOpen(false)}
         filters={filters}

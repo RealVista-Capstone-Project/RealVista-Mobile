@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Text, View } from 'react-native'
 import RangeSlider from 'rn-range-slider'
 
-export interface PriceRangeSliderProps {
+export interface RealVistaPriceRangeSliderProps {
   minValue: number
   maxValue: number
   currentMin: number
@@ -13,7 +13,7 @@ export interface PriceRangeSliderProps {
   title?: string
 }
 
-export function PriceRangeSlider({
+export function RealVistaPriceRangeSlider({
   minValue,
   maxValue,
   currentMin,
@@ -22,7 +22,7 @@ export function PriceRangeSlider({
   onMaxChange,
   histogramData,
   title = 'Price Range',
-}: PriceRangeSliderProps) {
+}: RealVistaPriceRangeSliderProps) {
   // Calculate the maximum value for histogram normalization
   const maxHistogramValue = Math.max(...histogramData)
 

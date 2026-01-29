@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { Drawer, DrawerBackdrop, DrawerBody, DrawerContent, DrawerFooter } from '../drawer'
 import { IconSymbol } from '../icon-symbol'
-import { PriceRangeSlider } from '../price-range-slider'
+import { RealVistaPriceRangeSlider } from '../realvista-price-range-slider'
 
 export interface FilterValues {
   category: 'Houses' | 'Rooms' | 'Apartment' | null
@@ -12,7 +12,7 @@ export interface FilterValues {
   rentalPeriod: 'Any' | '1-12' | '13-24' | '24+' | null
 }
 
-interface PropertyFilterModalProps {
+interface RealVistaPropertyFilterModalProps {
   isOpen: boolean
   onClose: () => void
   filters: FilterValues
@@ -30,12 +30,12 @@ const RENTAL_PERIODS = [
 const MIN_PRICE = 1000
 const MAX_PRICE = 1234567
 
-export function PropertyFilterModal({
+export function RealVistaPropertyFilterModal({
   isOpen,
   onClose,
   filters,
   onApply,
-}: PropertyFilterModalProps) {
+}: RealVistaPropertyFilterModalProps) {
   const [localFilters, setLocalFilters] = useState<FilterValues>(filters)
 
   const handleReset = () => {
@@ -211,7 +211,7 @@ export function PropertyFilterModal({
             />
 
             {/* Price Range Section */}
-            <PriceRangeSlider
+            <RealVistaPriceRangeSlider
               minValue={MIN_PRICE}
               maxValue={MAX_PRICE}
               currentMin={localFilters.priceRange.min}
