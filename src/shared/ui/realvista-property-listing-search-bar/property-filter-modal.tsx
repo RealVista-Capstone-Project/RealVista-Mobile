@@ -1,8 +1,8 @@
-import Slider from '@react-native-community/slider'
 import React, { useState } from 'react'
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { Drawer, DrawerBackdrop, DrawerBody, DrawerContent, DrawerFooter } from '../drawer'
 import { IconSymbol } from '../icon-symbol'
+import { PriceRangeSlider } from '../price-range-slider'
 
 export interface FilterValues {
   category: 'Houses' | 'Rooms' | 'Apartment' | null
@@ -209,114 +209,15 @@ export function PropertyFilterModal({
             />
 
             {/* Price Range Section */}
-            <View style={{ marginBottom: 32 }}>
-              <Text
-                className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-[#000929]"
-                style={{
-                  fontFamily: 'PlusJakartaSans_700Bold',
-                  fontSize: 18,
-                  marginBottom: 16,
-                  color: '#000929',
-                }}
-              >
-                Price Range
-              </Text>
-              <View style={{ paddingHorizontal: 8 }}>
-                {/* Price Histogram */}
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'flex-end',
-                    height: 80,
-                    marginBottom: 8,
-                    gap: 4,
-                  }}
-                >
-                  <View
-                    style={{ flex: 1, height: '30%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
-                  />
-                  <View
-                    style={{ flex: 1, height: '45%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
-                  />
-                  <View
-                    style={{ flex: 1, height: '60%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
-                  />
-                  <View
-                    style={{ flex: 1, height: '75%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
-                  />
-                  <View
-                    style={{ flex: 1, height: '90%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
-                  />
-                  <View
-                    style={{ flex: 1, height: '70%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
-                  />
-                  <View
-                    style={{ flex: 1, height: '55%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
-                  />
-                  <View
-                    style={{ flex: 1, height: '65%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
-                  />
-                  <View
-                    style={{ flex: 1, height: '40%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
-                  />
-                  <View
-                    style={{ flex: 1, height: '75%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
-                  />
-                  <View
-                    style={{ flex: 1, height: '50%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
-                  />
-                  <View
-                    style={{ flex: 1, height: '35%', backgroundColor: '#E0DEF7', borderRadius: 2 }}
-                  />
-                </View>
-                {/* Price Range Sliders */}
-                <View style={{ marginBottom: 16 }}>
-                  <Slider
-                    style={{ width: '100%', height: 40 }}
-                    minimumValue={MIN_PRICE}
-                    maximumValue={MAX_PRICE}
-                    value={localFilters.priceRange.min}
-                    onValueChange={updateMinPrice}
-                    minimumTrackTintColor='#7065F0'
-                    maximumTrackTintColor='#E0DEF7'
-                    thumbTintColor='#7065F0'
-                  />
-                  <Slider
-                    style={{ width: '100%', height: 40, marginTop: -20 }}
-                    minimumValue={MIN_PRICE}
-                    maximumValue={MAX_PRICE}
-                    value={localFilters.priceRange.max}
-                    onValueChange={updateMaxPrice}
-                    minimumTrackTintColor='#7065F0'
-                    maximumTrackTintColor='#E0DEF7'
-                    thumbTintColor='#7065F0'
-                  />
-                </View>
-                {/* Price Labels */}
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text
-                    className="font-['PlusJakartaSans_700Bold'] text-base text-[#000929]"
-                    style={{
-                      fontFamily: 'PlusJakartaSans_700Bold',
-                      fontSize: 16,
-                      color: '#000929',
-                    }}
-                  >
-                    ${localFilters.priceRange.min.toLocaleString()}
-                  </Text>
-                  <Text
-                    className="font-['PlusJakartaSans_700Bold'] text-base text-[#000929]"
-                    style={{
-                      fontFamily: 'PlusJakartaSans_700Bold',
-                      fontSize: 16,
-                      color: '#000929',
-                    }}
-                  >
-                    ${localFilters.priceRange.max.toLocaleString()}
-                  </Text>
-                </View>
-              </View>
-            </View>
+            <PriceRangeSlider
+              minValue={MIN_PRICE}
+              maxValue={MAX_PRICE}
+              currentMin={localFilters.priceRange.min}
+              currentMax={localFilters.priceRange.max}
+              onMinChange={updateMinPrice}
+              onMaxChange={updateMaxPrice}
+              histogramData={[6, 8, 8, 12, 21, 35, 38, 28, 21, 12, 8, 6]}
+            />
 
             {/* Separator Line */}
             <View
