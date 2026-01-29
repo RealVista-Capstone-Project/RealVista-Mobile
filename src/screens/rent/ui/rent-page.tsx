@@ -17,7 +17,7 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800',
     title: 'Palm Harbor',
     address: '2699 Green Valley, Highland Lake, FL',
-    price: 20000000,
+    price: 2000000000,
     beds: 3,
     bathrooms: 2,
     area: 5,
@@ -224,8 +224,12 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
 
 export function RentPage() {
   const [searchText, setSearchText] = useState('Houston')
-  const [properties, setProperties] = useState<RealVistaPropertyCardData[]>(MOCK_PROPERTIES)
+  const [properties, setProperties] = useState<RealVistaPropertyCardData[]>(() => MOCK_PROPERTIES)
 
+  // Sync properties with MOCK_PROPERTIES on mount to fix cached state
+  React.useEffect(() => {
+    setProperties(MOCK_PROPERTIES)
+  }, [])
   const handleFilterPress = () => {
     console.log('Filter pressed')
     // TODO: Implement filter functionality
