@@ -1,6 +1,6 @@
-import Slider from '@react-native-community/slider'
-import React from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { Text, View } from 'react-native'
+import RangeSlider from 'rn-range-slider'
 
 export interface PriceRangeSliderProps {
   minValue: number
@@ -26,8 +26,33 @@ export function PriceRangeSlider({
   // Calculate the maximum value for histogram normalization
   const maxHistogramValue = Math.max(...histogramData)
 
+  // Internal state to track slider values during drag
+  const [internalLow, setInternalLow] = useState(currentMin)
+  const [internalHigh, setInternalHigh] = useState(currentMax)
+
+  // Sync internal state when props change (e.g., when modal opens)
+  useEffect(() => {
+    setInternalLow(currentMin)
+    setInternalHigh(currentMax)
+  }, [currentMin, currentMax])
+
+  // Update internal state during drag - doesn't trigger parent updates
+  const handleValueChange = useCallback((low: number, high: number) => {
+    setInternalLow(low)
+    setInternalHigh(high)
+  }, [])
+
+  // Only update parent when dragging is complete
+  const handleValueChangeFinish = useCallback(
+    (low: number, high: number) => {
+      onMinChange(low)
+      onMaxChange(high)
+    },
+    [onMinChange, onMaxChange]
+  )
+
   return (
-    <View>
+    <View style={{ marginBottom: 32 }}>
       <Text
         className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-[#000929]"
         style={{
@@ -39,15 +64,16 @@ export function PriceRangeSlider({
       >
         {title}
       </Text>
-      <View style={{ paddingHorizontal: 8 }}>
+      <View>
         {/* Price Histogram */}
         <View
           style={{
             flexDirection: 'row',
             alignItems: 'flex-end',
             height: 56,
-            marginBottom: 8,
+            marginBottom: 4,
             gap: 2,
+            paddingHorizontal: 36,
           }}
         >
           {histogramData.map((value, index) => {
@@ -65,42 +91,70 @@ export function PriceRangeSlider({
             )
           })}
         </View>
-        {/* Price Range Sliders */}
-        <View style={{ marginBottom: 16 }}>
-          <Slider
-            style={{ width: '100%', height: 40 }}
-            minimumValue={minValue}
-            maximumValue={maxValue}
-            value={currentMin}
-            onValueChange={onMinChange}
-            minimumTrackTintColor='#7065F0'
-            maximumTrackTintColor='#E0DEF7'
-            thumbTintColor='#7065F0'
-          />
-          <Slider
-            style={{ width: '100%', height: 40, marginTop: -20 }}
-            minimumValue={minValue}
-            maximumValue={maxValue}
-            value={currentMax}
-            onValueChange={onMaxChange}
-            minimumTrackTintColor='#7065F0'
-            maximumTrackTintColor='#E0DEF7'
-            thumbTintColor='#7065F0'
+        {/* Price Range Slider */}
+        <View style={{ height: 40, marginBottom: 8, paddingHorizontal: 8 }}>
+          <RangeSlider
+            min={minValue}
+            max={maxValue}
+            low={internalLow}
+            high={internalHigh}
+            step={1000}
+            floatingLabel={false}
+            renderThumb={() => (
+              <View
+                style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: 10,
+                  backgroundColor: '#FFFF',
+                  borderWidth: 2,
+                  borderColor: '#7065F0',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.15,
+                  shadowRadius: 4,
+                  elevation: 3,
+                }}
+              />
+            )}
+            renderRail={() => (
+              <View
+                style={{
+                  flex: 1,
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: '#E0DEF7',
+                }}
+              />
+            )}
+            renderRailSelected={() => (
+              <View
+                style={{
+                  height: 4,
+                  borderRadius: 2,
+                  backgroundColor: '#7065F0',
+                }}
+              />
+            )}
+            onValueChanged={handleValueChange}
+            onSliderTouchEnd={handleValueChangeFinish}
           />
         </View>
         {/* Price Labels */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <View
+          style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 8 }}
+        >
           <Text
             className="font-['PlusJakartaSans_700Bold'] text-base text-[#000929]"
             style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 18, color: '#000929' }}
           >
-            ${currentMin.toLocaleString()}
+            ${internalLow.toLocaleString()}
           </Text>
           <Text
             className="font-['PlusJakartaSans_700Bold'] text-base text-[#000929]"
             style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 18, color: '#000929' }}
           >
-            ${currentMax.toLocaleString()}
+            ${internalHigh.toLocaleString()}
           </Text>
         </View>
       </View>

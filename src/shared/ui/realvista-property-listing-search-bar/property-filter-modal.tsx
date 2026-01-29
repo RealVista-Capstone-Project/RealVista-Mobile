@@ -82,25 +82,27 @@ export function PropertyFilterModal({
     }))
   }
 
-  const updateMinPrice = (value: number) => {
+  const updateMinPrice = React.useCallback((value: number) => {
     setLocalFilters((prev) => ({
       ...prev,
       priceRange: { ...prev.priceRange, min: Math.min(value, prev.priceRange.max) },
     }))
-  }
+  }, [])
 
-  const updateMaxPrice = (value: number) => {
+  const updateMaxPrice = React.useCallback((value: number) => {
     setLocalFilters((prev) => ({
       ...prev,
       priceRange: { ...prev.priceRange, max: Math.max(value, prev.priceRange.min) },
     }))
-  }
+  }, [])
 
+  // Reset local filters to match props when modal opens
   React.useEffect(() => {
     if (isOpen) {
       setLocalFilters(filters)
     }
-  }, [isOpen, filters])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]) // Only depend on isOpen, not filters, to avoid infinite loops
 
   return (
     <Drawer isOpen={isOpen} onClose={onClose} size='full' anchor='bottom'>
