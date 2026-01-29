@@ -1,3 +1,4 @@
+import { formatVND } from '@/shared/lib/format-currency'
 import React, { useCallback, useEffect, useState } from 'react'
 import { Text, View } from 'react-native'
 import RangeSlider from 'rn-range-slider'
@@ -148,13 +149,13 @@ export function RealVistaPriceRangeSlider({
             className="font-['PlusJakartaSans_700Bold'] text-base text-[#000929]"
             style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 18, color: '#000929' }}
           >
-            ${internalLow.toLocaleString()}
+            {formatVND(internalLow)}
           </Text>
           <Text
             className="font-['PlusJakartaSans_700Bold'] text-base text-[#000929]"
             style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 18, color: '#000929' }}
           >
-            ${internalHigh.toLocaleString()}
+            {formatVND(internalHigh)}
           </Text>
         </View>
       </View>
