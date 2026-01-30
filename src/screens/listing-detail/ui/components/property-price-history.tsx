@@ -23,7 +23,7 @@ export function PropertyPriceHistory() {
             Niêm yết bán
           </Text>
           <Text className='text-brand-primary' size='sm'>
-            Estatery
+            Real Vista
           </Text>
         </Box>
 
@@ -43,7 +43,7 @@ export function PropertyPriceHistory() {
             Thay đổi giá
           </Text>
           <Text className='text-brand-primary' size='sm'>
-            Estatery
+            Real Vista
           </Text>
         </Box>
 
