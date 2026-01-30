@@ -262,6 +262,7 @@ export function BuyPage() {
             onChangeText={setSearchText}
             onFilterPress={handleFilterPress}
             className='mb-6'
+            showLeaseTerm={false}
           />
 
           {/* Property Listings */}

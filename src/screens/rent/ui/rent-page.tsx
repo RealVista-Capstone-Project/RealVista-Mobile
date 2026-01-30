@@ -8,7 +8,6 @@ import { RealVistaPropertySearchBar } from '@/shared/ui/realvista-property-listi
 import React, { useState } from 'react'
 import { ScrollView, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Path, Svg } from 'react-native-svg'
 
 // Mock property data based on Figma designs
 const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
@@ -263,6 +262,7 @@ export function RentPage() {
             onChangeText={setSearchText}
             onFilterPress={handleFilterPress}
             className='mb-6'
+            showLeaseTerm={true}
           />
 
           {/* Property Listings */}
@@ -283,20 +283,5 @@ export function RentPage() {
         </Box>
       </ScrollView>
     </SafeAreaView>
-  )
-}
-
-// Chevron Icon for Breadcrumb
-function ChevronIcon() {
-  return (
-    <Svg width={16} height={16} viewBox='0 0 16 16' fill='none'>
-      <Path
-        d='M6 12L10 8L6 4'
-        stroke='#9CA3AF'
-        strokeWidth={1.5}
-        strokeLinecap='round'
-        strokeLinejoin='round'
-      />
-    </Svg>
   )
 }

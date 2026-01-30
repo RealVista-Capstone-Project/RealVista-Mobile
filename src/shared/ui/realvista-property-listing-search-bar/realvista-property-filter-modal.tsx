@@ -17,6 +17,7 @@ interface RealVistaPropertyFilterModalProps {
   onClose: () => void
   filters: FilterValues
   onApply: (filters: FilterValues) => void
+  showLeaseTerm?: boolean
 }
 
 const CATEGORIES = ['Houses', 'Rooms', 'Apartment'] as const
@@ -35,6 +36,7 @@ export function RealVistaPropertyFilterModal({
   onClose,
   filters,
   onApply,
+  showLeaseTerm = true,
 }: RealVistaPropertyFilterModalProps) {
   const [localFilters, setLocalFilters] = useState<FilterValues>(filters)
 
@@ -380,68 +382,70 @@ export function RealVistaPropertyFilterModal({
             />
 
             {/* Rental Period Section */}
-            <View style={{ marginBottom: 16 }}>
-              <Text
-                className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-main-black"
-                style={{
-                  fontFamily: 'PlusJakartaSans_700Bold',
-                  fontSize: 18,
-                  marginBottom: 16,
-                }}
-              >
-                Thời hạn thuê
-              </Text>
-              <View style={{ gap: 12 }}>
-                {RENTAL_PERIODS.map((period) => (
-                  <TouchableOpacity
-                    key={period.value}
-                    onPress={() => updateRentalPeriod(period.value)}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 12,
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <View
-                      className={
-                        localFilters.rentalPeriod === period.value
-                          ? 'border-brand-primary'
-                          : 'border-grey-300'
-                      }
+            {showLeaseTerm && (
+              <View style={{ marginBottom: 16 }}>
+                <Text
+                  className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-main-black"
+                  style={{
+                    fontFamily: 'PlusJakartaSans_700Bold',
+                    fontSize: 18,
+                    marginBottom: 16,
+                  }}
+                >
+                  Thời hạn thuê
+                </Text>
+                <View style={{ gap: 12 }}>
+                  {RENTAL_PERIODS.map((period) => (
+                    <TouchableOpacity
+                      key={period.value}
+                      onPress={() => updateRentalPeriod(period.value)}
                       style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: 12,
-                        borderWidth: 2,
+                        flexDirection: 'row',
                         alignItems: 'center',
-                        justifyContent: 'center',
+                        gap: 12,
                       }}
+                      activeOpacity={0.7}
                     >
-                      {localFilters.rentalPeriod === period.value && (
-                        <View
-                          className='bg-brand-primary'
-                          style={{
-                            width: 12,
-                            height: 12,
-                            borderRadius: 6,
-                          }}
-                        />
-                      )}
-                    </View>
-                    <Text
-                      className="font-['PlusJakartaSans_500Medium'] text-base text-main-black"
-                      style={{
-                        fontFamily: 'PlusJakartaSans_500Medium',
-                        fontSize: 16,
-                      }}
-                    >
-                      {period.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                      <View
+                        className={
+                          localFilters.rentalPeriod === period.value
+                            ? 'border-brand-primary'
+                            : 'border-grey-300'
+                        }
+                        style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: 12,
+                          borderWidth: 2,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        {localFilters.rentalPeriod === period.value && (
+                          <View
+                            className='bg-brand-primary'
+                            style={{
+                              width: 12,
+                              height: 12,
+                              borderRadius: 6,
+                            }}
+                          />
+                        )}
+                      </View>
+                      <Text
+                        className="font-['PlusJakartaSans_500Medium'] text-base text-main-black"
+                        style={{
+                          fontFamily: 'PlusJakartaSans_500Medium',
+                          fontSize: 16,
+                        }}
+                      >
+                        {period.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
-            </View>
+            )}
           </ScrollView>
         </DrawerBody>
 

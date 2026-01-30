@@ -53,47 +53,28 @@ export function RealVistaPriceRangeSlider({
   )
 
   return (
-    <View style={{ marginBottom: 32 }}>
-      <Text
-        className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-[#000929]"
-        style={{
-          fontFamily: 'PlusJakartaSans_700Bold',
-          fontSize: 18,
-          marginBottom: 16,
-          color: '#000929',
-        }}
-      >
+    <View className='mb-8'>
+      <Text className="font-['PlusJakartaSans_700Bold'] mb-4 text-[18px] text-[#000929]">
         {title}
       </Text>
       <View>
         {/* Price Histogram */}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'flex-end',
-            height: 56,
-            marginBottom: 4,
-            gap: 2,
-            paddingHorizontal: 36,
-          }}
-        >
+        <View className='flex-row items-end h-14 mb-1 gap-[2px] px-9'>
           {histogramData.map((value, index) => {
             const heightPercentage = maxHistogramValue > 0 ? (value / maxHistogramValue) * 100 : 0
             return (
               <View
                 key={index}
+                className='flex-1 bg-[#E5E7EB] rounded-[2px]'
                 style={{
-                  flex: 1,
                   height: `${heightPercentage}%`,
-                  backgroundColor: '#E5E7EB',
-                  borderRadius: 2,
                 }}
               />
             )
           })}
         </View>
         {/* Price Range Slider */}
-        <View style={{ height: 40, marginBottom: 8, paddingHorizontal: 8 }}>
+        <View className='h-10 mb-2 px-2'>
           <RangeSlider
             min={minValue}
             max={maxValue}
@@ -103,13 +84,8 @@ export function RealVistaPriceRangeSlider({
             floatingLabel={false}
             renderThumb={() => (
               <View
+                className='w-5 h-5 rounded-full bg-white border-2 border-[#7065F0]'
                 style={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 10,
-                  backgroundColor: '#FFFF',
-                  borderWidth: 2,
-                  borderColor: '#7065F0',
                   shadowColor: '#000',
                   shadowOffset: { width: 0, height: 2 },
                   shadowOpacity: 0.15,
@@ -118,43 +94,18 @@ export function RealVistaPriceRangeSlider({
                 }}
               />
             )}
-            renderRail={() => (
-              <View
-                style={{
-                  flex: 1,
-                  height: 4,
-                  borderRadius: 2,
-                  backgroundColor: '#E0DEF7',
-                }}
-              />
-            )}
-            renderRailSelected={() => (
-              <View
-                style={{
-                  height: 4,
-                  borderRadius: 2,
-                  backgroundColor: '#7065F0',
-                }}
-              />
-            )}
+            renderRail={() => <View className='flex-1 h-1 rounded-[2px] bg-[#E0DEF7]' />}
+            renderRailSelected={() => <View className='h-1 rounded-[2px] bg-[#7065F0]' />}
             onValueChanged={handleValueChange}
             onSliderTouchEnd={handleValueChangeFinish}
           />
         </View>
         {/* Price Labels */}
-        <View
-          style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 8 }}
-        >
-          <Text
-            className="font-['PlusJakartaSans_700Bold'] text-base text-[#000929]"
-            style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 18, color: '#000929' }}
-          >
+        <View className='flex-row justify-between px-2'>
+          <Text className="font-['PlusJakartaSans_700Bold'] text-[18px] text-[#000929]">
             {formatVND(internalLow)}
           </Text>
-          <Text
-            className="font-['PlusJakartaSans_700Bold'] text-base text-[#000929]"
-            style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 18, color: '#000929' }}
-          >
+          <Text className="font-['PlusJakartaSans_700Bold'] text-[18px] text-[#000929]">
             {formatVND(internalHigh)}
           </Text>
         </View>

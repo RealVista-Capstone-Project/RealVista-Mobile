@@ -10,6 +10,7 @@ type RealVistaPropertySearchBarProps = {
   onFilterPress?: () => void
   onFiltersChange?: (filters: FilterValues) => void
   className?: string
+  showLeaseTerm?: boolean
 }
 
 export function RealVistaPropertySearchBar({
@@ -19,6 +20,7 @@ export function RealVistaPropertySearchBar({
   onFilterPress,
   onFiltersChange,
   className = '',
+  showLeaseTerm = true,
 }: RealVistaPropertySearchBarProps) {
   const [internalValue, setInternalValue] = useState('')
   const [isFocused, setIsFocused] = useState(false)
@@ -92,6 +94,7 @@ export function RealVistaPropertySearchBar({
         onClose={() => setIsFilterModalOpen(false)}
         filters={filters}
         onApply={handleApplyFilters}
+        showLeaseTerm={showLeaseTerm}
       />
     </>
   )
