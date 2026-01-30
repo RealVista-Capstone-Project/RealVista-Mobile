@@ -51,7 +51,7 @@ export default function RootLayout() {
   // TODO: Remove this block before merging - for reviewer UI testing only
   useEffect(() => {
     if (!isNavigationReady || !loaded) return
-    router.replace('/rent-page' as Href)
+    router.replace('/listing/listing-detail' as Href)
   }, [isNavigationReady, router, loaded])
 
   // useEffect(() => {
