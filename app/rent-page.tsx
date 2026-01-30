@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function RentPageScreen() {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }} edges={['bottom']}>
+    <SafeAreaView className='flex-1 bg-white' edges={['bottom']}>
       <TopNav />
       <RentPage />
       <SidebarDrawer />

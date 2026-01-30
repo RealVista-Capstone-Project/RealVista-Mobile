@@ -44,12 +44,10 @@ export function RealVistaPropertyCard({
     <TouchableOpacity
       onPress={handleCardClick}
       activeOpacity={0.9}
-      className={`rounded-lg border-[1.5px] border-[#F0EFFB] bg-white ${className}`}
+      className={`rounded-lg border-[1.5px] border-purple-96 bg-white ${className}`}
       style={{
         borderRadius: 8,
         borderWidth: 1.5,
-        borderColor: '#F0EFFB',
-        backgroundColor: 'white',
       }}
     >
       {/* Property Image */}
@@ -70,10 +68,10 @@ export function RealVistaPropertyCard({
           <View style={{ position: 'absolute', bottom: -15, left: -8, zIndex: 10 }}>
             {/* Main badge body with special rounded corners */}
             <View
+              className='bg-brand-primary'
               style={{
                 position: 'relative',
                 height: 32,
-                backgroundColor: '#7065F0',
                 paddingHorizontal: 16,
                 paddingVertical: 8,
                 borderTopLeftRadius: 8,
@@ -130,24 +128,22 @@ export function RealVistaPropertyCard({
         >
           <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
             <Text
-              className="font-['PlusJakartaSans_700Bold']"
+              className="font-['PlusJakartaSans_700Bold'] text-brand-primary"
               style={{
                 fontFamily: 'PlusJakartaSans_700Bold',
                 fontSize: 24,
                 lineHeight: 36,
                 letterSpacing: -1,
-                color: '#7065F0',
               }}
             >
               {formatVND(property.price)}
             </Text>
             <Text
-              className="font-['PlusJakartaSans_500Medium']"
+              className="font-['PlusJakartaSans_500Medium'] text-grey-500"
               style={{
                 fontFamily: 'PlusJakartaSans_500Medium',
                 fontSize: 16,
                 lineHeight: 24,
-                color: '#6C727F',
               }}
             >
               /tháng
@@ -156,13 +152,12 @@ export function RealVistaPropertyCard({
 
           <TouchableOpacity
             onPress={handleFavoriteClick}
+            className='border-purple-94 bg-white'
             style={{
               width: 40,
               height: 40,
               borderRadius: 20,
               borderWidth: 1.5,
-              borderColor: '#E8E6F9',
-              backgroundColor: 'white',
               alignItems: 'center',
               justifyContent: 'center',
             }}
@@ -174,13 +169,12 @@ export function RealVistaPropertyCard({
 
         {/* Title */}
         <Text
-          className="font-['PlusJakartaSans_700Bold']"
+          className="font-['PlusJakartaSans_700Bold'] text-main-black"
           style={{
             fontFamily: 'PlusJakartaSans_700Bold',
             fontSize: 24,
             lineHeight: 36,
             letterSpacing: -1,
-            color: '#000929',
             marginBottom: 4,
           }}
         >
@@ -189,12 +183,11 @@ export function RealVistaPropertyCard({
 
         {/* Address */}
         <Text
-          className="font-['PlusJakartaSans_500Medium']"
+          className="font-['PlusJakartaSans_500Medium'] text-grey-500"
           style={{
             fontFamily: 'PlusJakartaSans_500Medium',
             fontSize: 16,
             lineHeight: 24,
-            color: '#6C727F',
             marginBottom: 16,
           }}
         >
@@ -202,7 +195,7 @@ export function RealVistaPropertyCard({
         </Text>
 
         {/* Divider Line */}
-        <View style={{ height: 1, backgroundColor: '#E8E6F9', marginBottom: 16 }} />
+        <View className='bg-purple-94' style={{ height: 1, marginBottom: 16 }} />
 
         {/* Property Specs */}
         <View
@@ -212,7 +205,7 @@ export function RealVistaPropertyCard({
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <BedIcon />
             <Text
-              className="font-['PlusJakartaSans_500Medium']"
+              className="font-['PlusJakartaSans_500Medium'] text-grey-500"
               style={{
                 fontFamily: 'PlusJakartaSans_500Medium',
                 fontSize: 14,
@@ -228,7 +221,7 @@ export function RealVistaPropertyCard({
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <BathIcon />
             <Text
-              className="font-['PlusJakartaSans_500Medium']"
+              className="font-['PlusJakartaSans_500Medium'] text-grey-500"
               style={{
                 fontFamily: 'PlusJakartaSans_500Medium',
                 fontSize: 14,
@@ -244,7 +237,7 @@ export function RealVistaPropertyCard({
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <AreaIcon />
             <Text
-              className="font-['PlusJakartaSans_500Medium']"
+              className="font-['PlusJakartaSans_500Medium'] text-grey-500"
               style={{
                 fontFamily: 'PlusJakartaSans_500Medium',
                 fontSize: 14,
