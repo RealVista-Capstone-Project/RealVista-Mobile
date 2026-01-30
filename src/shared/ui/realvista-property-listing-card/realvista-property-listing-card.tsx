@@ -150,7 +150,7 @@ export function RealVistaPropertyCard({
                 color: '#6C727F',
               }}
             >
-              /month
+              /tháng
             </Text>
           </View>
 
@@ -220,7 +220,7 @@ export function RealVistaPropertyCard({
                 color: '#6C727F',
               }}
             >
-              {property.beds} Beds
+              {property.beds} PN
             </Text>
           </View>
 
@@ -236,7 +236,7 @@ export function RealVistaPropertyCard({
                 color: '#6C727F',
               }}
             >
-              {property.bathrooms} Bathrooms
+              {property.bathrooms} WC
             </Text>
           </View>
 
