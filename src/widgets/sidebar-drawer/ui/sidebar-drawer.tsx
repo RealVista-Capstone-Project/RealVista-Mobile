@@ -13,7 +13,7 @@ type MenuItem = {
 
 const MENU_ITEMS: MenuItem[] = [
   { id: 'Buy', label: 'Mua', icon: 'house.fill' },
-  { id: 'Rent', label: 'Thuê', icon: 'rent' },
+  { id: 'Rent', label: 'Thuê', icon: 'key.fill' },
   { id: 'Favorited', label: 'Yêu thích', icon: 'heart' },
   { id: 'My listings', label: 'Tin đăng của tôi', icon: 'apartment' },
   { id: 'Appointments', label: 'Lịch hẹn', icon: 'calendar' },
