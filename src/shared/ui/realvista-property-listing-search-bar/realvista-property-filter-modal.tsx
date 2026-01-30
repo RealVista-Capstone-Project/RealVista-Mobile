@@ -5,7 +5,7 @@ import { IconSymbol } from '../icon-symbol'
 import { RealVistaPriceRangeSlider } from '../realvista-price-range-slider'
 
 export interface FilterValues {
-  category: 'Houses' | 'Rooms' | 'Apartment' | null
+  category: ('Houses' | 'Rooms' | 'Apartment')[]
   priceRange: { min: number; max: number }
   bedrooms: number
   bathrooms: number
@@ -17,30 +17,32 @@ interface RealVistaPropertyFilterModalProps {
   onClose: () => void
   filters: FilterValues
   onApply: (filters: FilterValues) => void
+  showLeaseTerm?: boolean
 }
 
 const CATEGORIES = ['Houses', 'Rooms', 'Apartment'] as const
 const RENTAL_PERIODS = [
-  { value: 'Any', label: 'Any' },
-  { value: '1-12', label: '1 - 12 months' },
-  { value: '13-24', label: '13 - 24 months' },
-  { value: '24+', label: '24+ months' },
+  { value: 'Any', label: 'Bất kỳ' },
+  { value: '1-12', label: '1 - 12 tháng' },
+  { value: '13-24', label: '13 - 24 tháng' },
+  { value: '24+', label: '24+ tháng' },
 ] as const
 
-const MIN_PRICE = 1000
-const MAX_PRICE = 1234567
+const MIN_PRICE = 5000000
+const MAX_PRICE = 100000000
 
 export function RealVistaPropertyFilterModal({
   isOpen,
   onClose,
   filters,
   onApply,
+  showLeaseTerm = true,
 }: RealVistaPropertyFilterModalProps) {
   const [localFilters, setLocalFilters] = useState<FilterValues>(filters)
 
   const handleReset = () => {
     const defaultFilters: FilterValues = {
-      category: null,
+      category: [],
       priceRange: { min: MIN_PRICE, max: MAX_PRICE },
       bedrooms: 0,
       bathrooms: 0,
@@ -55,10 +57,15 @@ export function RealVistaPropertyFilterModal({
   }
 
   const updateCategory = (category: (typeof CATEGORIES)[number]) => {
-    setLocalFilters((prev) => ({
-      ...prev,
-      category: prev.category === category ? null : category,
-    }))
+    setLocalFilters((prev) => {
+      const isSelected = prev.category.includes(category)
+      return {
+        ...prev,
+        category: isSelected
+          ? prev.category.filter((c) => c !== category)
+          : [...prev.category, category],
+      }
+    })
   }
 
   const updateBedrooms = (increment: boolean) => {
@@ -115,11 +122,11 @@ export function RealVistaPropertyFilterModal({
         {/* Drag Indicator */}
         <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 8 }}>
           <View
+            className='bg-grey-200'
             style={{
               width: 56,
               height: 5,
               borderRadius: 32,
-              backgroundColor: '#E5E6EB',
             }}
           />
         </View>
@@ -136,21 +143,21 @@ export function RealVistaPropertyFilterModal({
             }}
           >
             <TouchableOpacity onPress={onClose} style={{ padding: 8 }} activeOpacity={0.7}>
-              <IconSymbol name='xmark' size={24} color='#9EA3AE' />
+              <IconSymbol name='xmark' size={24} color='#6C727F' />
             </TouchableOpacity>
             <Text
-              className="font-['PlusJakartaSans_700Bold'] text-xl text-[#100A55]"
-              style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 18, color: '#100A55' }}
+              className="font-['PlusJakartaSans_700Bold'] text-xl text-main-secondary"
+              style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 18 }}
             >
-              Filters
+              Bộ lọc
             </Text>
             <View style={{ width: 40 }} />
           </View>
           {/* Full-width separator line */}
           <View
+            className='bg-grey-200'
             style={{
               height: 1,
-              backgroundColor: '#E5E6EB',
               marginLeft: -20,
               marginRight: -20,
             }}
@@ -166,32 +173,34 @@ export function RealVistaPropertyFilterModal({
             {/* Category Section */}
             <View style={{ marginBottom: 32 }}>
               <Text
-                className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-[#000929]"
+                className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-main-black"
                 style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16, marginBottom: 16 }}
               >
-                Category
+                Danh mục
               </Text>
               <View style={{ flexDirection: 'row', gap: 12 }}>
                 {CATEGORIES.map((category) => (
                   <TouchableOpacity
                     key={category}
                     onPress={() => updateCategory(category)}
+                    className={
+                      localFilters.category.includes(category)
+                        ? 'bg-brand-primary border-brand-primary'
+                        : 'bg-white border-purple-92'
+                    }
                     style={{
                       paddingHorizontal: 20,
                       paddingVertical: 12,
                       borderRadius: 8,
-                      backgroundColor: localFilters.category === category ? '#7065F0' : '#FFFFFF',
                       borderWidth: 1,
-                      borderColor: localFilters.category === category ? '#7065F0' : '#E0DEF7',
                     }}
                     activeOpacity={0.7}
                   >
                     <Text
-                      className="font-['PlusJakartaSans_600SemiBold'] text-sm"
+                      className={`font-['PlusJakartaSans_600SemiBold'] text-sm ${localFilters.category.includes(category) ? 'text-white' : 'text-main-black'}`}
                       style={{
                         fontFamily: 'PlusJakartaSans_600SemiBold',
                         fontSize: 14,
-                        color: localFilters.category === category ? '#FFFFFF' : '#000929',
                       }}
                     >
                       {category}
@@ -203,9 +212,9 @@ export function RealVistaPropertyFilterModal({
 
             {/* Separator Line */}
             <View
+              className='bg-grey-200'
               style={{
                 height: 1,
-                backgroundColor: '#E5E6EB',
                 marginBottom: 32,
               }}
             />
@@ -223,9 +232,9 @@ export function RealVistaPropertyFilterModal({
 
             {/* Separator Line */}
             <View
+              className='bg-grey-200'
               style={{
                 height: 1,
-                backgroundColor: '#E5E6EB',
                 marginBottom: 32,
               }}
             />
@@ -233,15 +242,14 @@ export function RealVistaPropertyFilterModal({
             {/* Features Section */}
             <View style={{ marginBottom: 32 }}>
               <Text
-                className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-[#000929]"
+                className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-main-black"
                 style={{
                   fontFamily: 'PlusJakartaSans_700Bold',
                   fontSize: 18,
                   marginBottom: 16,
-                  color: '#000929',
                 }}
               >
-                Features
+                Tiện nghi
               </Text>
               {/* Bedroom Counter */}
               <View
@@ -253,23 +261,22 @@ export function RealVistaPropertyFilterModal({
                 }}
               >
                 <Text
-                  className="font-['PlusJakartaSans_500Medium'] text-base text-[#000929]"
+                  className="font-['PlusJakartaSans_500Medium'] text-base text-main-black"
                   style={{
                     fontFamily: 'PlusJakartaSans_500Medium',
                     fontSize: 16,
-                    color: '#000929',
                   }}
                 >
-                  Bedroom
+                  Phòng ngủ
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
                   <TouchableOpacity
                     onPress={() => updateBedrooms(false)}
+                    className={localFilters.bedrooms >= 1 ? 'bg-brand-primary' : 'bg-grey-200'}
                     style={{
                       width: 32,
                       height: 32,
                       borderRadius: 16,
-                      backgroundColor: '#E5E6EB',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
@@ -290,11 +297,11 @@ export function RealVistaPropertyFilterModal({
                   </Text>
                   <TouchableOpacity
                     onPress={() => updateBedrooms(true)}
+                    className='bg-brand-primary'
                     style={{
                       width: 32,
                       height: 32,
                       borderRadius: 16,
-                      backgroundColor: '#7065F0',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
@@ -313,23 +320,22 @@ export function RealVistaPropertyFilterModal({
                 }}
               >
                 <Text
-                  className="font-['PlusJakartaSans_500Medium'] text-base text-[#000929]"
+                  className="font-['PlusJakartaSans_500Medium'] text-base text-main-black"
                   style={{
                     fontFamily: 'PlusJakartaSans_500Medium',
                     fontSize: 16,
-                    color: '#000929',
                   }}
                 >
-                  Bathroom
+                  Phòng tắm
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
                   <TouchableOpacity
                     onPress={() => updateBathrooms(false)}
+                    className={localFilters.bathrooms >= 1 ? 'bg-brand-primary' : 'bg-grey-200'}
                     style={{
                       width: 32,
                       height: 32,
                       borderRadius: 16,
-                      backgroundColor: '#E5E6EB',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
@@ -350,11 +356,11 @@ export function RealVistaPropertyFilterModal({
                   </Text>
                   <TouchableOpacity
                     onPress={() => updateBathrooms(true)}
+                    className='bg-brand-primary'
                     style={{
                       width: 32,
                       height: 32,
                       borderRadius: 16,
-                      backgroundColor: '#7065F0',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
@@ -368,105 +374,108 @@ export function RealVistaPropertyFilterModal({
 
             {/* Separator Line */}
             <View
+              className='bg-grey-200'
               style={{
                 height: 1,
-                backgroundColor: '#E5E6EB',
                 marginBottom: 32,
               }}
             />
 
             {/* Rental Period Section */}
-            <View style={{ marginBottom: 16 }}>
-              <Text
-                className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-[#000929]"
-                style={{
-                  fontFamily: 'PlusJakartaSans_700Bold',
-                  fontSize: 18,
-                  marginBottom: 16,
-                  color: '#000929',
-                }}
-              >
-                Rental Period
-              </Text>
-              <View style={{ gap: 12 }}>
-                {RENTAL_PERIODS.map((period) => (
-                  <TouchableOpacity
-                    key={period.value}
-                    onPress={() => updateRentalPeriod(period.value)}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 12,
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <View
+            {showLeaseTerm && (
+              <View style={{ marginBottom: 16 }}>
+                <Text
+                  className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-main-black"
+                  style={{
+                    fontFamily: 'PlusJakartaSans_700Bold',
+                    fontSize: 18,
+                    marginBottom: 16,
+                  }}
+                >
+                  Thời hạn thuê
+                </Text>
+                <View style={{ gap: 12 }}>
+                  {RENTAL_PERIODS.map((period) => (
+                    <TouchableOpacity
+                      key={period.value}
+                      onPress={() => updateRentalPeriod(period.value)}
                       style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: 12,
-                        borderWidth: 2,
-                        borderColor:
-                          localFilters.rentalPeriod === period.value ? '#7065F0' : '#D1D5DB',
+                        flexDirection: 'row',
                         alignItems: 'center',
-                        justifyContent: 'center',
+                        gap: 12,
                       }}
+                      activeOpacity={0.7}
                     >
-                      {localFilters.rentalPeriod === period.value && (
-                        <View
-                          style={{
-                            width: 12,
-                            height: 12,
-                            borderRadius: 6,
-                            backgroundColor: '#7065F0',
-                          }}
-                        />
-                      )}
-                    </View>
-                    <Text
-                      className="font-['PlusJakartaSans_500Medium'] text-base text-[#000929]"
-                      style={{
-                        fontFamily: 'PlusJakartaSans_500Medium',
-                        fontSize: 16,
-                        color: '#000929',
-                      }}
-                    >
-                      {period.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                      <View
+                        className={
+                          localFilters.rentalPeriod === period.value
+                            ? 'border-brand-primary'
+                            : 'border-grey-300'
+                        }
+                        style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: 12,
+                          borderWidth: 2,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        {localFilters.rentalPeriod === period.value && (
+                          <View
+                            className='bg-brand-primary'
+                            style={{
+                              width: 12,
+                              height: 12,
+                              borderRadius: 6,
+                            }}
+                          />
+                        )}
+                      </View>
+                      <Text
+                        className="font-['PlusJakartaSans_500Medium'] text-base text-main-black"
+                        style={{
+                          fontFamily: 'PlusJakartaSans_500Medium',
+                          fontSize: 16,
+                        }}
+                      >
+                        {period.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
-            </View>
+            )}
           </ScrollView>
         </DrawerBody>
 
         <DrawerFooter style={{ flexDirection: 'row', gap: 12, paddingTop: 16 }}>
           <TouchableOpacity
             onPress={handleReset}
+            className='bg-purple-96'
             style={{
               flex: 1,
               paddingVertical: 16,
               borderRadius: 8,
-              backgroundColor: '#F0EFFE',
               alignItems: 'center',
               justifyContent: 'center',
             }}
             activeOpacity={0.7}
           >
             <Text
-              className="font-['PlusJakartaSans_700Bold'] text-base text-[#7065F0]"
+              className="font-['PlusJakartaSans_700Bold'] text-base text-brand-primary"
               style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16 }}
             >
-              Reset
+              Đặt lại
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleApply}
+            className='bg-brand-primary'
             style={{
               flex: 1,
               paddingVertical: 16,
               borderRadius: 8,
-              backgroundColor: '#7065F0',
               alignItems: 'center',
               justifyContent: 'center',
             }}
@@ -476,7 +485,7 @@ export function RealVistaPropertyFilterModal({
               className="font-['PlusJakartaSans_700Bold'] text-base text-white"
               style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16 }}
             >
-              Apply
+              Áp dụng
             </Text>
           </TouchableOpacity>
         </DrawerFooter>
