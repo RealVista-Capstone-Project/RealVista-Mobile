@@ -26,6 +26,9 @@ const MAPPING: Record<string, ComponentProps<typeof MaterialIcons>['name']> = {
   calendar: 'event',
   help: 'help',
   settings: 'settings',
+  minus: 'remove',
+  'key.fill': 'vpn-key',
+  plus: 'add',
 }
 
 type IconSymbolName = keyof typeof MAPPING

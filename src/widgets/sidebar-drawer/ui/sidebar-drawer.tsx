@@ -1,6 +1,7 @@
 import { useDrawerStore } from '@/shared/stores/drawer-store'
 import { Drawer, DrawerBackdrop, DrawerBody, DrawerContent, DrawerFooter } from '@/shared/ui/drawer'
 import { IconSymbol } from '@/shared/ui/icon-symbol'
+import { useRouter } from 'expo-router'
 import { Text, TouchableOpacity, View } from 'react-native'
 import LogoFill from '../../../../assets/images/logo-fill.svg'
 
@@ -11,24 +12,31 @@ type MenuItem = {
 }
 
 const MENU_ITEMS: MenuItem[] = [
-  { id: 'Dashboard', label: 'Dashboard', icon: 'dashboard' },
-  { id: 'Explore', label: 'Explore', icon: 'explore' },
-  { id: 'Favorited', label: 'Favorited', icon: 'heart' },
-  { id: 'My listings', label: 'My listings', icon: 'apartment' },
-  { id: 'Appointments', label: 'Appointments', icon: 'calendar' },
+  { id: 'Buy', label: 'Mua', icon: 'house.fill' },
+  { id: 'Rent', label: 'Thuê', icon: 'key.fill' },
+  { id: 'Favorited', label: 'Yêu thích', icon: 'heart' },
+  { id: 'My listings', label: 'Tin đăng của tôi', icon: 'apartment' },
+  { id: 'Appointments', label: 'Lịch hẹn', icon: 'calendar' },
 ]
 
 const HELP_ITEMS: MenuItem[] = [
-  { id: 'Help', label: 'Help', icon: 'help' },
-  { id: 'Settings', label: 'Settings', icon: 'settings' },
+  { id: 'Help', label: 'Trợ giúp', icon: 'help' },
+  { id: 'Settings', label: 'Cài đặt', icon: 'settings' },
 ]
 
 export function SidebarDrawer() {
   const { isOpen, setIsOpen, activeItem, setActiveItem } = useDrawerStore()
+  const router = useRouter()
 
   const handleMenuItemPress = (itemId: string) => {
     setActiveItem(itemId)
     setIsOpen(false)
+
+    if (itemId === 'Buy') {
+      router.replace('/buy-page')
+    } else if (itemId === 'Rent') {
+      router.replace('/rent-page')
+    }
   }
 
   const isItemActive = (itemId: string) => activeItem === itemId
