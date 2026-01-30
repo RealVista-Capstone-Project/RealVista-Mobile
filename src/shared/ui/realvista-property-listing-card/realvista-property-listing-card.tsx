@@ -24,6 +24,7 @@ interface RealVistaPropertyCardProps {
   onToggleFavorite?: (id: string) => void
   onClick?: (id: string) => void
   className?: string
+  variant?: 'rent' | 'buy'
 }
 
 export function RealVistaPropertyCard({
@@ -31,6 +32,7 @@ export function RealVistaPropertyCard({
   onToggleFavorite,
   onClick,
   className = '',
+  variant = 'rent',
 }: RealVistaPropertyCardProps) {
   const handleFavoriteClick = (e: any) => {
     onToggleFavorite?.(property.id)
@@ -138,16 +140,18 @@ export function RealVistaPropertyCard({
             >
               {formatVND(property.price)}
             </Text>
-            <Text
-              className="font-['PlusJakartaSans_500Medium'] text-grey-500"
-              style={{
-                fontFamily: 'PlusJakartaSans_500Medium',
-                fontSize: 16,
-                lineHeight: 24,
-              }}
-            >
-              /tháng
-            </Text>
+            {variant === 'rent' && (
+              <Text
+                className="font-['PlusJakartaSans_500Medium'] text-grey-500"
+                style={{
+                  fontFamily: 'PlusJakartaSans_500Medium',
+                  fontSize: 16,
+                  lineHeight: 24,
+                }}
+              >
+                /tháng
+              </Text>
+            )}
           </View>
 
           <TouchableOpacity

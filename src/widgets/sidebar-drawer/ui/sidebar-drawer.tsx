@@ -1,6 +1,7 @@
 import { useDrawerStore } from '@/shared/stores/drawer-store'
 import { Drawer, DrawerBackdrop, DrawerBody, DrawerContent, DrawerFooter } from '@/shared/ui/drawer'
 import { IconSymbol } from '@/shared/ui/icon-symbol'
+import { useRouter } from 'expo-router'
 import { Text, TouchableOpacity, View } from 'react-native'
 import LogoFill from '../../../../assets/images/logo-fill.svg'
 
@@ -11,6 +12,7 @@ type MenuItem = {
 }
 
 const MENU_ITEMS: MenuItem[] = [
+  { id: 'Buy', label: 'Mua', icon: 'house.fill' },
   { id: 'Rent', label: 'Thuê', icon: 'rent' },
   { id: 'Favorited', label: 'Yêu thích', icon: 'heart' },
   { id: 'My listings', label: 'Tin đăng của tôi', icon: 'apartment' },
@@ -24,10 +26,17 @@ const HELP_ITEMS: MenuItem[] = [
 
 export function SidebarDrawer() {
   const { isOpen, setIsOpen, activeItem, setActiveItem } = useDrawerStore()
+  const router = useRouter()
 
   const handleMenuItemPress = (itemId: string) => {
     setActiveItem(itemId)
     setIsOpen(false)
+
+    if (itemId === 'Buy') {
+      router.replace('/buy-page')
+    } else if (itemId === 'Rent') {
+      router.replace('/rent-page')
+    }
   }
 
   const isItemActive = (itemId: string) => activeItem === itemId
