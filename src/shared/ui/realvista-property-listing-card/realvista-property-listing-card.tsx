@@ -217,7 +217,7 @@ export function RealVistaPropertyCard({
                 color: '#6C727F',
               }}
             >
-              {property.beds} Giường
+              {property.beds} PN
             </Text>
           </View>
 
@@ -233,7 +233,7 @@ export function RealVistaPropertyCard({
                 color: '#6C727F',
               }}
             >
-              {property.bathrooms} Phòng tắm
+              {property.bathrooms} WC
             </Text>
           </View>
 

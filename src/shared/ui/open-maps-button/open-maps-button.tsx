@@ -20,7 +20,7 @@ export function OpenMapsButton({ onPress, className = '' }: OpenMapsButtonProps)
         className="font-['PlusJakartaSans_700Bold'] text-base text-white"
         style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16 }}
       >
-        Open Maps
+        Mở Google Maps
       </Text>
     </TouchableOpacity>
   )

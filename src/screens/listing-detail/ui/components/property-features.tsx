@@ -17,7 +17,7 @@ export function PropertyFeatures() {
             <Box className='flex-row items-center gap-2'>
               <LogoApp width={20} height={20} />
               <Text bold className='text-[#0e0854]'>
-                Estatery
+                Real Vista
               </Text>
             </Box>
           </Box>
@@ -62,7 +62,7 @@ export function PropertyFeatures() {
         <Box className='flex-row items-center justify-between'>
           <Text className='text-main-black/50'>Sưởi</Text>
           <Text bold className='text-main-black'>
-            Điều hòa không khí
+            Điều hòa
           </Text>
         </Box>
 
