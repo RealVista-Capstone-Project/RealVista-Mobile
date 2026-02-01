@@ -13,12 +13,12 @@
 export const formatVND = (price: number): string => {
   if (price >= 1000000000) {
     // Format as tỷ (billion)
-    const ty = price / 1000000000
-    return ty % 1 === 0 ? `${ty} tỷ` : `${ty.toFixed(1)} tỷ`
+    const billionValue = price / 1000000000
+    return billionValue % 1 === 0 ? `${billionValue} tỷ` : `${billionValue.toFixed(1)} tỷ`
   } else if (price >= 1000000) {
     // Format as triệu (million)
-    const trieu = price / 1000000
-    return trieu % 1 === 0 ? `${trieu} triệu` : `${trieu.toFixed(1)} triệu`
+    const millionValue = price / 1000000
+    return millionValue % 1 === 0 ? `${millionValue} triệu` : `${millionValue.toFixed(1)} triệu`
   } else {
     // Less than 1 million, show full number with Vietnamese formatting
     return price.toLocaleString('vi-VN')
