@@ -1,15 +1,15 @@
 import { useListingDetail } from '@/features/get-listing-detail'
 import { Box } from '@/shared/ui/box'
 import { ApplyAppBar } from '@/widgets/apply-appbar'
+import { formatVND } from '@/shared/lib/format-currency'
 import { Tabs } from 'expo-router'
 import { View } from 'react-native'
 
 export default function ListingLayout() {
   const { data: listing } = useListingDetail()
-  console.log('listing', listing)
 
-  // Format price for display (assuming monthly rent)
-  const formattedPrice = listing ? `$${listing.price.toLocaleString()}` : '$2,700'
+  // Format price for display (in VND)
+  const formattedPrice = listing ? formatVND(listing.price) : '2.7 triệu'
 
   return (
     <Box className='flex-1'>
