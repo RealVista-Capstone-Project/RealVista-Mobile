@@ -51,7 +51,8 @@ export default function RootLayout() {
   // TODO: Remove this block before merging - for reviewer UI testing only
   useEffect(() => {
     if (!isNavigationReady || !loaded) return
-    router.replace('/listing/listing-detail' as Href)
+    // Using the listing_id from the API response for development
+    router.replace('/listing/610e8400-e29b-41d4-a716-446655440002' as Href)
   }, [isNavigationReady, router, loaded])
 
   // useEffect(() => {

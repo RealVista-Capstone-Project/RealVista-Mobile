@@ -3,11 +3,20 @@ import IconLucide from '@/shared/ui/icon-lucide/icon'
 import { Text } from '@/shared/ui/text'
 
 interface PropertySpecificationsProps {
-  beds: number
-  baths: number
+  bedrooms: number
+  bathrooms: number
+  usableSize: number
+  propertyTypeName: string
+  status: string
 }
 
-export function PropertySpecifications({ beds, baths }: PropertySpecificationsProps) {
+export function PropertySpecifications({
+  bedrooms,
+  bathrooms,
+  usableSize,
+  propertyTypeName,
+  status,
+}: PropertySpecificationsProps) {
   return (
     <Box className='mb-6 rounded-lg border border-purple-96 bg-white p-6'>
       {/* First Row: Bed, Bath, Sqft */}
@@ -20,7 +29,7 @@ export function PropertySpecifications({ beds, baths }: PropertySpecificationsPr
           <Box className='flex-row items-center gap-2'>
             <IconLucide size={20} name='BedDouble' color='#808494' />
             <Text size='lg' bold className='text-main-black'>
-              {beds}
+              {bedrooms}
             </Text>
           </Box>
         </Box>
@@ -33,7 +42,7 @@ export function PropertySpecifications({ beds, baths }: PropertySpecificationsPr
           <Box className='flex-row items-center gap-2'>
             <IconLucide size={20} name='Bath' color='#808494' />
             <Text size='lg' bold className='text-main-black'>
-              {baths}
+              {bathrooms}
             </Text>
           </Box>
         </Box>
@@ -46,7 +55,7 @@ export function PropertySpecifications({ beds, baths }: PropertySpecificationsPr
           <Box className='flex-row items-center gap-2'>
             <IconLucide size={20} name='Layers2' color='#808494' />
             <Text size='lg' bold className='text-main-black'>
-              6x7.5 m²
+              {usableSize} m²
             </Text>
           </Box>
         </Box>
@@ -56,12 +65,12 @@ export function PropertySpecifications({ beds, baths }: PropertySpecificationsPr
       <Box className='flex-row gap-5'>
         <Box className='w-36'>
           <Text className='mb-4 text-main-black/50' size='sm'>
-            Chất lượng
+            Loại hình
           </Text>
           <Box className='flex-row items-center gap-2'>
             <IconLucide size={20} name='PaintbrushVertical' color='#808494' />
             <Text size='lg' bold className='text-main-black'>
-              Modern Loft
+              {propertyTypeName}
             </Text>
           </Box>
         </Box>
@@ -74,7 +83,7 @@ export function PropertySpecifications({ beds, baths }: PropertySpecificationsPr
           <Box className='flex-row items-center gap-2'>
             <IconLucide size={20} name='CircleCheck' color='#808494' />
             <Text size='lg' bold className='text-main-black'>
-              Hoạt động
+              {status === 'PUBLISHED' ? 'Hoạt động' : status}
             </Text>
           </Box>
         </Box>
