@@ -26,7 +26,14 @@
       },
       "package": "com.sep.realvista",
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "googleServicesFile": "./google-services.json"
+    },
+    "notification": {
+      "icon": "./assets/images/icon.png",
+      "color": "#7065F0",
+      "androidMode": "default",
+      "androidCollapsedTitle": "RealVista"
     },
     "web": {
       "output": "static",
@@ -45,13 +52,20 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#7065F0",
+          "defaultChannel": "default"
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": false
     },
-    // Reminder: Remember to remove the extra before build with eas
     "extra": {
       "router": {},
       "eas": {

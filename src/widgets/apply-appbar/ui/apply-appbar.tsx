@@ -7,12 +7,14 @@ interface ApplyAppBarProps {
   price?: string
   onPress?: () => void
   buttonLabel?: string
+  onNotificationPress?: () => void
 }
 
 export function ApplyAppBar({
   price = '$2,700',
   onPress,
   buttonLabel = 'Đăng ký ngay',
+  onNotificationPress,
 }: ApplyAppBarProps) {
   return (
     <Box
@@ -52,6 +54,18 @@ export function ApplyAppBar({
             </Text>
           </Box>
         </Box>
+
+        {/* Notification Bell Icon */}
+        {onNotificationPress && (
+          <TouchableOpacity
+            onPress={onNotificationPress}
+            className='mr-3 h-12 w-12 items-center justify-center rounded-full bg-purple-100'
+            accessibilityRole='button'
+            accessibilityLabel='Test Notifications'
+          >
+            <IconLucide size={24} name='Bell' color='#7065F0' />
+          </TouchableOpacity>
+        )}
 
         {/* Apply Button */}
         <TouchableOpacity

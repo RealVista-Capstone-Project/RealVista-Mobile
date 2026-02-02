@@ -1,9 +1,11 @@
 import { Box } from '@/shared/ui/box'
 import { ApplyAppBar } from '@/widgets/apply-appbar'
-import { Tabs } from 'expo-router'
+import { Tabs, useRouter } from 'expo-router'
 import { View } from 'react-native'
 
 export default function ListingLayout() {
+  const router = useRouter()
+
   return (
     <Box className='flex-1'>
       <View
