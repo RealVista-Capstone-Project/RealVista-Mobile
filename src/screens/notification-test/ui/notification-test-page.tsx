@@ -4,7 +4,6 @@ import { Box } from '@/shared/ui/box'
 import { Text } from '@/shared/ui/text'
 import IconLucide from '@/shared/ui/icon-lucide/icon'
 import { NotificationService } from '@/shared/services/notification'
-import { useSendTestNotification } from '@/entities/notification'
 import { usePushNotifications, useNotificationListeners } from '@/features/notifications'
 import * as Clipboard from 'expo-clipboard'
 
@@ -20,7 +19,6 @@ export function NotificationTestPage() {
   const [localNotificationCount, setLocalNotificationCount] = useState(0)
 
   const { registerDevice } = usePushNotifications()
-  const sendTest = useSendTestNotification()
 
   // Setup notification listeners
   useNotificationListeners(
@@ -56,32 +54,6 @@ export function NotificationTestPage() {
         'Push notifications không hoạt động trên Expo Go SDK 53+.\n\nBạn có thể test Local Notifications thay thế!'
       )
     }
-  }
-
-  const _handleSendTestNotification = async () => {
-    if (!pushToken) {
-      Alert.alert(
-        'Expo Go Limitation',
-        'Push notifications không hoạt động trên Expo Go.\n\nHãy dùng "Schedule Local Notification" để test!'
-      )
-      return
-    }
-
-    sendTest.mutate(
-      {
-        token: pushToken,
-        title: 'Test từ Mobile App',
-        body: 'Đây là notification test từ Firebase',
-      },
-      {
-        onSuccess: (response) => {
-          Alert.alert('Success', `Message sent!\nID: ${response.data.messageId}`)
-        },
-        onError: (error) => {
-          Alert.alert('Error', error.message)
-        },
-      }
-    )
   }
 
   const handleCopyToken = async () => {
