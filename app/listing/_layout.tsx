@@ -31,6 +31,7 @@ export default function ListingLayout() {
 
       <ApplyAppBar
         price={formattedPrice}
+        listingType={listing?.listing_type}
         buttonLabel='Đăng ký ngay'
         onPress={() => console.log('Đăng ký ngay pressed')}
       />

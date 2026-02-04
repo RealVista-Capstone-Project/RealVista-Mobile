@@ -1,9 +1,9 @@
 import { ActivityIndicator, ScrollView } from 'react-native'
 
+import { useListingDetail } from '@/features/get-listing-detail'
 import { Box } from '@/shared/ui/box'
 import { Divider } from '@/shared/ui/divider'
 import { type RealVistaPropertyCardData } from '@/shared/ui/realvista-property-listing-card'
-import { useListingDetail } from '@/features/get-listing-detail'
 import {
   PropertyAbout,
   PropertyActions,
@@ -85,7 +85,6 @@ export function ListingDetailPage() {
     return (
       <Box className='flex-1 items-center justify-center bg-white p-6'>
         <Box className='items-center gap-4'>
-          <Box className='text-6xl'>⚠️</Box>
           <Box className='text-center'>
             <Box className='text-lg font-bold text-main-black mb-2'>Không thể tải thông tin</Box>
             <Box className='text-gray-500'>
@@ -102,7 +101,6 @@ export function ListingDetailPage() {
     return (
       <Box className='flex-1 items-center justify-center bg-white p-6'>
         <Box className='text-center'>
-          <Box className='text-6xl mb-4'>🔍</Box>
           <Box className='text-lg font-bold text-main-black mb-2'>Không tìm thấy tin đăng</Box>
         </Box>
       </Box>
@@ -110,7 +108,7 @@ export function ListingDetailPage() {
   }
 
   // Extract media URLs
-  const mediaUrls = listing.media.map((m) => m.media_url)
+  const mediaUrls = listing.media?.map((m) => m.media_url) || []
 
   return (
     <Box className='flex-1 bg-white'>
@@ -120,19 +118,13 @@ export function ListingDetailPage() {
 
       <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
         <Box className='px-6'>
-          <PropertyInfo name={listing.name} address={listing.property.street_address} />
+          <PropertyInfo name={listing.name} address={listing.property?.street_address || 'N/A'} />
           <PropertyActions />
           <PropertyImageCarousel images={mediaUrls} />
 
-          <PropertySpecifications
-            bedrooms={listing.property.bedrooms}
-            bathrooms={listing.property.bathrooms}
-            usableSize={listing.property.usable_size_m2}
-            propertyTypeName={listing.propertyType.property_type_name}
-            status={listing.status}
-          />
+          <PropertySpecifications attributes={listing.attributes || []} status={listing.status} />
 
-          <PropertyAbout description={listing.property.description} />
+          <PropertyAbout description={listing.property?.description || ''} />
 
           <PropertyOwner agent={listing.agent} />
 
@@ -149,10 +141,10 @@ export function ListingDetailPage() {
           <Divider className='my-6' />
 
           <PropertyMap
-            latitude={listing.location.latitude}
-            longitude={listing.location.longitude}
-            address={listing.property.street_address}
-            city={listing.location.city_name}
+            latitude={listing.location?.latitude ?? 0}
+            longitude={listing.location?.longitude ?? 0}
+            address={listing.property?.street_address || 'N/A'}
+            city={listing.location?.city_name || 'N/A'}
           />
         </Box>
         <Divider className='my-6' />
