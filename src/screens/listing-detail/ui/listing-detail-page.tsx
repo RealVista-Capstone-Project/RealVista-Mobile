@@ -107,8 +107,11 @@ export function ListingDetailPage() {
     )
   }
 
-  // Extract media URLs
-  const mediaUrls = listing.media?.map((m) => m.media_url) || []
+  // Extract media URLs (ensure non-empty array to avoid runtime errors)
+  const mediaUrls =
+    Array.isArray(listing.media) && listing.media.length > 0
+      ? listing.media.map((m) => m.media_url)
+      : ['']
 
   return (
     <Box className='flex-1 bg-white'>
