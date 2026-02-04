@@ -12,6 +12,15 @@ export const listingQueries = {
       queryKey: listingKeys.detail(id),
       queryFn: () => listingApi.getById(id).then((res) => res.data),
       enabled: !!id,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      // Data remains fresh for 10 minutes (listing details don't change often)
+      staleTime: 10 * 60 * 1000,
+      // Keep cached data for 30 minutes (users often return to same listing)
+      gcTime: 30 * 60 * 1000,
+      // Retry failed requests up to 2 times (better UX for flaky networks)
+      retry: 2,
+      // Refetch when app reconnects to internet (mobile use case)
+      refetchOnReconnect: true,
+      // Don't refetch when screen remounts if data is fresh
+      refetchOnMount: false,
     }),
 } as const

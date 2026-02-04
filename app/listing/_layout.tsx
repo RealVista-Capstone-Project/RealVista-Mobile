@@ -1,40 +1,27 @@
-import { useListingDetail } from '@/features/get-listing-detail'
-import { Box } from '@/shared/ui/box'
-import { ApplyAppBar } from '@/widgets/apply-appbar'
-import { formatVND } from '@/shared/lib/format-currency'
+import { ListingLayoutContainer } from '@/screens/listing'
 import { Tabs } from 'expo-router'
-import { View } from 'react-native'
 
+/**
+ * Listing Layout - Routing configuration only
+ *
+ * This file's SINGLE RESPONSIBILITY:
+ * - Define tab/navigation structure
+ * - Configure screen options
+ *
+ * Business logic, data fetching, and UI rendering
+ * are delegated to ListingLayoutContainer
+ */
 export default function ListingLayout() {
-  const { data: listing } = useListingDetail()
-
-  // Format price for display (in VND)
-  const formattedPrice = listing ? formatVND(listing.price) : '2.7 triệu'
-
   return (
-    <Box className='flex-1'>
-      <View
-        className='flex-1'
-        style={{
-          paddingBottom: 100,
+    <ListingLayoutContainer>
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: { display: 'none' },
         }}
       >
-        <Tabs
-          screenOptions={{
-            headerShown: false,
-            tabBarStyle: { display: 'none' },
-          }}
-        >
-          <Tabs.Screen name='index' options={{ href: null }} />
-        </Tabs>
-      </View>
-
-      <ApplyAppBar
-        price={formattedPrice}
-        listingType={listing?.listing_type}
-        buttonLabel='Đăng ký ngay'
-        onPress={() => console.log('Đăng ký ngay pressed')}
-      />
-    </Box>
+        <Tabs.Screen name='[id]' options={{ href: null }} />
+      </Tabs>
+    </ListingLayoutContainer>
   )
 }
