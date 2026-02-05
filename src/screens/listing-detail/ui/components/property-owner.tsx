@@ -3,11 +3,7 @@ import { Image, TouchableOpacity } from 'react-native'
 import { Box } from '@/shared/ui/box'
 import IconLucide from '@/shared/ui/icon-lucide/icon'
 import { Text } from '@/shared/ui/text'
-
-interface Agent {
-  name: string
-  avatar: string
-}
+import type { Agent } from '@/entities/listing'
 
 interface PropertyOwnerProps {
   agent: Agent
@@ -24,16 +20,16 @@ export function PropertyOwner({ agent }: PropertyOwnerProps) {
         {/* Owner Info */}
         <Box className='flex-row gap-4'>
           <Image
-            source={{ uri: agent.avatar }}
+            source={{ uri: agent.avatar_url }}
             className='h-14 w-14 rounded-full'
             style={{ width: 56, height: 56, borderRadius: 28 }}
           />
           <Box className='justify-center'>
             <Text bold className='text-main-black'>
-              {agent.name}
+              {agent.full_name}
             </Text>
             <Text className='mt-1 text-main-black/50' size='sm'>
-              Rich Capital Properties LLC
+              {agent.company}
             </Text>
           </Box>
         </Box>

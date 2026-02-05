@@ -1,5 +1,6 @@
-import { ScrollView } from 'react-native'
+import { ActivityIndicator, ScrollView } from 'react-native'
 
+import { useListingDetail } from '@/features/get-listing-detail'
 import { Box } from '@/shared/ui/box'
 import { Divider } from '@/shared/ui/divider'
 import { type RealVistaPropertyCardData } from '@/shared/ui/realvista-property-listing-card'
@@ -19,56 +20,7 @@ import {
   PropertyTourRequest,
 } from './components'
 
-interface Agent {
-  name: string
-  avatar: string
-  rating: number
-  reviews: number
-}
-
-interface Property {
-  id: string
-  title: string
-  price: string
-  location: string
-  beds: number
-  baths: number
-  sqft: number
-  description: string
-  images: string[]
-  agent: Agent
-  latitude: number
-  longitude: number
-  city: string
-}
-
-const mockProperty: Property = {
-  id: '1',
-  title: 'Biệt Thự Gia Đình Sang Trọng với Tiện Nghi Hiện Đại',
-  price: '$1,250,000',
-  location: '123 Đường Oak, Beverly Hills, CA 90210',
-  beds: 4,
-  baths: 3,
-  sqft: 2800,
-  description:
-    'Experience luxury living in this stunning 4-bedroom, 3-bathroom home featuring modern amenities throughout. The open-concept living area boasts high ceilings, hardwood floors, and abundant natural light. The gourmet kitchen includes top-of-the-line appliances, custom cabinetry, and a spacious island perfect for entertaining.\n\nAdditional features include a home office, media room, and a beautifully landscaped backyard with a pool and outdoor kitchen. Located in an exclusive neighborhood with top-rated schools and easy access to shopping, dining, and entertainment.',
-  images: [
-    'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800',
-    'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800',
-    'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=800',
-    'https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=800',
-  ],
-  agent: {
-    name: 'Sarah Johnson',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
-    rating: 4.9,
-    reviews: 128,
-  },
-  latitude: 34.0736,
-  longitude: -118.4004,
-  city: 'Beverly Hills',
-}
-
+// Mock similar listings (can be replaced with real API later)
 const mockSimilarListings: RealVistaPropertyCardData[] = [
   {
     id: '2',
@@ -109,6 +61,8 @@ const mockSimilarListings: RealVistaPropertyCardData[] = [
 ]
 
 export function ListingDetailPage() {
+  const { data: listing, isLoading, error } = useListingDetail()
+
   const handleToggleFavorite = (id: string) => {
     console.log('Toggle favorite:', id)
   }
@@ -116,6 +70,48 @@ export function ListingDetailPage() {
   const handlePropertyClick = (id: string) => {
     console.log('Property clicked:', id)
   }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <Box className='flex-1 items-center justify-center bg-white'>
+        <ActivityIndicator size='large' color='#7065F0' />
+      </Box>
+    )
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <Box className='flex-1 items-center justify-center bg-white p-6'>
+        <Box className='items-center gap-4'>
+          <Box className='text-center'>
+            <Box className='text-lg font-bold text-main-black mb-2'>Không thể tải thông tin</Box>
+            <Box className='text-gray-500'>
+              {error instanceof Error ? error.message : 'Đã có lỗi xảy ra'}
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+    )
+  }
+
+  // No data state
+  if (!listing) {
+    return (
+      <Box className='flex-1 items-center justify-center bg-white p-6'>
+        <Box className='text-center'>
+          <Box className='text-lg font-bold text-main-black mb-2'>Không tìm thấy tin đăng</Box>
+        </Box>
+      </Box>
+    )
+  }
+
+  // Extract media URLs (ensure non-empty array to avoid runtime errors)
+  const mediaUrls =
+    Array.isArray(listing.media) && listing.media.length > 0
+      ? listing.media.map((m) => m.media_url)
+      : ['']
 
   return (
     <Box className='flex-1 bg-white'>
@@ -125,15 +121,15 @@ export function ListingDetailPage() {
 
       <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
         <Box className='px-6'>
-          <PropertyInfo />
+          <PropertyInfo name={listing.name} address={listing.property?.street_address || 'N/A'} />
           <PropertyActions />
-          <PropertyImageCarousel images={mockProperty.images} />
+          <PropertyImageCarousel images={mediaUrls} />
 
-          <PropertySpecifications beds={mockProperty.beds} baths={mockProperty.baths} />
+          <PropertySpecifications attributes={listing.attributes || []} status={listing.status} />
 
-          <PropertyAbout />
+          <PropertyAbout description={listing.property?.description || ''} />
 
-          <PropertyOwner agent={mockProperty.agent} />
+          <PropertyOwner agent={listing.agent} />
 
           <PropertyTourRequest />
 
@@ -148,10 +144,10 @@ export function ListingDetailPage() {
           <Divider className='my-6' />
 
           <PropertyMap
-            latitude={mockProperty.latitude}
-            longitude={mockProperty.longitude}
-            address={mockProperty.location}
-            city={mockProperty.city}
+            latitude={listing.location?.latitude ?? 0}
+            longitude={listing.location?.longitude ?? 0}
+            address={listing.property?.street_address || 'N/A'}
+            city={listing.location?.city_name || 'N/A'}
           />
         </Box>
         <Divider className='my-6' />
