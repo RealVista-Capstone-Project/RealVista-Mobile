@@ -15,8 +15,8 @@ interface PropertyCostBreakdownProps {
 export function PropertyCostBreakdown({ data }: PropertyCostBreakdownProps) {
   return (
     <Box className='mb-6'>
-      <Box className='mb-6 items-start justify-start gap-3'>
-        <Box className='flex-row gap-2 items-center justify-start rounded-lg bg-primary/10'>
+      <Box className='mb-6 items-center justify-center gap-3'>
+        <Box className='flex-row gap-2 items-center justify-center rounded-lg bg-primary/10'>
           <IconLucide size={20} name='Banknote' color='#7065F0' />
           <Text size='xl' bold className='text-main-black'>
             Chi tiết hàng tháng
