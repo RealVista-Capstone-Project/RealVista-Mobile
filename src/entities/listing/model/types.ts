@@ -86,7 +86,7 @@ export type Fee = {
 }
 
 // ============================================
-// Agent Types
+// CostBreakdown Types
 // ============================================
 
 export interface CostBreakdown {
