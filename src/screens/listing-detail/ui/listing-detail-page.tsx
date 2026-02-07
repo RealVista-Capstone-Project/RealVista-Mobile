@@ -1,7 +1,7 @@
 import { ActivityIndicator, ScrollView } from 'react-native'
 
 import { useListingDetail } from '@/features/get-listing-detail'
-import { RadialBarChart } from '@/shared/ui/bna/radial-bar-chart'
+import { PieChart } from '@/shared/ui/bna/pie-chart'
 import { Box } from '@/shared/ui/box'
 import { Divider } from '@/shared/ui/divider'
 import { type RealVistaPropertyCardData } from '@/shared/ui/realvista-property-listing-card'
@@ -182,11 +182,10 @@ export function ListingDetailPage() {
           <PropertyLegal />
         </Box>
         <Box className='px-6'>
-          <RadialBarChart
+          <PieChart
             data={radialData}
             config={{
               animated: true,
-              gradient: true,
               duration: 1000,
             }}
           />
