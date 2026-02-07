@@ -1,6 +1,7 @@
 import { ActivityIndicator, ScrollView } from 'react-native'
 
 import { useListingDetail } from '@/features/get-listing-detail'
+import { RadialBarChart } from '@/shared/ui/bna/radial-bar-chart'
 import { Box } from '@/shared/ui/box'
 import { Divider } from '@/shared/ui/divider'
 import { type RealVistaPropertyCardData } from '@/shared/ui/realvista-property-listing-card'
@@ -113,6 +114,32 @@ export function ListingDetailPage() {
       ? listing.media.map((m) => m.media_url)
       : ['']
 
+  // Transform cost_breakdown fees into radial bar chart data
+  const radialData = (() => {
+    const breakdown = listing.cost_breakdown
+    if (!breakdown) return []
+
+    const fees = [
+      // Base price
+      {
+        label: 'Giá cơ bản',
+        value: breakdown.base_price,
+      },
+      // Required fees
+      ...(breakdown.required_fees?.map((fee) => ({
+        label: fee.name,
+        value: fee.amount,
+      })) || []),
+      // Optional fees
+      ...(breakdown.optional_fees?.map((fee) => ({
+        label: fee.name,
+        value: fee.amount,
+      })) || []),
+    ]
+
+    return fees
+  })()
+
   return (
     <Box className='flex-1 bg-white'>
       <Box className='p-6'>
@@ -153,6 +180,16 @@ export function ListingDetailPage() {
         <Divider className='my-6' />
         <Box className='px-6'>
           <PropertyLegal />
+        </Box>
+        <Box className='px-6'>
+          <RadialBarChart
+            data={radialData}
+            config={{
+              animated: true,
+              gradient: true,
+              duration: 1000,
+            }}
+          />
         </Box>
         <PropertySimilarListings
           listings={mockSimilarListings}
