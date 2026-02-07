@@ -148,7 +148,7 @@ export const PieChart = ({ data, config = {}, style }: Props) => {
               }}
             />
             <Text variant='caption'>
-              {item.label}: {formatVND(item.value)}đ
+              {item.label}: {formatVND(item.value)} đ
             </Text>
           </View>
         ))}

@@ -4,7 +4,9 @@ import { useListingDetail } from '@/features/get-listing-detail'
 import { PieChart } from '@/shared/ui/bna/pie-chart'
 import { Box } from '@/shared/ui/box'
 import { Divider } from '@/shared/ui/divider'
+import IconLucide from '@/shared/ui/icon-lucide/icon'
 import { type RealVistaPropertyCardData } from '@/shared/ui/realvista-property-listing-card'
+import { Text } from '@/shared/ui/text'
 import {
   PropertyAbout,
   PropertyActions,
@@ -182,6 +184,19 @@ export function ListingDetailPage() {
           <PropertyLegal />
         </Box>
         <Box className='px-6'>
+          <Box className='mb-6 items-center justify-start gap-3'>
+            <Box className='flex-row gap-2 items-center justify-start rounded-lg bg-primary/10'>
+              <IconLucide size={20} name='Banknote' color='#7065F0' />
+              <Text size='xl' bold className='text-main-black'>
+                Chi tiết hàng tháng
+              </Text>
+            </Box>
+            <Box>
+              <Text size='sm' className='text-gray-500'>
+                Xem các khoản chi phí hàng tháng của bạn
+              </Text>
+            </Box>
+          </Box>
           <PieChart
             data={radialData}
             config={{
