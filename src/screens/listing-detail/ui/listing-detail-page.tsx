@@ -7,6 +7,7 @@ import { type RealVistaPropertyCardData } from '@/shared/ui/realvista-property-l
 import {
   PropertyAbout,
   PropertyActions,
+  PropertyCostBreakdown,
   PropertyFeatures,
   PropertyHeader,
   PropertyImageCarousel,
@@ -113,6 +114,32 @@ export function ListingDetailPage() {
       ? listing.media.map((m) => m.media_url)
       : ['']
 
+  // Transform cost_breakdown fees into pie chart data
+  const chartData = (() => {
+    const breakdown = listing.cost_breakdown
+    if (!breakdown) return []
+
+    const fees = [
+      // Base price
+      {
+        label: 'Giá cơ bản',
+        value: breakdown.base_price,
+      },
+      // Required fees
+      ...(breakdown.required_fees?.map((fee) => ({
+        label: fee.name,
+        value: fee.amount,
+      })) || []),
+      // Optional fees
+      ...(breakdown.optional_fees?.map((fee) => ({
+        label: fee.name,
+        value: fee.amount,
+      })) || []),
+    ]
+
+    return fees
+  })()
+
   return (
     <Box className='flex-1 bg-white'>
       <Box className='p-6'>
@@ -153,6 +180,9 @@ export function ListingDetailPage() {
         <Divider className='my-6' />
         <Box className='px-6'>
           <PropertyLegal />
+        </Box>
+        <Box className='px-6'>
+          <PropertyCostBreakdown data={chartData} />
         </Box>
         <PropertySimilarListings
           listings={mockSimilarListings}

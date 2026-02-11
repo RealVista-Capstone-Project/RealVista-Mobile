@@ -79,6 +79,27 @@ export interface Agent {
   is_verified: boolean
 }
 
+export type Fee = {
+  name: string
+  amount: number
+  fee_type: string
+}
+
+// ============================================
+// CostBreakdown Types
+// ============================================
+
+export interface CostBreakdown {
+  base_price: number
+  base_price_unit: string
+  required_fees: Fee[]
+  required_fees_subtotal: number
+  optional_fees: Fee[]
+  optional_fees_subtotal: number
+  total_cost: number
+  disclaimer: string
+}
+
 // ============================================
 // Attribute Types
 // ============================================
@@ -133,4 +154,5 @@ export interface Listing {
   media: Media[]
   agent: Agent
   attributes: Attribute[]
+  cost_breakdown?: CostBreakdown
 }
