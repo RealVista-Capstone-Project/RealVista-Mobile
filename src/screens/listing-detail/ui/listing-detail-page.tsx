@@ -1,8 +1,8 @@
 import { ActivityIndicator, ScrollView } from 'react-native'
 
+import { type SimilarListing } from '@/entities/listing'
 import { useListingDetail } from '@/features/get-listing-detail'
 import { useSimilarListings } from '@/features/get-similar-listings'
-import { type SimilarListing } from '@/entities/listing'
 import { Box } from '@/shared/ui/box'
 import { Divider } from '@/shared/ui/divider'
 import { type RealVistaPropertyCardData } from '@/shared/ui/realvista-property-listing-card'
@@ -28,8 +28,10 @@ import {
  */
 function transformSimilarListing(listing: SimilarListing): RealVistaPropertyCardData {
   // Extract bedrooms and bathrooms from attributes
-  const bedrooms = listing.attributes.find((a) => a.attribute_code === 'BEDROOMS')?.value_number ?? 0
-  const bathrooms = listing.attributes.find((a) => a.attribute_code === 'BATHROOMS')?.value_number ?? 0
+  const bedrooms =
+    listing.attributes.find((a) => a.attribute_code === 'BEDROOMS')?.value_number ?? 0
+  const bathrooms =
+    listing.attributes.find((a) => a.attribute_code === 'BATHROOMS')?.value_number ?? 0
 
   return {
     id: listing.listing_id,
@@ -59,7 +61,8 @@ export function ListingDetailPage() {
   }
 
   // Transform similar listings to card format
-  const similarListingsCards: RealVistaPropertyCardData[] = similarListings.map(transformSimilarListing)
+  const similarListingsCards: RealVistaPropertyCardData[] =
+    similarListings.map(transformSimilarListing)
 
   // Loading state
   if (isLoading) {
