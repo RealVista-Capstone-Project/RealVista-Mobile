@@ -1,6 +1,8 @@
 import { ActivityIndicator, ScrollView } from 'react-native'
 
 import { useListingDetail } from '@/features/get-listing-detail'
+import { useSimilarListings } from '@/features/get-similar-listings'
+import { type SimilarListing } from '@/entities/listing'
 import { Box } from '@/shared/ui/box'
 import { Divider } from '@/shared/ui/divider'
 import { type RealVistaPropertyCardData } from '@/shared/ui/realvista-property-listing-card'
@@ -21,48 +23,32 @@ import {
   PropertyTourRequest,
 } from './components'
 
-// Mock similar listings (can be replaced with real API later)
-const mockSimilarListings: RealVistaPropertyCardData[] = [
-  {
-    id: '2',
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800',
-    title: 'Đại lộ Faulkner',
-    address: 'Đường Woodland, Michigan, IN',
-    price: 4550,
-    beds: 3,
-    bathrooms: 2,
-    area: 57,
-    isPopular: true,
+/**
+ * Transform SimilarListing API response to RealVistaPropertyCardData format
+ */
+function transformSimilarListing(listing: SimilarListing): RealVistaPropertyCardData {
+  // Extract bedrooms and bathrooms from attributes
+  const bedrooms = listing.attributes.find((a) => a.attribute_code === 'BEDROOMS')?.value_number ?? 0
+  const bathrooms = listing.attributes.find((a) => a.attribute_code === 'BATHROOMS')?.value_number ?? 0
+
+  return {
+    id: listing.listing_id,
+    image: listing.thumbnail_url,
+    title: listing.name,
+    address: listing.location_name,
+    price: listing.price,
+    beds: bedrooms,
+    bathrooms: bathrooms,
+    area: listing.area,
+    areaUnit: listing.display_area,
+    isPopular: listing.similarity_score === 100,
     isFavorite: false,
-  },
-  {
-    id: '3',
-    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800',
-    title: 'Căn hộ St. Crystal',
-    address: 'Hồ Highland, FL',
-    price: 2400,
-    beds: 3,
-    bathrooms: 2,
-    area: 57,
-    isPopular: false,
-    isFavorite: true,
-  },
-  {
-    id: '4',
-    image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800',
-    title: 'Biệt Thự Hiện Đại',
-    address: 'Bãi biển Palm, FL',
-    price: 5200,
-    beds: 4,
-    bathrooms: 3,
-    area: 85,
-    isPopular: true,
-    isFavorite: false,
-  },
-]
+  }
+}
 
 export function ListingDetailPage() {
   const { data: listing, isLoading, error } = useListingDetail()
+  const { listings: similarListings } = useSimilarListings(5)
 
   const handleToggleFavorite = (id: string) => {
     console.log('Toggle favorite:', id)
@@ -71,6 +57,9 @@ export function ListingDetailPage() {
   const handlePropertyClick = (id: string) => {
     console.log('Property clicked:', id)
   }
+
+  // Transform similar listings to card format
+  const similarListingsCards: RealVistaPropertyCardData[] = similarListings.map(transformSimilarListing)
 
   // Loading state
   if (isLoading) {
@@ -185,7 +174,7 @@ export function ListingDetailPage() {
           <PropertyCostBreakdown data={chartData} />
         </Box>
         <PropertySimilarListings
-          listings={mockSimilarListings}
+          listings={similarListingsCards}
           onToggleFavorite={handleToggleFavorite}
           onPropertyClick={handlePropertyClick}
         />

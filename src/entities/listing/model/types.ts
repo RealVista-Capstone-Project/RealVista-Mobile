@@ -156,3 +156,30 @@ export interface Listing {
   attributes: Attribute[]
   cost_breakdown?: CostBreakdown
 }
+
+// ============================================
+// Similar Listings Types
+// ============================================
+
+export interface SimilarListing {
+  listing_id: string
+  slug: string
+  name: string
+  listing_type: ListingType
+  property_type_name: string
+  price: number
+  area: number
+  location_name: string
+  thumbnail_url: string
+  similarity_score: number
+  published_at: string
+  attributes: Attribute[]
+  display_price: string
+  display_area: string
+}
+
+export interface SimilarListingsResponse {
+  listings: SimilarListing[]
+  total: number
+  limit: number
+}
