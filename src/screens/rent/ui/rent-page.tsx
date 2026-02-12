@@ -1,3 +1,4 @@
+import { formatVND } from '@/shared/lib/format-currency'
 import { Box } from '@/shared/ui/box'
 import IconLucide from '@/shared/ui/icon-lucide/icon'
 import {
@@ -6,12 +7,75 @@ import {
 } from '@/shared/ui/realvista-property-listing-card'
 import { RealVistaPropertySearchBar } from '@/shared/ui/realvista-property-listing-search-bar'
 import { Text } from '@/shared/ui/text'
-import React, { useState } from 'react'
-import { ScrollView, TouchableOpacity, View } from 'react-native'
+import React, { useRef, useState } from 'react'
+import { Platform, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+// Price bubble marker for map view
+function PriceMarker({ price }: { price: number }) {
+  return (
+    <View style={styles.markerContainer}>
+      <View style={styles.markerBubble}>
+        <Text
+          style={{
+            fontFamily: 'PlusJakartaSans_700Bold',
+            fontSize: 13,
+            color: '#100A55',
+          }}
+        >
+          {formatVND(price)}
+        </Text>
+      </View>
+      {/* Marker triangle */}
+      <View style={styles.markerTriangle} />
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  markerContainer: {
+    alignItems: 'center',
+  },
+  markerBubble: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  markerTriangle: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 6,
+    borderRightWidth: 6,
+    borderTopWidth: 6,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: '#FFFFFF',
+    marginTop: -1,
+  },
+})
+
+// Default map region (Ho Chi Minh City area)
+const HCMC_REGION = {
+  latitude: 10.78,
+  longitude: 106.69,
+  latitudeDelta: 0.08,
+  longitudeDelta: 0.08,
+}
+
 // Mock property data based on Figma designs
-const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
+type PropertyWithCoords = RealVistaPropertyCardData & {
+  latitude: number
+  longitude: number
+}
+
+const MOCK_PROPERTIES: PropertyWithCoords[] = [
   {
     id: '1',
     image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800',
@@ -23,6 +87,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     area: 5,
     areaUnit: 'x7 m²',
     isPopular: true,
+    latitude: 10.795,
+    longitude: 106.678,
   },
   {
     id: '2',
@@ -35,6 +101,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     area: 6,
     areaUnit: 'x7.5 m²',
     isPopular: true,
+    latitude: 10.782,
+    longitude: 106.7,
   },
   {
     id: '3',
@@ -47,6 +115,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     area: 8,
     areaUnit: 'x10 m²',
     isPopular: true,
+    latitude: 10.77,
+    longitude: 106.685,
   },
   {
     id: '4',
@@ -58,6 +128,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     bathrooms: 2,
     area: 6,
     areaUnit: 'x8 m²',
+    latitude: 10.758,
+    longitude: 106.71,
   },
   {
     id: '5',
@@ -69,6 +141,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     bathrooms: 1,
     area: 5,
     areaUnit: 'x7.5 m²',
+    latitude: 10.8,
+    longitude: 106.66,
   },
   {
     id: '6',
@@ -80,6 +154,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     bathrooms: 1,
     area: 5,
     areaUnit: 'x7 m²',
+    latitude: 10.773,
+    longitude: 106.72,
   },
   {
     id: '7',
@@ -92,6 +168,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     area: 9,
     areaUnit: 'x12 m²',
     isPopular: true,
+    latitude: 10.81,
+    longitude: 106.695,
   },
   {
     id: '8',
@@ -103,6 +181,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     bathrooms: 2,
     area: 6,
     areaUnit: 'x8.5 m²',
+    latitude: 10.765,
+    longitude: 106.67,
   },
   {
     id: '9',
@@ -114,6 +194,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     bathrooms: 2,
     area: 7,
     areaUnit: 'x9 m²',
+    latitude: 10.788,
+    longitude: 106.645,
   },
   {
     id: '10',
@@ -126,6 +208,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     area: 8,
     areaUnit: 'x11 m²',
     isPopular: true,
+    latitude: 10.75,
+    longitude: 106.69,
   },
   {
     id: '11',
@@ -137,6 +221,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     bathrooms: 2,
     area: 6,
     areaUnit: 'x8 m²',
+    latitude: 10.805,
+    longitude: 106.715,
   },
   {
     id: '12',
@@ -149,6 +235,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     area: 10,
     areaUnit: 'x13 m²',
     isPopular: true,
+    latitude: 10.74,
+    longitude: 106.675,
   },
   {
     id: '13',
@@ -161,6 +249,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     area: 9,
     areaUnit: 'x10 m²',
     isPopular: true,
+    latitude: 10.792,
+    longitude: 106.73,
   },
   {
     id: '14',
@@ -172,6 +262,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     bathrooms: 2,
     area: 7,
     areaUnit: 'x8.5 m²',
+    latitude: 10.775,
+    longitude: 106.655,
   },
   {
     id: '15',
@@ -184,6 +276,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     area: 12,
     areaUnit: 'x15 m²',
     isPopular: true,
+    latitude: 10.815,
+    longitude: 106.705,
   },
   {
     id: '16',
@@ -196,6 +290,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     area: 11,
     areaUnit: 'x14 m²',
     isPopular: true,
+    latitude: 10.762,
+    longitude: 106.74,
   },
   {
     id: '17',
@@ -207,6 +303,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     bathrooms: 1,
     area: 4,
     areaUnit: 'x6 m²',
+    latitude: 10.785,
+    longitude: 106.665,
   },
   {
     id: '18',
@@ -219,13 +317,16 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     area: 8,
     areaUnit: 'x12 m²',
     isPopular: true,
+    latitude: 10.798,
+    longitude: 106.725,
   },
 ]
 
 export function RentPage() {
   const [searchText, setSearchText] = useState('Houston')
   const [searchMode, setSearchMode] = useState<'list' | 'map'>('list')
-  const [properties, setProperties] = useState<RealVistaPropertyCardData[]>(() => MOCK_PROPERTIES)
+  const [properties, setProperties] = useState<PropertyWithCoords[]>(() => MOCK_PROPERTIES)
+  const mapRef = useRef<MapView>(null)
 
   // Sync properties with MOCK_PROPERTIES on mount to fix cached state
   React.useEffect(() => {
@@ -300,21 +401,54 @@ export function RentPage() {
           </Box>
         </ScrollView>
       ) : (
-        /* Map View Placeholder */
-        <View className='flex-1 items-center justify-center bg-[#F7F7FD]'>
-          <IconLucide name='MapPin' color='#7065F0' size={48} />
-          <Text
-            className="mt-4 font-['PlusJakartaSans_600SemiBold'] text-lg text-main-secondary"
-            style={{ fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 18 }}
+        /* Map View */
+        <View className='flex-1'>
+          <MapView
+            ref={mapRef}
+            provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
+            style={{ flex: 1 }}
+            initialRegion={HCMC_REGION}
+            showsUserLocation
+            showsMyLocationButton={false}
           >
-            Tìm kiếm trên bản đồ
-          </Text>
-          <Text
-            className="mt-2 font-['PlusJakartaSans_400Regular'] text-sm text-gray-500"
-            style={{ fontFamily: 'PlusJakartaSans_400Regular', fontSize: 14 }}
+            {properties.map((property) => (
+              <Marker
+                key={property.id}
+                coordinate={{
+                  latitude: property.latitude,
+                  longitude: property.longitude,
+                }}
+                tracksViewChanges={false}
+              >
+                <PriceMarker price={property.price} />
+              </Marker>
+            ))}
+          </MapView>
+
+          {/* Bottom Bar — property count */}
+          <View
+            className='absolute bottom-0 left-0 right-0 items-center rounded-t-2xl bg-white px-6 pb-8 pt-4'
+            style={{
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: -2 },
+              shadowOpacity: 0.07,
+              shadowRadius: 15,
+              elevation: 8,
+            }}
           >
-            Sắp ra mắt
-          </Text>
+            {/* Handle indicator */}
+            <View className='mb-3 h-[5px] w-14 rounded-full bg-grey-200' />
+            <Text
+              style={{
+                fontFamily: 'PlusJakartaSans_700Bold',
+                fontSize: 16,
+                color: '#100A55',
+                textAlign: 'center',
+              }}
+            >
+              {properties.length} bất động sản cho thuê
+            </Text>
+          </View>
         </View>
       )}
     </SafeAreaView>
