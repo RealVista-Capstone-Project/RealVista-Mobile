@@ -189,6 +189,7 @@ export function RealVistaMapSearchView({
           }}
           onClick={onPropertyPress}
           variant={variant}
+          layout='horizontal'
         />
       </View>
     ),
