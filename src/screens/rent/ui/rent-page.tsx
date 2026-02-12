@@ -1,12 +1,13 @@
 import { Box } from '@/shared/ui/box'
-import { OpenMapsButton } from '@/shared/ui/open-maps-button'
+import IconLucide from '@/shared/ui/icon-lucide/icon'
 import {
   RealVistaPropertyCard,
   type RealVistaPropertyCardData,
 } from '@/shared/ui/realvista-property-listing-card'
 import { RealVistaPropertySearchBar } from '@/shared/ui/realvista-property-listing-search-bar'
+import { Text } from '@/shared/ui/text'
 import React, { useState } from 'react'
-import { ScrollView, View } from 'react-native'
+import { ScrollView, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 // Mock property data based on Figma designs
@@ -223,6 +224,7 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
 
 export function RentPage() {
   const [searchText, setSearchText] = useState('Houston')
+  const [searchMode, setSearchMode] = useState<'list' | 'map'>('list')
   const [properties, setProperties] = useState<RealVistaPropertyCardData[]>(() => MOCK_PROPERTIES)
 
   // Sync properties with MOCK_PROPERTIES on mount to fix cached state
@@ -247,41 +249,74 @@ export function RentPage() {
     )
   }
 
-  const handleOpenMaps = () => {
-    console.log('Open maps pressed')
-    // TODO: Navigate to map view
+  const toggleSearchMode = () => {
+    setSearchMode((prev) => (prev === 'list' ? 'map' : 'list'))
   }
 
   return (
     <SafeAreaView className='flex-1 bg-white' edges={['top']}>
-      <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
-        <Box className='px-4 py-6'>
-          {/* Search Bar */}
-          <RealVistaPropertySearchBar
-            value={searchText}
-            onChangeText={setSearchText}
-            onFilterPress={handleFilterPress}
-            className='mb-6'
-            showLeaseTerm={true}
-          />
-
-          {/* Property Listings */}
-          <View className='gap-6'>
-            {properties.map((property) => (
-              <RealVistaPropertyCard
-                key={property.id}
-                property={property}
-                onClick={() => handlePropertyPress(property.id)}
-                onToggleFavorite={() => handleFavoritePress(property.id)}
-                variant='rent'
-              />
-            ))}
+      <Box className='px-4 pt-6 pb-2'>
+        {/* Search Bar + Toggle Button Row */}
+        <View className='mb-4 flex-row items-center gap-3'>
+          <View className='flex-1'>
+            <RealVistaPropertySearchBar
+              value={searchText}
+              onChangeText={setSearchText}
+              onFilterPress={handleFilterPress}
+              showLeaseTerm={true}
+            />
           </View>
 
-          {/* Open Maps Button */}
-          <OpenMapsButton onPress={handleOpenMaps} className='mt-6' />
-        </Box>
-      </ScrollView>
+          {/* Search Mode Toggle Button */}
+          <TouchableOpacity
+            onPress={toggleSearchMode}
+            activeOpacity={0.7}
+            className='h-10 w-10 items-center justify-center rounded-lg border-[1.5px] border-purple-92 bg-white'
+          >
+            <IconLucide
+              name={searchMode === 'list' ? 'Map' : 'LayoutGrid'}
+              color='#100A55'
+              size={20}
+            />
+          </TouchableOpacity>
+        </View>
+      </Box>
+
+      {searchMode === 'list' ? (
+        /* List View */
+        <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
+          <Box className='px-4 pb-6'>
+            <View className='gap-6'>
+              {properties.map((property) => (
+                <RealVistaPropertyCard
+                  key={property.id}
+                  property={property}
+                  onClick={() => handlePropertyPress(property.id)}
+                  onToggleFavorite={() => handleFavoritePress(property.id)}
+                  variant='rent'
+                />
+              ))}
+            </View>
+          </Box>
+        </ScrollView>
+      ) : (
+        /* Map View Placeholder */
+        <View className='flex-1 items-center justify-center bg-[#F7F7FD]'>
+          <IconLucide name='MapPin' color='#7065F0' size={48} />
+          <Text
+            className="mt-4 font-['PlusJakartaSans_600SemiBold'] text-lg text-main-secondary"
+            style={{ fontFamily: 'PlusJakartaSans_600SemiBold', fontSize: 18 }}
+          >
+            Tìm kiếm trên bản đồ
+          </Text>
+          <Text
+            className="mt-2 font-['PlusJakartaSans_400Regular'] text-sm text-gray-500"
+            style={{ fontFamily: 'PlusJakartaSans_400Regular', fontSize: 14 }}
+          >
+            Sắp ra mắt
+          </Text>
+        </View>
+      )}
     </SafeAreaView>
   )
 }
