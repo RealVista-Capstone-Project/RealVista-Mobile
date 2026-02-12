@@ -353,6 +353,7 @@ export function RentPage() {
           totalCount={mapTotalCount}
           isLoading={mapIsLoading}
           onRegionChange={onRegionChange}
+          onPropertyPress={handlePropertyPress}
           propertyCountLabel={`${mapTotalCount} bất động sản cho thuê`}
         />
       )}

@@ -1,6 +1,7 @@
 // ============================================
 // Map Search API Types
 // Based on POST /map/listings
+// All fields use snake_case to match backend API
 // ============================================
 
 /** Request body for POST /map/listings */
@@ -31,46 +32,45 @@ export interface MapCoordinates {
   longitude: number
 }
 
-/** Single marker item in the response */
+/** Single marker item in the response (snake_case from API) */
 export interface MapMarkerItem {
-  listingId: string
+  listing_id: string
   coordinates: MapCoordinates
-  streetAddress: string
+  street_address: string
   price: number
-  listingType: 'RENT' | 'SALE'
+  listing_type: 'RENT' | 'SALE'
   name: string
-  thumbnailUrl: string | null
+  thumbnail_url: string | null
   bedrooms: number
   bathrooms: number
-  sizeM2: number
-  propertyType: string
-  locationName: string
-  isFavorite: boolean
+  size_m2: number
+  property_type: string
+  location_name: string
+  is_favorite: boolean
 }
 
-/** Bounds echoed back in the response */
+/** Bounds echoed back in the response (snake_case from API) */
 export interface MapBounds {
-  northLat: number
-  southLat: number
-  eastLng: number
-  westLng: number
+  north_lat: number
+  south_lat: number
+  east_lng: number
+  west_lng: number
 }
 
-/** Paginated response from POST /map/listings */
+/** Paginated response from POST /map/listings (snake_case from API) */
 export interface MapSearchResponse {
   content: MapMarkerItem[]
   page: number
   size: number
-  totalElements: number
-  totalPages: number
+  total_elements: number
+  total_pages: number
   last: boolean
   first: boolean
-  numberOfElements: number
-  empty: boolean
+  has_more: boolean
   bounds: MapBounds
-  filterMetadata?: {
-    appliedFilters: Record<string, unknown>
-    availablePriceRange?: { min: number; max: number }
-    priceHistogram?: number[]
+  filter_metadata?: {
+    applied_filters: Record<string, unknown>
+    available_price_range?: { min: number; max: number }
+    price_histogram?: number[]
   }
 }

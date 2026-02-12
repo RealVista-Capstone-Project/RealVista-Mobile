@@ -26,16 +26,16 @@ function regionToBounds(region: Region) {
 /** Map a backend MapMarkerItem to the UI's PropertyWithCoords */
 function toPropertyWithCoords(item: MapMarkerItem): PropertyWithCoords {
   return {
-    id: item.listingId,
-    image: item.thumbnailUrl ?? 'https://via.placeholder.com/400x300',
+    id: item.listing_id,
+    image: item.thumbnail_url ?? 'https://via.placeholder.com/400x300',
     title: item.name,
-    address: item.streetAddress || item.locationName,
+    address: item.street_address || item.location_name,
     price: item.price,
     beds: item.bedrooms,
     bathrooms: item.bathrooms,
-    area: item.sizeM2,
+    area: item.size_m2,
     areaUnit: 'm²',
-    isFavorite: item.isFavorite,
+    isFavorite: item.is_favorite,
     latitude: item.coordinates.latitude,
     longitude: item.coordinates.longitude,
   }
@@ -96,19 +96,28 @@ export function useMapSearch({
         limit,
         ...filters,
       }
-      const res = await mapSearchApi.search(request)
-      return res.data
+      console.log('[MapSearch] Fetching markers:', JSON.stringify(request))
+      try {
+        const res = await mapSearchApi.search(request)
+        console.log('[MapSearch] Response:', res.data)
+        console.log('[MapSearch] Response:', res.data?.total_elements, 'items')
+        return res.data
+      } catch (error) {
+        console.error('[MapSearch] Error:', error)
+        throw error
+      }
     },
     enabled,
     staleTime: 30 * 1000, // 30s — map data changes infrequently
     gcTime: 5 * 60 * 1000, // 5min cache
+    retry: 1, // Only retry once to avoid looping on network errors
     refetchOnReconnect: true,
     refetchOnMount: false,
   })
 
   const markers: PropertyWithCoords[] = query.data?.content?.map(toPropertyWithCoords) ?? []
 
-  const totalCount = query.data?.totalElements ?? 0
+  const totalCount = query.data?.total_elements ?? 0
 
   const onRegionChange = useCallback((newRegion: Region) => {
     setRegion(newRegion)
