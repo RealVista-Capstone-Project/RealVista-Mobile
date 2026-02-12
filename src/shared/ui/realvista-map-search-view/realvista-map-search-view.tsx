@@ -1,9 +1,8 @@
 import { formatVND } from '@/shared/lib/format-currency'
-import type { RealVistaPropertyCardData } from '@/shared/ui/realvista-property-listing-card'
 import { Text } from '@/shared/ui/text'
 import React, { useRef } from 'react'
-import { Platform, StyleSheet, View } from 'react-native'
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'
+import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native'
+import MapView, { Marker, PROVIDER_GOOGLE, type Region } from 'react-native-maps'
 
 // Default map region (Ho Chi Minh City area)
 const HCMC_REGION = {
@@ -13,7 +12,18 @@ const HCMC_REGION = {
   longitudeDelta: 0.08,
 }
 
-export type PropertyWithCoords = RealVistaPropertyCardData & {
+export type PropertyWithCoords = {
+  id: string
+  image: string
+  title: string
+  address: string
+  price: number
+  beds: number
+  bathrooms: number
+  area: number
+  areaUnit?: string
+  isPopular?: boolean
+  isFavorite?: boolean
   latitude: number
   longitude: number
 }
@@ -21,13 +31,22 @@ export type PropertyWithCoords = RealVistaPropertyCardData & {
 interface RealVistaMapSearchViewProps {
   properties: PropertyWithCoords[]
   propertyCountLabel?: string
+  totalCount?: number
+  isLoading?: boolean
+  onRegionChange?: (region: Region) => void
 }
 
 export function RealVistaMapSearchView({
   properties,
   propertyCountLabel,
+  totalCount,
+  isLoading = false,
+  onRegionChange,
 }: RealVistaMapSearchViewProps) {
   const mapRef = useRef<MapView>(null)
+
+  const displayCount = totalCount ?? properties.length
+  const displayLabel = propertyCountLabel ?? `${displayCount} bất động sản`
 
   return (
     <View className='flex-1'>
@@ -38,6 +57,7 @@ export function RealVistaMapSearchView({
         initialRegion={HCMC_REGION}
         showsUserLocation
         showsMyLocationButton={false}
+        onRegionChangeComplete={onRegionChange}
       >
         {properties.map((property) => (
           <Marker
@@ -52,6 +72,13 @@ export function RealVistaMapSearchView({
           </Marker>
         ))}
       </MapView>
+
+      {/* Loading overlay */}
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size='large' color='#7065F0' />
+        </View>
+      )}
 
       {/* Bottom Bar — property count */}
       <View
@@ -74,7 +101,7 @@ export function RealVistaMapSearchView({
             textAlign: 'center',
           }}
         >
-          {propertyCountLabel ?? `${properties.length} bất động sản`}
+          {displayLabel}
         </Text>
       </View>
     </View>
@@ -127,5 +154,11 @@ const styles = StyleSheet.create({
     borderRightColor: 'transparent',
     borderTopColor: '#FFFFFF',
     marginTop: -1,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 })

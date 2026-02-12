@@ -1,3 +1,4 @@
+import { useMapSearch } from '@/features/map-search/api'
 import { Box } from '@/shared/ui/box'
 import IconLucide from '@/shared/ui/icon-lucide/icon'
 import {
@@ -263,6 +264,17 @@ export function RentPage() {
   const [searchMode, setSearchMode] = useState<'list' | 'map'>('list')
   const [properties, setProperties] = useState<PropertyWithCoords[]>(() => MOCK_PROPERTIES)
 
+  // Map search — fetch markers from API when in map mode
+  const {
+    markers: mapMarkers,
+    totalCount: mapTotalCount,
+    isLoading: mapIsLoading,
+    onRegionChange,
+  } = useMapSearch({
+    listingType: 'RENT',
+    enabled: searchMode === 'map',
+  })
+
   // Sync properties with MOCK_PROPERTIES on mount to fix cached state
   React.useEffect(() => {
     setProperties(MOCK_PROPERTIES)
@@ -337,8 +349,11 @@ export function RentPage() {
         </ScrollView>
       ) : (
         <RealVistaMapSearchView
-          properties={properties}
-          propertyCountLabel={`${properties.length} bất động sản cho thuê`}
+          properties={mapMarkers}
+          totalCount={mapTotalCount}
+          isLoading={mapIsLoading}
+          onRegionChange={onRegionChange}
+          propertyCountLabel={`${mapTotalCount} bất động sản cho thuê`}
         />
       )}
     </SafeAreaView>
