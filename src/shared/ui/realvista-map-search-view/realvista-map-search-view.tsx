@@ -1,11 +1,11 @@
 import { formatVND } from '@/shared/lib/format-currency'
+import { RealVistaPropertyCard } from '@/shared/ui/realvista-property-listing-card'
 import { Text } from '@/shared/ui/text'
 import React, { useCallback, useMemo, useRef } from 'react'
 import {
   ActivityIndicator,
   Dimensions,
   FlatList,
-  Image,
   Platform,
   StyleSheet,
   TouchableOpacity,
@@ -108,6 +108,7 @@ interface RealVistaMapSearchViewProps {
   isLoading?: boolean
   onRegionChange?: (region: Region) => void
   onPropertyPress?: (propertyId: string) => void
+  variant?: 'rent' | 'buy'
 }
 
 export function RealVistaMapSearchView({
@@ -117,6 +118,7 @@ export function RealVistaMapSearchView({
   isLoading = false,
   onRegionChange,
   onPropertyPress,
+  variant = 'rent',
 }: RealVistaMapSearchViewProps) {
   const mapRef = useRef<MapView>(null)
   const panelTranslateY = useSharedValue(0) // 0 = collapsed, negative = expanded
@@ -170,57 +172,27 @@ export function RealVistaMapSearchView({
 
   const renderPropertyItem = useCallback(
     ({ item }: { item: PropertyWithCoords }) => (
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={() => onPropertyPress?.(item.id)}
-        style={styles.listItem}
-      >
-        <Image source={{ uri: item.image }} style={styles.listItemImage} />
-        <View style={styles.listItemInfo}>
-          <Text
-            style={{
-              fontFamily: 'PlusJakartaSans_700Bold',
-              fontSize: 14,
-              color: '#100A55',
-            }}
-            numberOfLines={1}
-          >
-            {item.title}
-          </Text>
-          <Text
-            style={{
-              fontFamily: 'PlusJakartaSans_500Medium',
-              fontSize: 12,
-              color: '#6C727F',
-              marginTop: 2,
-            }}
-            numberOfLines={1}
-          >
-            {item.address}
-          </Text>
-          <Text
-            style={{
-              fontFamily: 'PlusJakartaSans_700Bold',
-              fontSize: 14,
-              color: '#7065F0',
-              marginTop: 4,
-            }}
-          >
-            {formatVND(item.price)}
-          </Text>
-          <View style={styles.listItemSpecs}>
-            <Text style={styles.specText}>{item.beds} PN</Text>
-            <Text style={styles.specDot}>·</Text>
-            <Text style={styles.specText}>{item.bathrooms} WC</Text>
-            <Text style={styles.specDot}>·</Text>
-            <Text style={styles.specText}>
-              {item.area} {item.areaUnit || 'm²'}
-            </Text>
-          </View>
-        </View>
-      </TouchableOpacity>
+      <View style={styles.cardWrapper}>
+        <RealVistaPropertyCard
+          property={{
+            id: item.id,
+            image: item.image,
+            title: item.title,
+            address: item.address,
+            price: item.price,
+            beds: item.beds,
+            bathrooms: item.bathrooms,
+            area: item.area,
+            areaUnit: item.areaUnit,
+            isPopular: item.isPopular,
+            isFavorite: item.isFavorite,
+          }}
+          onClick={onPropertyPress}
+          variant={variant}
+        />
+      </View>
     ),
-    [onPropertyPress]
+    [onPropertyPress, variant]
   )
 
   return (
@@ -278,55 +250,59 @@ export function RealVistaMapSearchView({
         )}
 
         {/* Draggable Bottom Panel */}
-        <GestureDetector gesture={panGesture}>
-          <Animated.View
-            style={[styles.bottomPanel, { height: EXPANDED_HEIGHT }, animatedPanelStyle]}
-          >
-            {/* Handle + summary bar (always visible) */}
-            <TouchableOpacity activeOpacity={0.9} onPress={togglePanel}>
-              <View style={styles.handleBar}>
-                <View style={styles.handleIndicator} />
-              </View>
-              <View style={styles.summaryRow}>
-                <Text
-                  style={{
-                    fontFamily: 'PlusJakartaSans_700Bold',
-                    fontSize: 16,
-                    color: '#100A55',
-                    textAlign: 'center',
-                  }}
-                >
-                  {displayLabel}
-                </Text>
-              </View>
-            </TouchableOpacity>
+        <Animated.View
+          style={[styles.bottomPanel, { height: EXPANDED_HEIGHT }, animatedPanelStyle]}
+        >
+          {/* Handle + summary bar — only this part is draggable */}
+          <GestureDetector gesture={panGesture}>
+            <Animated.View>
+              <TouchableOpacity activeOpacity={0.9} onPress={togglePanel}>
+                <View style={styles.handleBar}>
+                  <View style={styles.handleIndicator} />
+                </View>
+                <View style={styles.summaryRow}>
+                  <Text
+                    style={{
+                      fontFamily: 'PlusJakartaSans_700Bold',
+                      fontSize: 16,
+                      color: '#100A55',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {displayLabel}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </Animated.View>
+          </GestureDetector>
 
-            {/* Property list (scrollable when expanded) */}
-            <FlatList
-              data={properties}
-              renderItem={renderPropertyItem}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.listContent}
-              showsVerticalScrollIndicator={false}
-              ListEmptyComponent={
-                !isLoading ? (
-                  <View style={styles.emptyContainer}>
-                    <Text
-                      style={{
-                        fontFamily: 'PlusJakartaSans_500Medium',
-                        fontSize: 14,
-                        color: '#6C727F',
-                        textAlign: 'center',
-                      }}
-                    >
-                      Không tìm thấy bất động sản trong khu vực này
-                    </Text>
-                  </View>
-                ) : null
-              }
-            />
-          </Animated.View>
-        </GestureDetector>
+          {/* Property list — scrollable independently */}
+          <FlatList
+            data={properties}
+            renderItem={renderPropertyItem}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled
+            style={{ flex: 1 }}
+            ListEmptyComponent={
+              !isLoading ? (
+                <View style={styles.emptyContainer}>
+                  <Text
+                    style={{
+                      fontFamily: 'PlusJakartaSans_500Medium',
+                      fontSize: 14,
+                      color: '#6C727F',
+                      textAlign: 'center',
+                    }}
+                  >
+                    Không tìm thấy bất động sản trong khu vực này
+                  </Text>
+                </View>
+              ) : null
+            }
+          />
+        </Animated.View>
       </View>
     </GestureHandlerRootView>
   )
@@ -489,38 +465,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 40,
   },
-  listItem: {
-    flexDirection: 'row',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0EEF6',
-  },
-  listItemImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 10,
-    backgroundColor: '#F0EEF6',
-  },
-  listItemInfo: {
-    flex: 1,
-    marginLeft: 12,
-    justifyContent: 'center',
-  },
-  listItemSpecs: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  specText: {
-    fontFamily: 'PlusJakartaSans_500Medium',
-    fontSize: 12,
-    color: '#6C727F',
-  },
-  specDot: {
-    fontFamily: 'PlusJakartaSans_500Medium',
-    fontSize: 12,
-    color: '#6C727F',
-    marginHorizontal: 4,
+  cardWrapper: {
+    marginBottom: 12,
   },
   emptyContainer: {
     paddingVertical: 32,

@@ -355,6 +355,7 @@ export function RentPage() {
           onRegionChange={onRegionChange}
           onPropertyPress={handlePropertyPress}
           propertyCountLabel={`${mapTotalCount} bất động sản cho thuê`}
+          variant='rent'
         />
       )}
     </SafeAreaView>
