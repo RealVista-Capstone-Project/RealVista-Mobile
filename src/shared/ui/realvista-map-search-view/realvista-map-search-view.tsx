@@ -8,6 +8,7 @@ import {
   FlatList,
   Platform,
   StyleSheet,
+  Text as RNText,
   TouchableOpacity,
   View,
 } from 'react-native'
@@ -215,7 +216,7 @@ export function RealVistaMapSearchView({
                 latitude: cluster.latitude,
                 longitude: cluster.longitude,
               }}
-              tracksViewChanges={false}
+              tracksViewChanges
               onPress={() => {
                 if (cluster.count === 1) {
                   onPropertyPress?.(cluster.properties[0].id)
@@ -310,41 +311,53 @@ export function RealVistaMapSearchView({
 }
 
 /**
- * Price bubble marker for map view.
- * - Single property: shows exact price
- * - Multiple properties: shows price range (min - max)
+ * Price marker for map view — matches web PropertyMapMarker design.
+ * - Single property: shows exact price (white bg, dark text)
+ * - Cluster: shows price range (primary bg, white text)
+ * - Selected: primary bg with white text
  */
 function PriceMarker({
   minPrice,
   maxPrice,
   count,
+  isSelected = false,
 }: {
   minPrice: number
   maxPrice: number
   count: number
+  isSelected?: boolean
 }) {
   const isSingle = count === 1
+  const isActive = isSelected
   const priceLabel = isSingle
     ? formatVND(minPrice)
     : `${formatVND(minPrice)} - ${formatVND(maxPrice)}`
 
   return (
     <View style={styles.markerContainer}>
-      <View style={[styles.markerBubble, !isSingle && styles.markerBubbleCluster]}>
-        <Text
+      <View
+        style={[
+          styles.markerBubble,
+          isActive && styles.markerBubbleActive,
+          !isSingle && styles.markerBubbleCluster,
+        ]}
+      >
+        <RNText
+          numberOfLines={1}
           style={{
             fontFamily: 'PlusJakartaSans_700Bold',
-            fontSize: isSingle ? 13 : 11,
-            color: isSingle ? '#100A55' : '#FFFFFF',
+            fontSize: 14,
+            lineHeight: 18,
+            color: isActive || !isSingle ? '#FFFFFF' : '#000929',
           }}
         >
           {priceLabel}
-        </Text>
+        </RNText>
       </View>
       {/* Count badge for clusters */}
       {!isSingle && (
         <View style={styles.countBadge}>
-          <Text
+          <RNText
             style={{
               fontFamily: 'PlusJakartaSans_700Bold',
               fontSize: 10,
@@ -352,60 +365,55 @@ function PriceMarker({
             }}
           >
             {count}
-          </Text>
+          </RNText>
         </View>
       )}
-      {/* Marker triangle */}
-      <View style={[styles.markerTriangle, !isSingle && styles.markerTriangleCluster]} />
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  // Map markers
+  // Map markers — matches web PropertyMapMarker
   markerContainer: {
     alignItems: 'center',
   },
   markerBubble: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+    // shadow-md equivalent
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
-    shadowRadius: 4,
+    shadowRadius: 6,
     elevation: 4,
   },
-  markerTriangle: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 6,
-    borderRightWidth: 6,
-    borderTopWidth: 6,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderTopColor: '#FFFFFF',
-    marginTop: -1,
+  // Selected / hovered state
+  markerBubbleActive: {
+    backgroundColor: '#7065F0',
+    borderColor: '#7065F0',
   },
   // Cluster-specific marker styles
   markerBubbleCluster: {
     backgroundColor: '#7065F0',
-  },
-  markerTriangleCluster: {
-    borderTopColor: '#7065F0',
+    borderColor: '#7065F0',
   },
   countBadge: {
     position: 'absolute',
-    top: -4,
-    right: -4,
+    top: -6,
+    right: -6,
     backgroundColor: '#FF4D4F',
     borderRadius: 10,
-    minWidth: 18,
-    height: 18,
+    minWidth: 20,
+    height: 20,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
   },
 
   // Loading overlay
