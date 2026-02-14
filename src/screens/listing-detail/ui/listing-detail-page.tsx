@@ -149,7 +149,7 @@ export function ListingDetailPage() {
       <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
         <Box className='px-6'>
           <PropertyInfo name={listing.name} address={listing.property?.street_address || 'N/A'} />
-          <PropertyActions />
+          <PropertyActions listing={listing} />
           <PropertyImageCarousel images={mediaUrls} />
 
           <PropertySpecifications attributes={listing.attributes || []} status={listing.status} />
