@@ -5,4 +5,5 @@
 export const listingKeys = {
   all: ['listings'] as const,
   detail: (id: string) => [...listingKeys.all, 'detail', id] as const,
+  priceHistory: (id: string) => [...listingKeys.all, 'price-history', id] as const,
 } as const

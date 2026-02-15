@@ -23,4 +23,17 @@ export const listingQueries = {
       // Don't refetch when screen remounts if data is fresh
       refetchOnMount: false,
     }),
+
+  priceHistory: (id: string) =>
+    queryOptions({
+      queryKey: listingKeys.priceHistory(id),
+      queryFn: () => listingApi.getPriceHistory(id).then((res) => res.data),
+      enabled: !!id,
+      // Price history doesn't change frequently
+      staleTime: 10 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      retry: 2,
+      refetchOnReconnect: true,
+      refetchOnMount: false,
+    }),
 } as const

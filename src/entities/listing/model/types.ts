@@ -156,3 +156,26 @@ export interface Listing {
   attributes: Attribute[]
   cost_breakdown?: CostBreakdown
 }
+
+// ============================================
+// Price History Types
+// ============================================
+
+export type PriceChangeType = 'INCREASED' | 'DECREASED' | 'NO_CHANGE'
+
+export interface PriceHistoryEntry {
+  price: number
+  price_history_id: string
+  min_price: number
+  max_price: number
+  changed_at: string
+  price_change: number
+  price_change_percent: number
+  change_type: PriceChangeType
+}
+
+export interface PriceHistoryResponse {
+  listing_id: string
+  current_price: number
+  price_history: PriceHistoryEntry[]
+}
