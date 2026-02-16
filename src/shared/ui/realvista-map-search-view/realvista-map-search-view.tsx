@@ -7,8 +7,8 @@ import {
   Dimensions,
   FlatList,
   Platform,
-  StyleSheet,
   Text as RNText,
+  StyleSheet,
   TouchableOpacity,
   View,
 } from 'react-native'
@@ -373,23 +373,16 @@ function PriceMarker({
 }
 
 const styles = StyleSheet.create({
-  // Map markers — matches web PropertyMapMarker
   markerContainer: {
     alignItems: 'center',
   },
+  // Stripped to minimum to isolate the clipping cause.
+  // Web equivalent: rounded-lg bg-white px-3 py-1.5
   markerBubble: {
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-    // shadow-md equivalent
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 4,
   },
   // Selected / hovered state
   markerBubbleActive: {
