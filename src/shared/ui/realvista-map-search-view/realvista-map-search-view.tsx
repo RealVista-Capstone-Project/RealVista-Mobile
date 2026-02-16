@@ -334,7 +334,7 @@ function PriceMarker({
     : `${formatVND(minPrice)} - ${formatVND(maxPrice)}`
 
   return (
-    <View style={styles.markerContainer}>
+    <View style={styles.markerContainer} collapsable={false}>
       <View
         style={[
           styles.markerBubble,
@@ -375,6 +375,7 @@ function PriceMarker({
 const styles = StyleSheet.create({
   markerContainer: {
     alignItems: 'center',
+    overflow: 'visible',
   },
   // Stripped to minimum to isolate the clipping cause.
   // Web equivalent: rounded-lg bg-white px-3 py-1.5
