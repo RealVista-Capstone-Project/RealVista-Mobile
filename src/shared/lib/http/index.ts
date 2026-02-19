@@ -26,8 +26,6 @@ const getBaseUrl = (): string => {
   return 'https://your-api.com/api'
 }
 
-console.log('API Base URL:', getBaseUrl())
-
 class HttpClient {
   private client: AxiosInstance
   private baseURL: string
@@ -54,51 +52,30 @@ class HttpClient {
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
         }
-        console.log(
-          `[HTTP] Starting Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`,
-          config.params
-        )
         return config
       },
       (error) => {
-        console.error('[HTTP] Request Error:', error)
-        return Promise.reject(error)
-      }
-    )
-
-    // Response interceptor - handle errors
-    this.client.interceptors.request.use(
-      async (config) => {
-        const token = await AsyncStorage.getItem('token')
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`
+        if (__DEV__) {
+          console.error('[HTTP] Request Error:', error)
         }
-        console.log(
-          `[HTTP] Starting Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`,
-          config.params
-        )
-        return config
-      },
-      (error) => {
-        console.error('[HTTP] Request Error:', error)
         return Promise.reject(error)
       }
     )
 
     this.client.interceptors.response.use(
       (response) => {
-        console.log(`[HTTP] Response Success: ${response.status} ${response.config.url}`)
-        console.log('[HTTP] Response Data:', JSON.stringify(response.data, null, 2)) // Log full data
         return response
       },
       async (error: AxiosError<ApiResponse<unknown>>) => {
-        console.error('[HTTP] Response Error:', {
-          message: error.message,
-          code: error.code,
-          url: error.config?.url,
-          status: error.response?.status,
-          data: error.response?.data,
-        })
+        if (__DEV__) {
+          console.error('[HTTP] Response Error:', {
+            message: error.message,
+            code: error.code,
+            url: error.config?.url,
+            status: error.response?.status,
+            data: error.response?.data,
+          })
+        }
         const { response } = error
 
         if (response) {

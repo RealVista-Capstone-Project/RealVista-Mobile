@@ -19,6 +19,11 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
+      "config": {
+        "googleMaps": {
+          "apiKey": "process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY"
+        }
+      },
       "package": "com.sep.realvista",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -47,7 +52,6 @@
       "typedRoutes": true,
       "reactCompiler": false
     },
-    // Reminder: Remember to remove the extra before build with eas
     "extra": {
       "router": {},
       "eas": {

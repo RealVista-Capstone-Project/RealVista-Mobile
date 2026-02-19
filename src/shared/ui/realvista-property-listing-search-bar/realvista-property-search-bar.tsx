@@ -11,6 +11,9 @@ type RealVistaPropertySearchBarProps = {
   onFiltersChange?: (filters: FilterValues) => void
   className?: string
   showLeaseTerm?: boolean
+  initialFilters?: Partial<FilterValues>
+  /** Max price for slider in filter modal. Default: 10B (SALE). Use 100M for RENT. */
+  maxPriceLimit?: number
 }
 
 export function RealVistaPropertySearchBar({
@@ -21,20 +24,23 @@ export function RealVistaPropertySearchBar({
   onFiltersChange,
   className = '',
   showLeaseTerm = true,
+  initialFilters = {},
+  maxPriceLimit,
 }: RealVistaPropertySearchBarProps) {
   const [internalValue, setInternalValue] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
   const [filters, setFilters] = useState<FilterValues>({
     propertyCategory: undefined,
-    minPrice: 5000000,
-    maxPrice: 100000000,
+    minPrice: undefined, // No constraint by default — pages pass their own defaults
+    maxPrice: undefined,
     dynamicAttributes: {},
     rentalPeriod: 'Any',
+    ...initialFilters,
   })
 
   const handleFilterPress = () => {
-    // console.log('Filter pressed')
+    // if (__DEV__) console.log('Filter pressed')
     setIsFilterModalOpen(true)
     onFilterPress?.()
   }
@@ -109,6 +115,7 @@ export function RealVistaPropertySearchBar({
         filters={filters}
         onApply={handleApplyFilters}
         showLeaseTerm={showLeaseTerm}
+        maxPriceLimit={maxPriceLimit}
       />
     </>
   )

@@ -1,5 +1,5 @@
 import { listingApi } from '@/entities/listing/api'
-import type { AdvancedSearchRequest, Listing } from '@/entities/listing/model/types'
+import type { AdvancedSearchRequest, ListingSearchResponse } from '@/entities/listing/model/types'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 
@@ -7,7 +7,7 @@ export function useListingSearch(initialCriteria: AdvancedSearchRequest = {}) {
   const [criteria, setCriteria] = useState<AdvancedSearchRequest>(initialCriteria)
   const [page, setPage] = useState(0)
   const pageSize = 10
-  const [allListings, setAllListings] = useState<Listing[]>([])
+  const [allListings, setAllListings] = useState<ListingSearchResponse[]>([])
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['listings', 'search', criteria, page],
@@ -32,10 +32,19 @@ export function useListingSearch(initialCriteria: AdvancedSearchRequest = {}) {
     }
   }, [data, page])
 
-  const search = (newCriteria: AdvancedSearchRequest) => {
-    setCriteria((prev) => ({ ...prev, ...newCriteria }))
+  const search = (newCriteria: Partial<AdvancedSearchRequest>) => {
+    // Merge on top of initial criteria (not prev), so listingType is never lost
+    // and stale values from previous searches don't bleed into new ones
+    setCriteria({ ...initialCriteria, ...newCriteria })
     setPage(0) // Reset to first page on new search
     setAllListings([]) // Clear current list
+  }
+
+  // Merge partial criteria additively (e.g., update only location while keeping filters)
+  const updateCriteria = (partial: Partial<AdvancedSearchRequest>) => {
+    setCriteria((prev) => ({ ...prev, ...partial }))
+    setPage(0)
+    setAllListings([])
   }
 
   const updateDynamicAttribute = (key: string, value: string | undefined) => {
@@ -73,6 +82,7 @@ export function useListingSearch(initialCriteria: AdvancedSearchRequest = {}) {
     isFetchingNextPage: isFetching && page > 0,
     error,
     search,
+    updateCriteria,
     updateDynamicAttribute,
     nextPage,
     criteria,

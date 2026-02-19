@@ -8,11 +8,11 @@ import {
 import { useRouter } from 'expo-router'
 import React, { useMemo, useState } from 'react'
 import { ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { DirectionPieChart } from '../charts/direction-pie-chart'
 import { Drawer, DrawerBackdrop, DrawerBody, DrawerContent, DrawerFooter } from '../drawer'
 import IconLucide from '../icon-lucide/icon'
 import { IconSymbol } from '../icon-symbol'
 import { RealVistaPriceRangeSlider } from '../realvista-price-range-slider'
+import { DirectionPieChart } from '../charts/direction-pie-chart'
 
 export interface FilterValues extends AdvancedSearchRequest {
   rentalPeriod?: 'Any' | '1-12' | '13-24' | '24+' | null
@@ -24,6 +24,8 @@ interface RealVistaPropertyFilterModalProps {
   filters: FilterValues
   onApply: (filters: FilterValues) => void
   showLeaseTerm?: boolean
+  /** Upper bound of price slider. Default: 10_000_000_000 (10 tỷ). Pass a lower value for RENT screens. */
+  maxPriceLimit?: number
 }
 
 const RENTAL_PERIODS = [
@@ -33,8 +35,16 @@ const RENTAL_PERIODS = [
   { value: '24+', label: '24+ tháng' },
 ] as const
 
+const SORT_OPTIONS = [
+  { value: 'PRIORITY', label: 'Ưu tiên (Nổi bật trước)' },
+  { value: 'DATE_DESC', label: 'Mới nhất trước' },
+  { value: 'PRICE_ASC', label: 'Giá: Thấp đến Cao' },
+  { value: 'PRICE_DESC', label: 'Giá: Cao đến Thấp' },
+] as const
+
 const MIN_PRICE = 0
-const MAX_PRICE = 200000000 // 200 million
+// MAX_PRICE is dynamic per screen — see maxPriceLimit prop
+const DEFAULT_MAX_PRICE = 10_000_000_000 // 10 tỷ (covers cả SALE lẫn RENT)
 const MIN_AREA = 0
 const MAX_AREA = 500
 
@@ -44,6 +54,7 @@ export function RealVistaPropertyFilterModal({
   filters,
   onApply,
   showLeaseTerm = true,
+  maxPriceLimit = DEFAULT_MAX_PRICE,
 }: RealVistaPropertyFilterModalProps) {
   const [localFilters, setLocalFilters] = useState<FilterValues>(filters)
   const router = useRouter()
@@ -65,12 +76,26 @@ export function RealVistaPropertyFilterModal({
       maxArea: undefined,
       dynamicAttributes: {},
       rentalPeriod: 'Any',
+      sortBy: 'PRIORITY',
     }
     setLocalFilters(defaultFilters)
   }
 
   const handleApply = () => {
-    onApply(localFilters)
+    // Strip boundary values — if price is at absolute min/max the user didn't filter,
+    // so send undefined to avoid accidentally excluding listings
+    const priceFiltered: FilterValues = {
+      ...localFilters,
+      minPrice:
+        localFilters.minPrice === undefined || localFilters.minPrice <= MIN_PRICE
+          ? undefined
+          : localFilters.minPrice,
+      maxPrice:
+        localFilters.maxPrice === undefined || localFilters.maxPrice >= maxPriceLimit
+          ? undefined
+          : localFilters.maxPrice,
+    }
+    onApply(priceFiltered)
     onClose()
   }
 
@@ -128,6 +153,13 @@ export function RealVistaPropertyFilterModal({
     setLocalFilters((prev) => ({
       ...prev,
       rentalPeriod: period,
+    }))
+  }
+
+  const updateSortBy = (sort: AdvancedSearchRequest['sortBy']) => {
+    setLocalFilters((prev) => ({
+      ...prev,
+      sortBy: sort,
     }))
   }
 
@@ -371,9 +403,9 @@ export function RealVistaPropertyFilterModal({
 
             <RealVistaPriceRangeSlider
               minValue={MIN_PRICE}
-              maxValue={MAX_PRICE}
-              currentMin={localFilters.minPrice || MIN_PRICE}
-              currentMax={localFilters.maxPrice || MAX_PRICE}
+              maxValue={maxPriceLimit}
+              currentMin={localFilters.minPrice ?? MIN_PRICE}
+              currentMax={localFilters.maxPrice ?? maxPriceLimit}
               onMinChange={updateMinPrice}
               onMaxChange={updateMaxPrice}
               histogramData={[]} // Custom chart handles this now
@@ -438,6 +470,40 @@ export function RealVistaPropertyFilterModal({
                 </View>
               </View>
             )}
+
+            {/* 6. Sort By */}
+            <View className='mt-4'>
+              <View className='bg-grey-200 mb-6' style={{ height: 1 }} />
+              <Text className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-main-black">
+                Sắp xếp theo
+              </Text>
+              <View className='gap-3'>
+                {SORT_OPTIONS.map((option) => (
+                  <TouchableOpacity
+                    key={option.value}
+                    onPress={() => updateSortBy(option.value as any)}
+                    className='flex-row items-center gap-3'
+                  >
+                    <View
+                      className={`h-6 w-6 items-center justify-center rounded-full border-2 ${
+                        localFilters.sortBy === option.value ||
+                        (!localFilters.sortBy && option.value === 'PRIORITY')
+                          ? 'border-brand-primary'
+                          : 'border-grey-300'
+                      }`}
+                    >
+                      {(localFilters.sortBy === option.value ||
+                        (!localFilters.sortBy && option.value === 'PRIORITY')) && (
+                        <View className='h-3 w-3 rounded-full bg-brand-primary' />
+                      )}
+                    </View>
+                    <Text className="font-['PlusJakartaSans_500Medium'] text-base text-main-black">
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
           </ScrollView>
         </DrawerBody>
 

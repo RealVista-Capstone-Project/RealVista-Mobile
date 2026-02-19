@@ -1,5 +1,4 @@
 import { useListingSearch } from '@/features/search/use-listing-search'
-import { Box } from '@/shared/ui/box'
 import { OpenMapsButton } from '@/shared/ui/open-maps-button'
 import {
   RealVistaPropertyCard,
@@ -16,18 +15,17 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 export function RentPage() {
   const router = useRouter()
-  const { listings, isLoading, isFetchingNextPage, error, search, criteria, nextPage } =
-    useListingSearch({
-      listingType: 'RENT',
-    })
-
-  // Debug logs
-  console.log('RentPage Render:', {
+  const {
+    listings,
     isLoading,
     isFetchingNextPage,
-    error: error?.message,
-    listingsCount: listings.length,
+    error,
+    search,
+    updateCriteria,
     criteria,
+    nextPage,
+  } = useListingSearch({
+    listingType: 'RENT',
   })
 
   // Map API listings to UI card data
@@ -48,16 +46,22 @@ export function RentPage() {
   }, [listings])
 
   const handleSearchChange = (text: string) => {
-    search({ location: text })
+    // Additive: update only location, keep active filters intact
+    updateCriteria({ location: text })
   }
 
   const handleFiltersChange = (filters: FilterValues) => {
+    // Replace filter criteria but preserve currently typed location
     search({
+      location: criteria.location,
       propertyCategory: filters.propertyCategory,
+      propertyType: filters.propertyType,
       minPrice: filters.minPrice,
       maxPrice: filters.maxPrice,
+      minArea: filters.minArea,
+      maxArea: filters.maxArea,
       dynamicAttributes: filters.dynamicAttributes,
-      // Rental period logic to be implemented on backend/API side if needed
+      sortBy: filters.sortBy,
     })
   }
 
@@ -67,33 +71,31 @@ export function RentPage() {
 
   const handleOpenMaps = () => {
     // Navigate to map view (implementation pending)
-    console.log('Open maps pressed')
+    // console.log('Open maps pressed')
   }
 
-  const renderHeader = useMemo(
-    () => (
-      <View className='px-4 py-6'>
-        {/* Search Bar */}
-        <RealVistaPropertySearchBar
-          value={criteria.location}
-          onChangeText={handleSearchChange}
-          onFiltersChange={handleFiltersChange}
-          placeholder='Tìm kiếm theo địa điểm'
-          className='mb-6'
-          showLeaseTerm={true}
-        />
-        {/* Error State */}
-        {error && (
-          <View className='py-10 items-center px-4'>
-            <Text className="font-['PlusJakartaSans_500Medium'] text-red-500 text-center mb-2">
-              Đã xảy ra lỗi khi tải dữ liệu.
-            </Text>
-            <Text className='text-gray-400 text-center text-xs mb-4'>{error.message}</Text>
-          </View>
-        )}
-      </View>
-    ),
-    [criteria.location, error]
+  const renderHeader = (
+    <View className='px-4 py-6'>
+      {/* Search Bar */}
+      <RealVistaPropertySearchBar
+        value={criteria.location}
+        onChangeText={handleSearchChange}
+        onFiltersChange={handleFiltersChange}
+        placeholder='Tìm kiếm theo địa điểm'
+        className='mb-6'
+        showLeaseTerm={true}
+        maxPriceLimit={100_000_000} // 100 triệu/tháng — phù hợp với BĐS cho thuê
+      />
+      {/* Error State */}
+      {error && (
+        <View className='py-10 items-center px-4'>
+          <Text className="font-['PlusJakartaSans_500Medium'] text-red-500 text-center mb-2">
+            Đã xảy ra lỗi khi tải dữ liệu.
+          </Text>
+          <Text className='text-gray-400 text-center text-xs mb-4'>{error.message}</Text>
+        </View>
+      )}
+    </View>
   )
 
   const renderFooter = () => (
