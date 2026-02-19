@@ -53,7 +53,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (!isNavigationReady || !loaded) return
     // Using the listing_id from the API response for development
-    router.replace('/listing/27199eda-c29e-7a94-c7cc-93959e8115cc' as Href)
+    router.replace('/listing/71cea53a-bff0-b29b-3a9e-9e041c3d0524' as Href)
   }, [isNavigationReady, router, loaded])
 
   // useEffect(() => {

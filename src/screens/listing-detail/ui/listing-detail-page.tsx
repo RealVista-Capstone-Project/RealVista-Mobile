@@ -12,15 +12,14 @@ import { Text } from '@/shared/ui/text'
 import {
   PropertyAbout,
   PropertyActions,
+  PropertyAmenities,
   PropertyCostBreakdown,
-  PropertyFeatures,
   PropertyHeader,
   PropertyImageCarousel,
   PropertyInfo,
   PropertyLegal,
   PropertyMap,
   PropertyOwner,
-  PropertyPriceHistory,
   PropertySimilarListings,
   PropertySpecifications,
   PropertyTourRequest,
@@ -166,6 +165,7 @@ export function ListingDetailPage() {
     })
   })()
 
+  console.log('amenities', listing.amenities)
   return (
     <Box className='flex-1 bg-white'>
       <Box className='p-6'>
@@ -188,7 +188,9 @@ export function ListingDetailPage() {
 
           <Divider className='my-6' />
 
-          <PropertyFeatures />
+          <PropertyAmenities amenities={listing.amenities || []} />
+          {/* <Divider className='my-6' /> */}
+          {/* <PropertyFeatures /> */}
 
           <Divider className='my-6' />
 
@@ -216,7 +218,7 @@ export function ListingDetailPage() {
 
           <Divider className='my-6' />
 
-          <PropertyPriceHistory />
+          {/* <PropertyPriceHistory /> */}
 
           <Divider className='my-6' />
 

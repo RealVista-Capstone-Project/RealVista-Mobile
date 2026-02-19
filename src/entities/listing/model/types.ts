@@ -154,6 +154,7 @@ export interface Listing {
   media: Media[]
   agent: Agent
   attributes: Attribute[]
+  amenities?: Amenity[]
   cost_breakdown?: CostBreakdown
 }
 
@@ -205,4 +206,19 @@ export interface PriceHistoryResponse {
   listing_id: string
   current_price: number
   price_history: PriceHistoryEntry[]
+}
+
+// ============================================
+// Amenity Types
+// ============================================
+
+export type AmenityType = 'ONSITE' | 'OFFSITE'
+
+export interface Amenity {
+  amenity_id: string
+  amenity_name: string
+  amenity_type: AmenityType
+  description: string
+  is_offsite: boolean
+  is_onsite: boolean
 }
