@@ -8,7 +8,7 @@
 // ============================================
 
 export interface Property {
-  description: string
+  descriptions: string
   property_id: string
   street_address: string
   land_size_m2: number
@@ -127,6 +127,18 @@ export interface Attribute {
 export type ListingStatus = 'DRAFT' | 'PUBLISHED' | 'RENTED' | 'SOLD' | 'EXPIRED'
 export type ListingType = 'RENT' | 'SALE'
 
+export interface User {
+  user_id: string
+  first_name: string
+  last_name: string
+  full_name: string
+  email: string
+  phone: string
+  avatar_url: string
+  business_name: string
+  status: 'ACTIVE' | 'SUSPENDED' | 'BANNED' | 'VERIFIED'
+}
+
 export interface Listing {
   listing_id: string
   property_id: string
@@ -146,6 +158,7 @@ export interface Listing {
   total_photos: number
   total_videos: number
   total_3d_tours: number
+  descriptions?: string // Legacy or flattened field
 
   // Nested objects
   property: Property
@@ -153,6 +166,60 @@ export interface Listing {
   propertyType: PropertyType
   media: Media[]
   agent: Agent
+  user?: User // Added user field
   attributes: Attribute[]
   cost_breakdown?: CostBreakdown
+}
+// ============================================
+// Search Types
+// ============================================
+
+// ============================================
+// Search Types
+// ============================================
+
+export interface AdvancedSearchRequest {
+  listingType?: 'RENT' | 'SALE'
+  propertyType?: string
+  propertyCategory?: string
+  location?: string
+  minPrice?: number
+  maxPrice?: number
+  minArea?: number
+  maxArea?: number
+  sortBy?: string
+  dynamicAttributes?: Record<string, string>
+}
+
+export interface ApiResponse<T> {
+  success: boolean
+  message: string
+  data: T
+}
+
+export interface ListingSearchResponse {
+  listing_id: string
+  name: string
+  slug: string
+  listing_type: 'RENT' | 'SALE'
+  status: ListingStatus
+  price: number
+  area: number
+  location: string
+  bedrooms?: number
+  bathrooms?: number
+  thumbnail: string
+  published_at: string
+  boosted: boolean
+  user_type: string
+}
+
+export interface PageResponse<T> {
+  content: T[]
+  page: number
+  size: number
+  total_elements: number
+  total_pages: number
+  first: boolean
+  last: boolean
 }

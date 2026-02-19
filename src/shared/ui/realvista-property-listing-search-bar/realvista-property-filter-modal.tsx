@@ -1,15 +1,21 @@
-import React, { useState } from 'react'
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import type { AdvancedSearchRequest } from '@/entities/listing/model/types'
+import {
+  ATTRIBUTE_LABELS,
+  ATTRIBUTE_TYPES,
+  PROPERTY_TYPES,
+  type PropertyAttribute,
+} from '@/shared/config/property-types'
+import { useRouter } from 'expo-router'
+import React, { useMemo, useState } from 'react'
+import { ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { DirectionPieChart } from '../charts/direction-pie-chart'
 import { Drawer, DrawerBackdrop, DrawerBody, DrawerContent, DrawerFooter } from '../drawer'
+import IconLucide from '../icon-lucide/icon'
 import { IconSymbol } from '../icon-symbol'
 import { RealVistaPriceRangeSlider } from '../realvista-price-range-slider'
 
-export interface FilterValues {
-  category: ('Houses' | 'Rooms' | 'Apartment')[]
-  priceRange: { min: number; max: number }
-  bedrooms: number
-  bathrooms: number
-  rentalPeriod: 'Any' | '1-12' | '13-24' | '24+' | null
+export interface FilterValues extends AdvancedSearchRequest {
+  rentalPeriod?: 'Any' | '1-12' | '13-24' | '24+' | null
 }
 
 interface RealVistaPropertyFilterModalProps {
@@ -20,7 +26,6 @@ interface RealVistaPropertyFilterModalProps {
   showLeaseTerm?: boolean
 }
 
-const CATEGORIES = ['Houses', 'Rooms', 'Apartment'] as const
 const RENTAL_PERIODS = [
   { value: 'Any', label: 'Bất kỳ' },
   { value: '1-12', label: '1 - 12 tháng' },
@@ -28,8 +33,10 @@ const RENTAL_PERIODS = [
   { value: '24+', label: '24+ tháng' },
 ] as const
 
-const MIN_PRICE = 5000000
-const MAX_PRICE = 100000000
+const MIN_PRICE = 0
+const MAX_PRICE = 200000000 // 200 million
+const MIN_AREA = 0
+const MAX_AREA = 500
 
 export function RealVistaPropertyFilterModal({
   isOpen,
@@ -39,13 +46,24 @@ export function RealVistaPropertyFilterModal({
   showLeaseTerm = true,
 }: RealVistaPropertyFilterModalProps) {
   const [localFilters, setLocalFilters] = useState<FilterValues>(filters)
+  const router = useRouter()
+
+  // Reset local filters to match props when modal opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setLocalFilters(filters)
+    }
+  }, [isOpen, filters])
 
   const handleReset = () => {
     const defaultFilters: FilterValues = {
-      category: [],
-      priceRange: { min: MIN_PRICE, max: MAX_PRICE },
-      bedrooms: 0,
-      bathrooms: 0,
+      propertyCategory: undefined,
+      propertyType: undefined,
+      minPrice: undefined,
+      maxPrice: undefined,
+      minArea: undefined,
+      maxArea: undefined,
+      dynamicAttributes: {},
       rentalPeriod: 'Any',
     }
     setLocalFilters(defaultFilters)
@@ -56,30 +74,54 @@ export function RealVistaPropertyFilterModal({
     onClose()
   }
 
-  const updateCategory = (category: (typeof CATEGORIES)[number]) => {
+  // Determine active attributes based on selected property type
+  const activeAttributes = useMemo(() => {
+    if (!localFilters.propertyType) return []
+    for (const category of PROPERTY_TYPES) {
+      const type = category.types.find((t) => t.code === localFilters.propertyType)
+      if (type) return type.attributes
+    }
+    return []
+  }, [localFilters.propertyType])
+
+  const updateCategory = (categoryCode: string) => {
+    // If selecting new category, reset property type
+    const isSameCategory = localFilters.propertyCategory === categoryCode
+    setLocalFilters((prev) => ({
+      ...prev,
+      propertyCategory: isSameCategory ? undefined : categoryCode,
+      propertyType: undefined, // Reset type when category changes
+      dynamicAttributes: {}, // Reset dynamic attrs
+    }))
+  }
+
+  const updatePropertyType = (typeCode: string) => {
+    setLocalFilters((prev) => ({
+      ...prev,
+      propertyType: prev.propertyType === typeCode ? undefined : typeCode,
+      dynamicAttributes: {}, // Reset dynamic attrs when type changes
+    }))
+  }
+
+  const updateDynamicAttribute = (key: string, value: string | undefined) => {
     setLocalFilters((prev) => {
-      const isSelected = prev.category.includes(category)
+      const currentAttrs = prev.dynamicAttributes || {}
+      if (value === undefined || value === '') {
+        const { [key]: _, ...rest } = currentAttrs
+        return { ...prev, dynamicAttributes: rest }
+      }
       return {
         ...prev,
-        category: isSelected
-          ? prev.category.filter((c) => c !== category)
-          : [...prev.category, category],
+        dynamicAttributes: {
+          ...currentAttrs,
+          [key]: value,
+        },
       }
     })
   }
 
-  const updateBedrooms = (increment: boolean) => {
-    setLocalFilters((prev) => ({
-      ...prev,
-      bedrooms: Math.max(0, prev.bedrooms + (increment ? 1 : -1)),
-    }))
-  }
-
-  const updateBathrooms = (increment: boolean) => {
-    setLocalFilters((prev) => ({
-      ...prev,
-      bathrooms: Math.max(0, prev.bathrooms + (increment ? 1 : -1)),
-    }))
+  const getDynamicAttributeValue = (key: string): string | undefined => {
+    return localFilters.dynamicAttributes?.[key]
   }
 
   const updateRentalPeriod = (period: FilterValues['rentalPeriod']) => {
@@ -92,43 +134,119 @@ export function RealVistaPropertyFilterModal({
   const updateMinPrice = React.useCallback((value: number) => {
     setLocalFilters((prev) => ({
       ...prev,
-      priceRange: { ...prev.priceRange, min: Math.min(value, prev.priceRange.max) },
+      minPrice: value,
     }))
   }, [])
 
   const updateMaxPrice = React.useCallback((value: number) => {
     setLocalFilters((prev) => ({
       ...prev,
-      priceRange: { ...prev.priceRange, max: Math.max(value, prev.priceRange.min) },
+      maxPrice: value,
     }))
   }, [])
 
-  // Reset local filters to match props when modal opens
-  React.useEffect(() => {
-    if (isOpen) {
-      setLocalFilters(filters)
+  // Handle chart bar press
+  const handleChartBarPress = (range: { min: number; max: number }) => {
+    updateMinPrice(range.min)
+    updateMaxPrice(range.max)
+  }
+
+  // Helper to render dynamic fields
+  const renderDynamicField = (attrCode: PropertyAttribute) => {
+    const label = ATTRIBUTE_LABELS[attrCode]
+    const type = ATTRIBUTE_TYPES[attrCode]
+    const currentValue = getDynamicAttributeValue(attrCode)
+
+    if (type === 'boolean') {
+      return (
+        <View
+          key={attrCode}
+          className='flex-row items-center justify-between rounded-lg border border-grey-200 p-3 mb-3'
+        >
+          <View className='flex-row items-center gap-2'>
+            <IconLucide name='CircleCheck' size={18} color='#7065F0' />
+            <Text className='text-sm text-main-black'>{label}</Text>
+          </View>
+          <Switch
+            value={currentValue === 'true'}
+            onValueChange={(checked) =>
+              updateDynamicAttribute(attrCode, checked ? 'true' : undefined)
+            }
+            trackColor={{ false: '#767577', true: '#7065F0' }}
+            thumbColor={currentValue === 'true' ? '#f4f3f4' : '#f4f3f4'}
+          />
+        </View>
+      )
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]) // Only depend on isOpen, not filters, to avoid infinite loops
+
+    if (type === 'number') {
+      return (
+        <View key={attrCode} className='mb-3'>
+          <Text className='text-sm font-medium text-main-black mb-1.5'>{label}</Text>
+          <View className='relative flex-row items-center rounded-lg border border-grey-300 bg-white'>
+            <View className='pl-3'>
+              <IconLucide name='Hash' size={16} color='#9CA3AF' />
+            </View>
+            <TextInput
+              keyboardType='numeric'
+              placeholder={`Nhập số ${label.toLowerCase()}...`}
+              value={currentValue || ''}
+              onChangeText={(text) => {
+                // Only allow numbers
+                const numeric = text.replace(/[^0-9]/g, '')
+                updateDynamicAttribute(attrCode, numeric || undefined)
+              }}
+              className='flex-1 p-3 text-base text-main-black'
+              placeholderTextColor='#9CA3AF'
+            />
+          </View>
+        </View>
+      )
+    }
+
+    if (attrCode === 'DIRECTION') {
+      return (
+        <View key={attrCode} className='mb-3'>
+          {/* Pie Chart for Direction Selection */}
+          <DirectionPieChart
+            selectedDirection={currentValue}
+            onPress={(code) => updateDynamicAttribute(attrCode, code)}
+          />
+        </View>
+      )
+    }
+
+    // Text inputs
+    return (
+      <View key={attrCode} className='mb-3'>
+        <Text className='text-sm font-medium text-main-black mb-1.5'>{label}</Text>
+        <View className='relative flex-row items-center rounded-lg border border-grey-300 bg-white'>
+          <View className='pl-3'>
+            <IconLucide name='Type' size={16} color='#9CA3AF' />
+          </View>
+          <TextInput
+            placeholder={`Nhập ${label.toLowerCase()}...`}
+            value={currentValue || ''}
+            onChangeText={(text) => updateDynamicAttribute(attrCode, text || undefined)}
+            className='flex-1 p-3 text-base text-main-black'
+            placeholderTextColor='#9CA3AF'
+          />
+        </View>
+      </View>
+    )
+  }
 
   return (
     <Drawer isOpen={isOpen} onClose={onClose} size='full' anchor='bottom'>
       <DrawerBackdrop />
       <DrawerContent
         className='rounded-t-3xl bg-white'
-        style={{ paddingBottom: 32, maxHeight: '95%', display: 'flex', flexDirection: 'column' }}
+        style={{ maxHeight: '95%', display: 'flex', flexDirection: 'column' }}
         collapsable={false}
       >
         {/* Drag Indicator */}
         <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 8 }}>
-          <View
-            className='bg-grey-200'
-            style={{
-              width: 56,
-              height: 5,
-              borderRadius: 32,
-            }}
-          />
+          <View className='bg-grey-200' style={{ width: 56, height: 5, borderRadius: 32 }} />
         </View>
 
         {/* Header */}
@@ -140,305 +258,179 @@ export function RealVistaPropertyFilterModal({
               justifyContent: 'space-between',
               paddingTop: 8,
               paddingBottom: 16,
+              paddingHorizontal: 20,
             }}
           >
-            <TouchableOpacity onPress={onClose} style={{ padding: 8 }} activeOpacity={0.7}>
+            <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
               <IconSymbol name='xmark' size={24} color='#6C727F' />
             </TouchableOpacity>
-            <Text
-              className="font-['PlusJakartaSans_700Bold'] text-xl text-main-secondary"
-              style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 18 }}
-            >
+            <Text className="font-['PlusJakartaSans_700Bold'] text-xl text-main-secondary">
               Bộ lọc
             </Text>
-            <View style={{ width: 40 }} />
+            <View style={{ width: 28 }} />
           </View>
-          {/* Full-width separator line */}
-          <View
-            className='bg-grey-200'
-            style={{
-              height: 1,
-              marginLeft: -20,
-              marginRight: -20,
-            }}
-          />
+          <View className='bg-grey-200' style={{ height: 1 }} />
         </View>
 
-        <DrawerBody style={{ flex: 1, paddingTop: 24 }}>
+        {/* Scrollable Body */}
+        <DrawerBody style={{ flex: 1 }}>
           <ScrollView
             showsVerticalScrollIndicator={true}
             bounces={true}
-            contentContainerStyle={{ paddingBottom: 16 }}
+            contentContainerStyle={{ paddingBottom: 32, paddingHorizontal: 20, paddingTop: 16 }}
           >
-            {/* Category Section */}
-            <View style={{ marginBottom: 32 }}>
-              <Text
-                className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-main-black"
-                style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16, marginBottom: 16 }}
-              >
-                Danh mục
+            {/* 1. Property Category */}
+            <View className='mb-6'>
+              <Text className="font-['PlusJakartaSans_700Bold'] mb-3 text-base text-main-black">
+                Danh mục Bất động sản
               </Text>
-              <View style={{ flexDirection: 'row', gap: 12 }}>
-                {CATEGORIES.map((category) => (
+              <View className='flex-row flex-wrap gap-2'>
+                {PROPERTY_TYPES.map((category) => (
                   <TouchableOpacity
-                    key={category}
-                    onPress={() => updateCategory(category)}
-                    className={
-                      localFilters.category.includes(category)
+                    key={category.code}
+                    onPress={() => updateCategory(category.code)}
+                    className={`flex-row items-center rounded-lg border px-4 py-2 gap-2 ${
+                      localFilters.propertyCategory === category.code
                         ? 'bg-brand-primary border-brand-primary'
-                        : 'bg-white border-purple-92'
-                    }
-                    style={{
-                      paddingHorizontal: 20,
-                      paddingVertical: 12,
-                      borderRadius: 8,
-                      borderWidth: 1,
-                    }}
-                    activeOpacity={0.7}
+                        : 'bg-white border-grey-300'
+                    }`}
                   >
+                    {category.icon && (
+                      <IconLucide
+                        name={category.icon as any}
+                        size={18}
+                        color={
+                          localFilters.propertyCategory === category.code ? 'white' : '#1A1E25'
+                        }
+                      />
+                    )}
                     <Text
-                      className={`font-['PlusJakartaSans_600SemiBold'] text-sm ${localFilters.category.includes(category) ? 'text-white' : 'text-main-black'}`}
-                      style={{
-                        fontFamily: 'PlusJakartaSans_600SemiBold',
-                        fontSize: 14,
-                      }}
+                      className={`text-sm font-medium ${
+                        localFilters.propertyCategory === category.code
+                          ? 'text-white'
+                          : 'text-main-black'
+                      }`}
                     >
-                      {category}
+                      {category.label}
                     </Text>
                   </TouchableOpacity>
                 ))}
               </View>
             </View>
 
-            {/* Separator Line */}
-            <View
-              className='bg-grey-200'
-              style={{
-                height: 1,
-                marginBottom: 32,
-              }}
-            />
+            {/* 2. Property Type (Dependent on Category) */}
+            {localFilters.propertyCategory && (
+              <View className='mb-6'>
+                <Text className="font-['PlusJakartaSans_700Bold'] mb-3 text-base text-main-black">
+                  Loại hình cụ thể
+                </Text>
+                <View className='flex-row flex-wrap gap-2'>
+                  {PROPERTY_TYPES.find((c) => c.code === localFilters.propertyCategory)?.types.map(
+                    (type) => (
+                      <TouchableOpacity
+                        key={type.code}
+                        onPress={() => updatePropertyType(type.code)}
+                        className={`flex-row items-center rounded-lg border px-4 py-2 gap-2 ${
+                          localFilters.propertyType === type.code
+                            ? 'bg-brand-primary border-brand-primary'
+                            : 'bg-white border-grey-300'
+                        }`}
+                      >
+                        {type.icon && (
+                          <IconLucide
+                            name={type.icon as any}
+                            size={16}
+                            color={localFilters.propertyType === type.code ? 'white' : '#1A1E25'}
+                          />
+                        )}
+                        <Text
+                          className={`text-sm font-medium ${
+                            localFilters.propertyType === type.code
+                              ? 'text-white'
+                              : 'text-main-black'
+                          }`}
+                        >
+                          {type.label}
+                        </Text>
+                      </TouchableOpacity>
+                    )
+                  )}
+                </View>
+              </View>
+            )}
 
-            {/* Price Range Section */}
+            {/* Separator */}
+            <View className='bg-grey-200 mb-6' style={{ height: 1 }} />
+
+            {/* 3. Price Range (with Chart) */}
+            <Text className="font-['PlusJakartaSans_700Bold'] mb-2 text-base text-main-black">
+              Khoảng giá
+            </Text>
+
+            {/* Price Distribution Chart removed as per user request */}
+
             <RealVistaPriceRangeSlider
               minValue={MIN_PRICE}
               maxValue={MAX_PRICE}
-              currentMin={localFilters.priceRange.min}
-              currentMax={localFilters.priceRange.max}
+              currentMin={localFilters.minPrice || MIN_PRICE}
+              currentMax={localFilters.maxPrice || MAX_PRICE}
               onMinChange={updateMinPrice}
               onMaxChange={updateMaxPrice}
-              histogramData={[6, 8, 8, 12, 21, 35, 38, 28, 21, 12, 8, 6]}
+              histogramData={[]} // Custom chart handles this now
             />
 
-            {/* Separator Line */}
-            <View
-              className='bg-grey-200'
-              style={{
-                height: 1,
-                marginBottom: 32,
-              }}
-            />
+            {/* Separator */}
+            <View className='bg-grey-200 my-6' style={{ height: 1 }} />
 
-            {/* Features Section */}
-            <View style={{ marginBottom: 32 }}>
-              <Text
-                className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-main-black"
-                style={{
-                  fontFamily: 'PlusJakartaSans_700Bold',
-                  fontSize: 18,
-                  marginBottom: 16,
-                }}
-              >
-                Tiện nghi
-              </Text>
-              {/* Bedroom Counter */}
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: 16,
-                }}
-              >
-                <Text
-                  className="font-['PlusJakartaSans_500Medium'] text-base text-main-black"
-                  style={{
-                    fontFamily: 'PlusJakartaSans_500Medium',
-                    fontSize: 16,
-                  }}
-                >
-                  Phòng ngủ
+            {/* 4. Dynamic Attributes */}
+            {activeAttributes.length > 0 && (
+              <View className='mb-6'>
+                <Text className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-main-black">
+                  Đặc điểm & Tiện nghi
                 </Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-                  <TouchableOpacity
-                    onPress={() => updateBedrooms(false)}
-                    className={localFilters.bedrooms >= 1 ? 'bg-brand-primary' : 'bg-grey-200'}
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 16,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <IconSymbol name='minus' size={28} color='#FFFF' weight='medium' />
-                  </TouchableOpacity>
-                  <Text
-                    className="font-['PlusJakartaSans_600SemiBold'] text-base text-[#000929]"
-                    style={{
-                      fontFamily: 'PlusJakartaSans_600SemiBold',
-                      fontSize: 16,
-                      minWidth: 24,
-                      textAlign: 'center',
-                    }}
-                  >
-                    {localFilters.bedrooms}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => updateBedrooms(true)}
-                    className='bg-brand-primary'
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 16,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <IconSymbol name='plus' size={28} color='#FFFFFF' weight='medium' />
-                  </TouchableOpacity>
+
+                {/* Render Boolean attributes first */}
+                <View className='mb-4'>
+                  {activeAttributes
+                    .filter((attr) => ATTRIBUTE_TYPES[attr] === 'boolean')
+                    .map((attr) => renderDynamicField(attr))}
+                </View>
+
+                {/* Render Number/Text attributes */}
+                <View>
+                  {activeAttributes
+                    .filter((attr) => ATTRIBUTE_TYPES[attr] !== 'boolean')
+                    .map((attr) => renderDynamicField(attr))}
                 </View>
               </View>
-              {/* Bathroom Counter */}
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <Text
-                  className="font-['PlusJakartaSans_500Medium'] text-base text-main-black"
-                  style={{
-                    fontFamily: 'PlusJakartaSans_500Medium',
-                    fontSize: 16,
-                  }}
-                >
-                  Phòng tắm
-                </Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-                  <TouchableOpacity
-                    onPress={() => updateBathrooms(false)}
-                    className={localFilters.bathrooms >= 1 ? 'bg-brand-primary' : 'bg-grey-200'}
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 16,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <IconSymbol name='minus' size={28} color='#FFFF' weight='medium' />
-                  </TouchableOpacity>
-                  <Text
-                    className="font-['PlusJakartaSans_600SemiBold'] text-base text-[#000929]"
-                    style={{
-                      fontFamily: 'PlusJakartaSans_600SemiBold',
-                      fontSize: 16,
-                      minWidth: 24,
-                      textAlign: 'center',
-                    }}
-                  >
-                    {localFilters.bathrooms}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => updateBathrooms(true)}
-                    className='bg-brand-primary'
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 16,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <IconSymbol name='plus' size={28} color='#FFFFFF' weight='medium' />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
+            )}
 
-            {/* Separator Line */}
-            <View
-              className='bg-grey-200'
-              style={{
-                height: 1,
-                marginBottom: 32,
-              }}
-            />
-
-            {/* Rental Period Section */}
+            {/* 5. Rental Period */}
             {showLeaseTerm && (
-              <View style={{ marginBottom: 16 }}>
-                <Text
-                  className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-main-black"
-                  style={{
-                    fontFamily: 'PlusJakartaSans_700Bold',
-                    fontSize: 18,
-                    marginBottom: 16,
-                  }}
-                >
+              <View className='mt-4'>
+                <View className='bg-grey-200 mb-6' style={{ height: 1 }} />
+                <Text className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-main-black">
                   Thời hạn thuê
                 </Text>
-                <View style={{ gap: 12 }}>
+                <View className='gap-3'>
                   {RENTAL_PERIODS.map((period) => (
                     <TouchableOpacity
                       key={period.value}
                       onPress={() => updateRentalPeriod(period.value)}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 12,
-                      }}
-                      activeOpacity={0.7}
+                      className='flex-row items-center gap-3'
                     >
                       <View
-                        className={
+                        className={`h-6 w-6 items-center justify-center rounded-full border-2 ${
                           localFilters.rentalPeriod === period.value
                             ? 'border-brand-primary'
                             : 'border-grey-300'
-                        }
-                        style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: 12,
-                          borderWidth: 2,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
+                        }`}
                       >
                         {localFilters.rentalPeriod === period.value && (
-                          <View
-                            className='bg-brand-primary'
-                            style={{
-                              width: 12,
-                              height: 12,
-                              borderRadius: 6,
-                            }}
-                          />
+                          <View className='h-3 w-3 rounded-full bg-brand-primary' />
                         )}
                       </View>
-                      <Text
-                        className="font-['PlusJakartaSans_500Medium'] text-base text-main-black"
-                        style={{
-                          fontFamily: 'PlusJakartaSans_500Medium',
-                          fontSize: 16,
-                        }}
-                      >
+                      <Text className="font-['PlusJakartaSans_500Medium'] text-base text-main-black">
                         {period.label}
                       </Text>
                     </TouchableOpacity>
@@ -449,44 +441,31 @@ export function RealVistaPropertyFilterModal({
           </ScrollView>
         </DrawerBody>
 
-        <DrawerFooter style={{ flexDirection: 'row', gap: 12, paddingTop: 16 }}>
+        {/* Footer - Sticky */}
+        <DrawerFooter
+          style={{
+            flexDirection: 'row',
+            gap: 12,
+            paddingVertical: 16,
+            paddingHorizontal: 20,
+            backgroundColor: 'white',
+            borderTopWidth: 1,
+            borderTopColor: '#F3F4F6',
+          }}
+        >
           <TouchableOpacity
             onPress={handleReset}
-            className='bg-purple-96'
-            style={{
-              flex: 1,
-              paddingVertical: 16,
-              borderRadius: 8,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-            activeOpacity={0.7}
+            className='bg-purple-96 flex-1 items-center justify-center rounded-lg py-4'
           >
-            <Text
-              className="font-['PlusJakartaSans_700Bold'] text-base text-brand-primary"
-              style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16 }}
-            >
+            <Text className="font-['PlusJakartaSans_700Bold'] text-base text-brand-primary">
               Đặt lại
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleApply}
-            className='bg-brand-primary'
-            style={{
-              flex: 1,
-              paddingVertical: 16,
-              borderRadius: 8,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-            activeOpacity={0.7}
+            className='bg-brand-primary flex-1 items-center justify-center rounded-lg py-4'
           >
-            <Text
-              className="font-['PlusJakartaSans_700Bold'] text-base text-white"
-              style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16 }}
-            >
-              Áp dụng
-            </Text>
+            <Text className="font-['PlusJakartaSans_700Bold'] text-base text-white">Áp dụng</Text>
           </TouchableOpacity>
         </DrawerFooter>
       </DrawerContent>
