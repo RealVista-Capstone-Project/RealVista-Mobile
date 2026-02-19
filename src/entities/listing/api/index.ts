@@ -1,5 +1,5 @@
 import http from '@/shared/lib/http'
-import type { Listing, PriceHistoryResponse } from '../model/types'
+import type { Listing, PriceHistoryResponse, SimilarListingsResponse } from '../model/types'
 
 export const listingApi = {
   /**
@@ -7,6 +7,15 @@ export const listingApi = {
    * GET /listings/:id
    */
   getById: (id: string) => http.get<Listing>(`/listings/${id}`),
+
+  /**
+   * Get similar listings by listing ID
+   * GET /listings/:id/similar?limit=5
+   */
+  getSimilar: (id: string, limit: number = 5) =>
+    http.get<SimilarListingsResponse>(`/listings/${id}/similar`, {
+      params: { limit },
+    }),
 
   /**
    * Get listing price history
