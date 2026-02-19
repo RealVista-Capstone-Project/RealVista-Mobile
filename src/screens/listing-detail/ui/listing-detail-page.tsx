@@ -5,8 +5,8 @@ import { useListingPriceHistory } from '@/features/get-listing-price-history'
 import { LineChart, type ChartDataPoint } from '@/shared/ui/bna/line-chart'
 import { Box } from '@/shared/ui/box'
 import { Divider } from '@/shared/ui/divider'
-import { Text } from '@/shared/ui/text'
 import { type RealVistaPropertyCardData } from '@/shared/ui/realvista-property-listing-card'
+import { Text } from '@/shared/ui/text'
 import {
   PropertyAbout,
   PropertyActions,
@@ -163,7 +163,9 @@ export function ListingDetailPage() {
 
     return sortedHistory.map((entry) => {
       const date = new Date(entry.changed_at)
-      const label = date.toLocaleDateString('vi-VN', { month: 'short', year: 'numeric' })
+      const month = date.getMonth() + 1
+      const year = date.getFullYear().toString().slice(-2)
+      const label = `T${month}/${year}`
       return {
         x: label,
         y: entry.price,
