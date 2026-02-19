@@ -174,10 +174,6 @@ export interface Listing {
 // Search Types
 // ============================================
 
-// ============================================
-// Search Types
-// ============================================
-
 export interface AdvancedSearchRequest {
   listingType?: 'RENT' | 'SALE'
   propertyType?: string
@@ -222,4 +218,31 @@ export interface PageResponse<T> {
   total_pages: number
   first: boolean
   last: boolean
+}
+
+// ============================================
+// Similar Listings Types
+// ============================================
+
+export interface SimilarListing {
+  listing_id: string
+  slug: string
+  name: string
+  listing_type: ListingType
+  property_type_name: string
+  price: number
+  area: number
+  location_name: string
+  thumbnail_url: string
+  similarity_score: number
+  published_at: string
+  attributes: Attribute[]
+  display_price: string
+  display_area: string
+}
+
+export interface SimilarListingsResponse {
+  listings: SimilarListing[]
+  total: number
+  limit: number
 }

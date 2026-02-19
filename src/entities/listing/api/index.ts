@@ -5,6 +5,7 @@ import type {
   Listing,
   ListingSearchResponse,
   PageResponse,
+  SimilarListingsResponse,
 } from '../model/types'
 
 export const listingApi = {
@@ -47,4 +48,13 @@ export const listingApi = {
       .get<PageResponse<ListingSearchResponse>>('/listings/search', { params })
       .then((response) => response.data)
   },
+
+  /**
+   * Get similar listings by listing ID
+   * GET /listings/:id/similar?limit=5
+   */
+  getSimilar: (id: string, limit: number = 5) =>
+    http.get<SimilarListingsResponse>(`/listings/${id}/similar`, {
+      params: { limit },
+    }),
 } as const
