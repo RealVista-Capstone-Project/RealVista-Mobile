@@ -1,14 +1,43 @@
+import { useAuthStore } from '@/entities/user'
 import { useDrawerStore } from '@/shared/stores/drawer-store'
 import { IconSymbol } from '@/shared/ui/icon-symbol'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { useRouter, Href } from 'expo-router'
+import { Alert, Text, TouchableOpacity, View } from 'react-native'
 import { MenuIcon } from '../../../../assets/icon/menu'
 import { NotificationIcon } from '../../../../assets/icon/notification'
 
 export function TopNav() {
   const { setIsOpen } = useDrawerStore()
+  const { user, logout } = useAuthStore()
+  const router = useRouter()
 
   const handleMenuPress = () => {
     setIsOpen(true)
+  }
+
+  const handleAvatarPress = () => {
+    Alert.alert('Tài khoản', `Xin chào, ${user?.fullName || user?.email || 'Khách'}`, [
+      { text: 'Hủy', style: 'cancel' },
+      {
+        text: user ? 'Đăng xuất' : 'Đăng nhập',
+        style: user ? 'destructive' : 'default',
+        onPress: () => {
+          if (user) {
+            logout()
+          }
+          router.replace('/(auth)/login' as Href)
+        },
+      },
+    ])
+  }
+
+  const getInitials = (name?: string) => {
+    if (!name) return 'US'
+    const parts = name.split(' ')
+    if (parts.length > 1) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    }
+    return name.substring(0, 2).toUpperCase()
   }
 
   return (
@@ -26,9 +55,12 @@ export function TopNav() {
         </TouchableOpacity>
 
         {/* User Avatar with Dropdown */}
-        <TouchableOpacity className='flex-row items-center gap-2 border border-gray-200 rounded-full pl-1 pr-2 py-1'>
+        <TouchableOpacity
+          onPress={handleAvatarPress}
+          className='flex-row items-center gap-2 border border-gray-200 rounded-full pl-1 pr-2 py-1'
+        >
           <View className='w-8 h-8 rounded-full bg-indigo-500 items-center justify-center'>
-            <Text className='text-sm font-semibold text-white'>GI</Text>
+            <Text className='text-sm font-semibold text-white'>{getInitials(user?.fullName)}</Text>
           </View>
           <IconSymbol name='chevron.down' size={16} color='#6366F1' />
         </TouchableOpacity>

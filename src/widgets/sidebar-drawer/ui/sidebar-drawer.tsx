@@ -1,7 +1,7 @@
 import { useDrawerStore } from '@/shared/stores/drawer-store'
 import { Drawer, DrawerBackdrop, DrawerBody, DrawerContent, DrawerFooter } from '@/shared/ui/drawer'
 import { IconSymbol } from '@/shared/ui/icon-symbol'
-import { useRouter } from 'expo-router'
+import { useRouter, Href } from 'expo-router'
 import { Text, TouchableOpacity, View } from 'react-native'
 import LogoFill from '../../../../assets/images/logo-fill.svg'
 
@@ -15,6 +15,7 @@ const MENU_ITEMS: MenuItem[] = [
   { id: 'Buy', label: 'Mua', icon: 'house.fill' },
   { id: 'Rent', label: 'Thuê', icon: 'key.fill' },
   { id: 'Favorited', label: 'Yêu thích', icon: 'heart' },
+  { id: 'My applications', label: 'Đơn ứng tuyển', icon: 'doc.plaintext.fill' },
   { id: 'My listings', label: 'Tin đăng của tôi', icon: 'apartment' },
   { id: 'Appointments', label: 'Lịch hẹn', icon: 'calendar' },
 ]
@@ -36,6 +37,8 @@ export function SidebarDrawer() {
       router.replace('/buy-page')
     } else if (itemId === 'Rent') {
       router.replace('/rent-page')
+    } else if (itemId === 'My applications') {
+      router.push('/my-applications' as Href)
     }
   }
 

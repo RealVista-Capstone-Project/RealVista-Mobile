@@ -92,6 +92,13 @@ export default function RootLayout() {
               <Stack.Screen name='(auth)/login' options={{ headerShown: false }} />
               <Stack.Screen name='modal' options={{ presentation: 'modal', title: 'Modal' }} />
               <Stack.Screen
+                name='my-applications'
+                options={{
+                  headerShown: true,
+                  header: () => <TopNav />,
+                }}
+              />
+              <Stack.Screen
                 name='listing'
                 options={{
                   headerShown: true,
