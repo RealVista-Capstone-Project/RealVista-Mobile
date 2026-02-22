@@ -13,8 +13,21 @@ import {
   View,
 } from 'react-native'
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler'
-import MapView, { Marker, PROVIDER_GOOGLE, type Region } from 'react-native-maps'
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated'
+
+// Lazy-load react-native-maps only on native platforms (not supported on web)
+let MapView: typeof import('react-native-maps').default | undefined
+let Marker: typeof import('react-native-maps').Marker | undefined
+let PROVIDER_GOOGLE: typeof import('react-native-maps').PROVIDER_GOOGLE | undefined
+type Region = import('react-native-maps').Region
+
+if (Platform.OS !== 'web') {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const maps = require('react-native-maps')
+  MapView = maps.default
+  Marker = maps.Marker
+  PROVIDER_GOOGLE = maps.PROVIDER_GOOGLE
+}
 
 // Default map region (Ho Chi Minh City area)
 const HCMC_REGION = {
@@ -121,7 +134,7 @@ export function RealVistaMapSearchView({
   onPropertyPress,
   variant = 'rent',
 }: RealVistaMapSearchViewProps) {
-  const mapRef = useRef<MapView>(null)
+  const mapRef = useRef<InstanceType<NonNullable<typeof MapView>>>(null)
   const panelTranslateY = useSharedValue(0) // 0 = collapsed, negative = expanded
   const context = useSharedValue({ y: 0 })
   const isExpanded = useSharedValue(false)
@@ -200,37 +213,43 @@ export function RealVistaMapSearchView({
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={{ flex: 1 }}>
-        <MapView
-          ref={mapRef}
-          provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
-          style={{ flex: 1 }}
-          initialRegion={HCMC_REGION}
-          showsUserLocation
-          showsMyLocationButton={false}
-          onRegionChangeComplete={onRegionChange}
-        >
-          {clusters.map((cluster) => (
-            <Marker
-              key={cluster.id}
-              coordinate={{
-                latitude: cluster.latitude,
-                longitude: cluster.longitude,
-              }}
-              tracksViewChanges
-              onPress={() => {
-                if (cluster.count === 1) {
-                  onPropertyPress?.(cluster.properties[0].id)
-                }
-              }}
-            >
-              <PriceMarker
-                minPrice={cluster.minPrice}
-                maxPrice={cluster.maxPrice}
-                count={cluster.count}
-              />
-            </Marker>
-          ))}
-        </MapView>
+        {MapView && Marker ? (
+          <MapView
+            ref={mapRef}
+            provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
+            style={{ flex: 1 }}
+            initialRegion={HCMC_REGION}
+            showsUserLocation
+            showsMyLocationButton={false}
+            onRegionChangeComplete={onRegionChange}
+          >
+            {clusters.map((cluster) => (
+              <Marker
+                key={cluster.id}
+                coordinate={{
+                  latitude: cluster.latitude,
+                  longitude: cluster.longitude,
+                }}
+                tracksViewChanges
+                onPress={() => {
+                  if (cluster.count === 1) {
+                    onPropertyPress?.(cluster.properties[0].id)
+                  }
+                }}
+              >
+                <PriceMarker
+                  minPrice={cluster.minPrice}
+                  maxPrice={cluster.maxPrice}
+                  count={cluster.count}
+                />
+              </Marker>
+            ))}
+          </MapView>
+        ) : (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text>Map is not supported on web</Text>
+          </View>
+        )}
 
         {/* Loading indicator — centered, non-blocking */}
         {isLoading && (
