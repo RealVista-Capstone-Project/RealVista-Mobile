@@ -14,13 +14,14 @@ type MenuItem = {
 const MENU_ITEMS: MenuItem[] = [
   { id: 'Buy', label: 'Mua', icon: 'house.fill' },
   { id: 'Rent', label: 'Thuê', icon: 'key.fill' },
-  { id: 'Favorited', label: 'Yêu thích', icon: 'heart' },
   { id: 'My listings', label: 'Tin đăng của tôi', icon: 'apartment' },
+  { id: 'Favorited', label: 'Yêu thích', icon: 'heart' },
   { id: 'Appointments', label: 'Lịch hẹn', icon: 'calendar' },
 ]
 
 const HELP_ITEMS: MenuItem[] = [
   { id: 'Help', label: 'Trợ giúp', icon: 'help' },
+  { id: 'About', label: 'Về RealVista', icon: 'info.circle.fill' },
   { id: 'Settings', label: 'Cài đặt', icon: 'settings' },
 ]
 
@@ -36,6 +37,8 @@ export function SidebarDrawer() {
       router.replace('/buy-page')
     } else if (itemId === 'Rent') {
       router.replace('/rent-page')
+    } else if (itemId === 'About') {
+      router.replace('/about')
     }
   }
 
