@@ -4,6 +4,7 @@ import { Href, Stack, useRootNavigationState, useRouter, useSegments } from 'exp
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect, useState } from 'react'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -52,7 +53,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (!isNavigationReady || !loaded) return
     // Using the listing_id from the API response for development
-    router.replace('/listing/27199eda-c29e-7a94-c7cc-93959e8115cc' as Href)
+    router.replace('/listing/71cea53a-bff0-b29b-3a9e-9e041c3d0524' as Href)
   }, [isNavigationReady, router, loaded])
 
   // useEffect(() => {
@@ -72,37 +73,39 @@ export default function RootLayout() {
   }
 
   return (
-    <AppProviders>
-      <GluestackUIProvider mode='dark'>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <SafeAreaView className='flex-1 bg-gray-50' edges={['top', 'left', 'right']}>
-            <SidebarDrawer />
-            <Stack
-              screenOptions={{
-                headerShown: false,
-              }}
-            >
-              <Stack.Screen
-                name='(tabs)'
-                options={{
-                  headerShown: true,
-                  header: () => null, // Custom header per screen
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AppProviders>
+        <GluestackUIProvider mode='dark'>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <SafeAreaView className='flex-1 bg-gray-50' edges={['top', 'left', 'right']}>
+              <SidebarDrawer />
+              <Stack
+                screenOptions={{
+                  headerShown: false,
                 }}
-              />
-              <Stack.Screen name='(auth)/login' options={{ headerShown: false }} />
-              <Stack.Screen name='modal' options={{ presentation: 'modal', title: 'Modal' }} />
-              <Stack.Screen
-                name='listing'
-                options={{
-                  headerShown: true,
-                  header: () => <TopNav />,
-                }}
-              />
-            </Stack>
-            <StatusBar style='auto' />
-          </SafeAreaView>
-        </ThemeProvider>
-      </GluestackUIProvider>
-    </AppProviders>
+              >
+                <Stack.Screen
+                  name='(tabs)'
+                  options={{
+                    headerShown: true,
+                    header: () => null, // Custom header per screen
+                  }}
+                />
+                <Stack.Screen name='(auth)/login' options={{ headerShown: false }} />
+                <Stack.Screen name='modal' options={{ presentation: 'modal', title: 'Modal' }} />
+                <Stack.Screen
+                  name='listing'
+                  options={{
+                    headerShown: true,
+                    header: () => <TopNav />,
+                  }}
+                />
+              </Stack>
+              <StatusBar style='auto' />
+            </SafeAreaView>
+          </ThemeProvider>
+        </GluestackUIProvider>
+      </AppProviders>
+    </GestureHandlerRootView>
   )
 }

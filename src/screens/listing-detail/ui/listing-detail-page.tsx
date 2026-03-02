@@ -2,22 +2,24 @@ import { ActivityIndicator, ScrollView } from 'react-native'
 
 import { type SimilarListing } from '@/entities/listing'
 import { useListingDetail } from '@/features/get-listing-detail'
+import { useListingPriceHistory } from '@/features/get-listing-price-history'
 import { useSimilarListings } from '@/features/get-similar-listings'
+import { LineChart, type ChartDataPoint } from '@/shared/ui/bna/line-chart'
 import { Box } from '@/shared/ui/box'
 import { Divider } from '@/shared/ui/divider'
 import { type RealVistaPropertyCardData } from '@/shared/ui/realvista-property-listing-card'
+import { Text } from '@/shared/ui/text'
 import {
   PropertyAbout,
   PropertyActions,
+  PropertyAmenities,
   PropertyCostBreakdown,
-  PropertyFeatures,
   PropertyHeader,
   PropertyImageCarousel,
   PropertyInfo,
   PropertyLegal,
   PropertyMap,
   PropertyOwner,
-  PropertyPriceHistory,
   PropertySimilarListings,
   PropertySpecifications,
   PropertyTourRequest,
@@ -50,6 +52,7 @@ function transformSimilarListing(listing: SimilarListing): RealVistaPropertyCard
 
 export function ListingDetailPage() {
   const { data: listing, isLoading, error } = useListingDetail()
+  const { data: priceHistoryData } = useListingPriceHistory()
   const { listings: similarListings } = useSimilarListings(5)
 
   const handleToggleFavorite = (id: string) => {
@@ -132,6 +135,37 @@ export function ListingDetailPage() {
     return fees
   })()
 
+  // Transform price history data for LineChart - limit to 5 most recent entries
+  const lineChartData: ChartDataPoint[] = (() => {
+    if (!priceHistoryData?.price_history?.length) return []
+
+    // Sort by date descending (newest first), then take last 5
+    const sortedByDateDesc = [...priceHistoryData.price_history].sort(
+      (a, b) => new Date(b.changed_at).getTime() - new Date(a.changed_at).getTime()
+    )
+
+    // Take only 5 most recent entries
+    const recentHistory = sortedByDateDesc.slice(0, 5)
+
+    // Sort back to ascending order for the chart (oldest to newest)
+    const sortedHistory = recentHistory.sort(
+      (a, b) => new Date(a.changed_at).getTime() - new Date(b.changed_at).getTime()
+    )
+
+    return sortedHistory.map((entry) => {
+      const date = new Date(entry.changed_at)
+      const month = date.getMonth() + 1
+      const year = date.getFullYear().toString().slice(-2)
+      const label = `T${month}/${year}`
+      return {
+        x: label,
+        y: entry.price,
+        label,
+      }
+    })
+  })()
+
+  console.log('amenities', listing.amenities)
   return (
     <Box className='flex-1 bg-white'>
       <Box className='p-6'>
@@ -141,7 +175,7 @@ export function ListingDetailPage() {
       <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
         <Box className='px-6'>
           <PropertyInfo name={listing.name} address={listing.property?.street_address || 'N/A'} />
-          <PropertyActions />
+          <PropertyActions listing={listing} />
           <PropertyImageCarousel images={mediaUrls} />
 
           <PropertySpecifications attributes={listing.attributes || []} status={listing.status} />
@@ -154,11 +188,37 @@ export function ListingDetailPage() {
 
           <Divider className='my-6' />
 
-          <PropertyFeatures />
+          <PropertyAmenities amenities={listing.amenities || []} />
+          {/* <Divider className='my-6' /> */}
+          {/* <PropertyFeatures /> */}
 
           <Divider className='my-6' />
 
-          <PropertyPriceHistory />
+          {/* Price History Chart */}
+          {lineChartData.length > 0 ? (
+            <Box className='mb-4'>
+              <Text size='lg' bold className='text-main-black mb-4'>
+                Lịch sử giá
+              </Text>
+              <LineChart
+                data={lineChartData}
+                config={{
+                  height: 200,
+                  showGrid: true,
+                  showLabels: true,
+                  animated: true,
+                  gradient: true,
+                  showYLabels: true,
+                  yLabelCount: 5,
+                  yAxisWidth: 50,
+                }}
+              />
+            </Box>
+          ) : null}
+
+          <Divider className='my-6' />
+
+          {/* <PropertyPriceHistory /> */}
 
           <Divider className='my-6' />
 
