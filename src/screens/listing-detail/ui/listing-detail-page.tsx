@@ -1,68 +1,59 @@
 import { ActivityIndicator, ScrollView } from 'react-native'
 
+import { type SimilarListing } from '@/entities/listing'
 import { useListingDetail } from '@/features/get-listing-detail'
+import { useListingPriceHistory } from '@/features/get-listing-price-history'
+import { useSimilarListings } from '@/features/get-similar-listings'
+import { LineChart, type ChartDataPoint } from '@/shared/ui/bna/line-chart'
 import { Box } from '@/shared/ui/box'
 import { Divider } from '@/shared/ui/divider'
 import { type RealVistaPropertyCardData } from '@/shared/ui/realvista-property-listing-card'
+import { Text } from '@/shared/ui/text'
 import {
   PropertyAbout,
   PropertyActions,
+  PropertyAmenities,
   PropertyCostBreakdown,
-  PropertyFeatures,
   PropertyHeader,
   PropertyImageCarousel,
   PropertyInfo,
   PropertyLegal,
   PropertyMap,
   PropertyOwner,
-  PropertyPriceHistory,
   PropertySimilarListings,
   PropertySpecifications,
   PropertyTourRequest,
 } from './components'
 
-// Mock similar listings (can be replaced with real API later)
-const mockSimilarListings: RealVistaPropertyCardData[] = [
-  {
-    id: '2',
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800',
-    title: 'Đại lộ Faulkner',
-    address: 'Đường Woodland, Michigan, IN',
-    price: 4550,
-    beds: 3,
-    bathrooms: 2,
-    area: 57,
-    isPopular: true,
+/**
+ * Transform SimilarListing API response to RealVistaPropertyCardData format
+ */
+function transformSimilarListing(listing: SimilarListing): RealVistaPropertyCardData {
+  // Extract bedrooms and bathrooms from attributes
+  const bedrooms =
+    listing.attributes.find((a) => a.attribute_code === 'BEDROOMS')?.value_number ?? 0
+  const bathrooms =
+    listing.attributes.find((a) => a.attribute_code === 'BATHROOMS')?.value_number ?? 0
+
+  return {
+    id: listing.listing_id,
+    image: listing.thumbnail_url,
+    title: listing.name,
+    address: listing.location_name,
+    price: listing.price,
+    beds: bedrooms,
+    bathrooms: bathrooms,
+    area: listing.area,
+    areaUnit: listing.display_area,
+    isPopular: listing.similarity_score === 100,
     isFavorite: false,
-  },
-  {
-    id: '3',
-    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800',
-    title: 'Căn hộ St. Crystal',
-    address: 'Hồ Highland, FL',
-    price: 2400,
-    beds: 3,
-    bathrooms: 2,
-    area: 57,
-    isPopular: false,
-    isFavorite: true,
-  },
-  {
-    id: '4',
-    image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800',
-    title: 'Biệt Thự Hiện Đại',
-    address: 'Bãi biển Palm, FL',
-    price: 5200,
-    beds: 4,
-    bathrooms: 3,
-    area: 85,
-    isPopular: true,
-    isFavorite: false,
-  },
-]
+  }
+}
 
 export function ListingDetailPage() {
   const { data: listing, isLoading, error } = useListingDetail()
+  const { data: priceHistoryData } = useListingPriceHistory()
+  const { listings: similarListings } = useSimilarListings(5)
 
   const handleToggleFavorite = (id: string) => {
     console.log('Toggle favorite:', id)
@@ -71,6 +62,10 @@ export function ListingDetailPage() {
   const handlePropertyClick = (id: string) => {
     console.log('Property clicked:', id)
   }
+
+  // Transform similar listings to card format
+  const similarListingsCards: RealVistaPropertyCardData[] =
+    similarListings.map(transformSimilarListing)
 
   // Loading state
   if (isLoading) {
@@ -140,6 +135,37 @@ export function ListingDetailPage() {
     return fees
   })()
 
+  // Transform price history data for LineChart - limit to 5 most recent entries
+  const lineChartData: ChartDataPoint[] = (() => {
+    if (!priceHistoryData?.price_history?.length) return []
+
+    // Sort by date descending (newest first), then take last 5
+    const sortedByDateDesc = [...priceHistoryData.price_history].sort(
+      (a, b) => new Date(b.changed_at).getTime() - new Date(a.changed_at).getTime()
+    )
+
+    // Take only 5 most recent entries
+    const recentHistory = sortedByDateDesc.slice(0, 5)
+
+    // Sort back to ascending order for the chart (oldest to newest)
+    const sortedHistory = recentHistory.sort(
+      (a, b) => new Date(a.changed_at).getTime() - new Date(b.changed_at).getTime()
+    )
+
+    return sortedHistory.map((entry) => {
+      const date = new Date(entry.changed_at)
+      const month = date.getMonth() + 1
+      const year = date.getFullYear().toString().slice(-2)
+      const label = `T${month}/${year}`
+      return {
+        x: label,
+        y: entry.price,
+        label,
+      }
+    })
+  })()
+
+  console.log('amenities', listing.amenities)
   return (
     <Box className='flex-1 bg-white'>
       <Box className='p-6'>
@@ -149,7 +175,7 @@ export function ListingDetailPage() {
       <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
         <Box className='px-6'>
           <PropertyInfo name={listing.name} address={listing.property?.street_address || 'N/A'} />
-          <PropertyActions />
+          <PropertyActions listing={listing} />
           <PropertyImageCarousel images={mediaUrls} />
 
           <PropertySpecifications attributes={listing.attributes || []} status={listing.status} />
@@ -162,11 +188,37 @@ export function ListingDetailPage() {
 
           <Divider className='my-6' />
 
-          <PropertyFeatures />
+          <PropertyAmenities amenities={listing.amenities || []} />
+          {/* <Divider className='my-6' /> */}
+          {/* <PropertyFeatures /> */}
 
           <Divider className='my-6' />
 
-          <PropertyPriceHistory />
+          {/* Price History Chart */}
+          {lineChartData.length > 0 ? (
+            <Box className='mb-4'>
+              <Text size='lg' bold className='text-main-black mb-4'>
+                Lịch sử giá
+              </Text>
+              <LineChart
+                data={lineChartData}
+                config={{
+                  height: 200,
+                  showGrid: true,
+                  showLabels: true,
+                  animated: true,
+                  gradient: true,
+                  showYLabels: true,
+                  yLabelCount: 5,
+                  yAxisWidth: 50,
+                }}
+              />
+            </Box>
+          ) : null}
+
+          <Divider className='my-6' />
+
+          {/* <PropertyPriceHistory /> */}
 
           <Divider className='my-6' />
 
@@ -185,7 +237,7 @@ export function ListingDetailPage() {
           <PropertyCostBreakdown data={chartData} />
         </Box>
         <PropertySimilarListings
-          listings={mockSimilarListings}
+          listings={similarListingsCards}
           onToggleFavorite={handleToggleFavorite}
           onPropertyClick={handlePropertyClick}
         />

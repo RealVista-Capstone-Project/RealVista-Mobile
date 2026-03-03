@@ -28,6 +28,7 @@ const MAPPING: Record<string, ComponentProps<typeof MaterialIcons>['name']> = {
   settings: 'settings',
   minus: 'remove',
   'key.fill': 'vpn-key',
+  'info.circle.fill': 'info',
   plus: 'add',
 }
 

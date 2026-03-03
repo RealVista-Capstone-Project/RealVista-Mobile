@@ -154,5 +154,71 @@ export interface Listing {
   media: Media[]
   agent: Agent
   attributes: Attribute[]
+  amenities?: Amenity[]
   cost_breakdown?: CostBreakdown
+}
+
+// ============================================
+// Similar Listings Types
+// ============================================
+
+export interface SimilarListing {
+  listing_id: string
+  slug: string
+  name: string
+  listing_type: ListingType
+  property_type_name: string
+  price: number
+  area: number
+  location_name: string
+  thumbnail_url: string
+  similarity_score: number
+  published_at: string
+  attributes: Attribute[]
+  display_price: string
+  display_area: string
+}
+
+export interface SimilarListingsResponse {
+  listings: SimilarListing[]
+  total: number
+  limit: number
+}
+
+// ============================================
+// Price History Types
+// ============================================
+
+export type PriceChangeType = 'INCREASED' | 'DECREASED' | 'NO_CHANGE'
+
+export interface PriceHistoryEntry {
+  price: number
+  price_history_id: string
+  min_price: number
+  max_price: number
+  changed_at: string
+  price_change: number
+  price_change_percent: number
+  change_type: PriceChangeType
+}
+
+export interface PriceHistoryResponse {
+  listing_id: string
+  current_price: number
+  price_history: PriceHistoryEntry[]
+}
+
+// ============================================
+// Amenity Types
+// ============================================
+
+export type AmenityType = 'ONSITE' | 'OFFSITE'
+
+export interface Amenity {
+  amenity_id: string
+  amenity_name: string
+  amenity_type: AmenityType
+  description: string
+  is_offsite: boolean
+  is_onsite: boolean
 }
