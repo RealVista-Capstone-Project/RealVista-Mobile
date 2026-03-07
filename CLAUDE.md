@@ -21,6 +21,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Testing
 
+**Note**: Testing is currently skipped in this frontend project. The testing infrastructure is set up but not actively used.
+
 - `npm test` - Run all tests once
 - `npm run test:watch` - Run tests in watch mode
 - `npm run test:coverage` - Run tests with coverage report
@@ -40,22 +42,48 @@ Run a specific test file: `npm test -- path/to/test.spec.tsx`
 - **Fonts**: Plus Jakarta Sans (multiple weights)
 - **Icons**: Lucide React Native, Expo Vector Icons, SF Symbols (IconSymbol)
 
-### Feature-Slice Design Architecture
+### Feature-Sliced Design (FSD) Architecture
 
-This codebase follows **Feature-Slice Design (FSD)** architecture, which organizes code by business features rather than technical layers.
+This codebase follows **Feature-Sliced Design (FSD)**, a modern architectural methodology that organizes code by business features rather than technical layers. This approach promotes better scalability, maintainability, and parallel development.
 
-#### Core FSD Layers
+#### Why FSD?
+
+**Benefits:**
+- **Scalability**: Naturally accommodates growth without tangled dependencies
+- **Parallel Development**: Teams can work on different slices independently
+- **Maintainability**: Clear boundaries make it easier to locate, modify, and refactor code
+- **Onboarding**: New developers can quickly understand where functionality resides
+- **Testability**: Self-contained slices are easier to test in isolation
+
+**When to Apply:**
+- Projects scaling beyond a few simple pages
+- Multiple teams collaborating on the same codebase
+- Complex business domains with clear feature boundaries
+- Applications requiring long-term maintainability
+
+#### Core FSD Concepts
+
+**FSD organizes code using three key concepts:**
+
+1. **Layers**: Architectural tiers that group related parts (app, screens, widgets, features, entities, shared)
+2. **Slices**: Self-contained modules representing a specific business domain or feature
+3. **Segments**: Subdivisions within slices (model, api, ui, lib, config, etc.)
+
+#### FSD Layers
 
 **entities/** (Domain Layer)
 
-- Business entities and core business logic
-- Agnostic of frameworks and UI
+- **Business domain entities** and core business logic
+- Represents business concepts independent of UI frameworks
+- Can be reused across multiple features
 - Examples: `src/entities/user/` - User entity with auth state management
 - Structure: `model/` (state, types), `api/` (data access, queries)
+- **Responsibility**: What the business domain is (e.g., User, Property, Listing)
 
-**features/** (Feature Layers)
+**features/** (Feature Layer)
 
-- Self-contained feature modules
+- **User interactions and business use cases**
+- Specific user actions or capabilities
 - Each feature contains everything needed for that business capability
 - Structure:
   - `model/` - Feature-specific state and types
@@ -63,38 +91,67 @@ This codebase follows **Feature-Slice Design (FSD)** architecture, which organiz
   - `ui/` - Feature-specific UI components
   - `index.ts` - Public API barrel export
 - Examples: `src/features/auth/` - Authentication (login, register, logout)
+- **Responsibility**: What users can do (e.g., Login, SearchListing, BookProperty)
 
 **shared/** (Shared Layer)
 
-- Code reused across multiple features
+- **Lowest layer** - code reused across multiple features and entities
 - Split by technical concern:
   - `ui/` - Generic reusable UI components (Button, Input, Text, Box, etc.)
   - `lib/` - Utilities (http client, react-query setup, custom hooks)
   - `config/` - App configuration (providers, constants)
   - `types/` - Global TypeScript types
   - `constants/` - App-wide constants
+- Contains pure utilities, UI primitives, and configuration
+- Should not contain business logic
 
 **widgets/** (Compose UI Layer)
 
-- High-level UI components composed from features and shared UI
-- Cross-feature composition
+- **Composition of features and shared UI**
+- Reusable UI blocks composed from multiple features
+- Cross-feature composition happens here
 - Examples: `MainLayout`, `SidebarDrawer`, `TopNav`, `UserHeader`
+- **Responsibility**: Composes features into meaningful UI blocks
 
-**screens/** (Routing Layer)
+**screens/** (Routing Layer - called "pages" in standard FSD)
 
-- Screen-level components that orchestrate features and widgets
-- Thin layer that wires together features
+- **Application pages/routes** that orchestrate features and widgets
+- Thin layer that wires together features and widgets
 - Maps to file-based routes in `app/`
+- Should be minimal - delegate logic to features and widgets
+- **Responsibility**: Represents application routes/pages
 
 #### FSD Rules
 
-1. **Import Rule**: Modules can only import from lower layers
-   - `entities` ← `features` ← `shared` ← `widgets` ← `screens`
-   - Never import upward (e.g., features cannot import from screens)
-   - Cross-feature imports go through shared layer
+1. **Import Rule**: Modules can only import from lower layers (unidirectional dependencies)
+   - **Allowed**: `screens` → `widgets` → `features` → `entities` → `shared`
+   - **Prohibited**: Never import upward (e.g., features cannot import from screens)
+   - **Cross-layer**: Cross-feature imports go through entities or shared layer
+   - **Same-layer**: Avoid importing between slices at the same layer (use shared layer instead)
+
 2. **Public API**: Each folder exports public API via `index.ts` barrel files
-3. **Segments**: Each slice (entities, features, shared, widgets) is self-contained
+   - Only re-export what should be publicly accessible
+   - Hide implementation details within the slice
+
+3. **Slices**: Each slice is self-contained with its own segments
+   - A slice represents a business domain (e.g., `user`, `auth`, `property`)
+   - Contains everything needed for that domain (model, api, ui, lib)
+
 4. **Absolute Imports**: Use `@/` prefix for imports from src root
+   - `@/entities/user` - cleaner than relative paths like `../../entities/user`
+
+#### Common Segments (Within Slices)
+
+FSD uses **segments** to organize code within each layer/slice. Common segments include:
+
+- **model/** - State, types, interfaces, business logic
+- **api/** - Data fetching, API calls, React Query definitions
+- **ui/** - UI components, screens, widgets
+- **lib/** - Utilities specific to the slice
+- **config/** - Configuration specific to the slice
+- **index.ts** - Public API barrel export
+
+Not all segments are required in every slice - use only what's needed.
 
 #### Key Architectural Patterns
 
@@ -107,8 +164,7 @@ entities/user/
 │   └── types.ts        # User types
 ├── api/
 │   ├── user.queries.ts # React Query definitions
-│   ├── index.ts        # Barrel exports
-│   └── __tests__/
+│   └── index.ts        # Barrel exports
 └── index.ts            # Public API
 ```
 
@@ -124,24 +180,34 @@ features/auth/
 │   └── index.ts
 ├── ui/
 │   ├── login-form.tsx # Login UI component
-│   ├── register-form.tsx
-│   └── __tests__/
+│   └── register-form.tsx
 └── index.ts
 ```
 
-**Component Import Paths**:
+**Shared UI Structure**:
+
+```tsx
+shared/ui/button/
+├── button.tsx         # Button component
+└── index.ts           # Public API
+```
+
+**Import Paths**:
 
 - Shared UI: `@/shared/ui/button` or `components/ui/button`
 - Entities: `@/entities/user` (exposes public API via index.ts)
 - Features: `@/features/auth` (exposes public API via index.ts)
 - Widgets: `@/widgets/main-layout`
 
-**State Management Strategy**:
+#### State Management Strategy
+
+FSD separates state concerns by layer:
 
 - **Domain State** (entities): Zustand stores for global domain entities
 - **Server State** (features): React Query for API data, mutations, caching
 - **UI State** (components): React useState, useEffect for local UI state
-- Keep server state out of Zustand - let React Query handle it
+
+**Key Principle**: Keep server state out of Zustand - let React Query handle it
 
 **Data Flow**:
 
@@ -150,22 +216,76 @@ features/auth/
 3. Mutation updates Zustand store: `useAuthStore.getState().setUser()`
 4. State changes trigger re-renders across components
 
+#### Decomposition Guidelines
+
+When adding new functionality, follow this decomposition order:
+
+1. **Start with shared/** - Can this be reused across the app?
+2. **Move to entities/** - Is this a core business domain?
+3. **Build features/** - What user actions are needed?
+4. **Compose widgets/** - Can features be composed into reusable blocks?
+5. **Create screens/** - Wire everything together for routes
+
+**Example**: Building a property search feature
+- `shared/ui/search-input.tsx` - Generic search input component
+- `entities/property/` - Property entity with API, types, state
+- `features/search-property/` - Search functionality, filters, results
+- `widgets/property-search-bar.tsx` - Composed search widget
+- `screens/search.tsx` - Search page route
+
 ## Directory Structure
 
 ```
 src/
-├── entities/         # Domain business logic and state
+├── entities/         # Domain business logic and state (bottom layer)
 │   └── user/         # User entity with auth
-├── features/         # Feature modules (self-contained)
+├── features/         # Feature modules (self-contained business capabilities)
 │   └── auth/         # Authentication feature
-├── screens/          # Screen orchestrators (file-based routing)
-├── shared/           # Cross-cutting technical concerns
+├── shared/           # Cross-cutting technical concerns (lowest layer)
 │   ├── config/       # Providers, app configuration
 │   ├── lib/          # HTTP, React Query, utilities
 │   ├── ui/           # Generic UI components
 │   └── types/        # Shared types
-└── widgets/          # Composed UI components
+├── widgets/          # Composed UI components (high-level blocks)
+└── screens/          # Screen orchestrators (top layer - file-based routing)
 ```
+
+**Layer Dependency Order** (bottom to top):
+`shared` ← `entities` ← `features` ← `widgets` ← `screens`
+
+### FSD vs Traditional Architectures
+
+**Traditional MVC/Layered Architecture:**
+- Groups by technical concern: `/components`, `/services`, `/utils`
+- Creates monolithic files as features grow
+- Difficult to locate all code for a specific feature
+
+**Feature-Sliced Design:**
+- Groups by business domain: `/entities/user`, `/features/auth`
+- Each slice is self-contained with its own segments
+- Easy to locate all code for a specific feature
+- Scales better with team size and complexity
+
+### FSD Best Practices & Common Pitfalls
+
+**Do's:**
+- Start by identifying business domains (entities) before building features
+- Keep slices focused and cohesive - one slice per business concept
+- Use public API (index.ts) to control what's exposed from each slice
+- Prefer composition over inheritance - widgets compose features, features compose entities
+- **Note**: Testing is currently skipped - `__tests__/` segments may exist but are not actively used
+
+**Don'ts:**
+- Don't import between slices at the same layer (e.g., feature → feature)
+- Don't put business logic in shared/ - it's for utilities and UI primitives
+- Don't create circular dependencies between layers
+- Don't make screens/widgets fat - delegate logic to features
+- Don't skip the entity layer if you have reusable business domains
+
+**Common Pitfalls:**
+- **Over-engineering**: Don't create entities for simple one-off features - start with features, extract entities when reuse is needed
+- **Wrong layer placement**: If unsure where code belongs, start lower (shared) and move up as needed
+- **Ignoring import rules**: Linting rules should catch import violations - configure ESLint to enforce FSD import rules
 
 ### Routing
 
@@ -197,14 +317,6 @@ src/
 - Orchestrate features and widgets for specific routes
 - Should be thin - delegate logic to features
 - Example: `screens/listing-detail/ui/listing-detail-page.tsx` uses property data but could extract property entity
-
-### Routing
-
-- File-based routing via Expo Router
-- Auth group: `app/(auth)/` - login, sign-up
-- Tabs group: `app/(tabs)/` - main app navigation
-- Special routes: `app/listing-detail.tsx` - property detail page
-- Currently redirects to `/listing-detail` for development (see `app/_layout.tsx:54`)
 
 ### Theming System
 
@@ -283,10 +395,14 @@ src/
 
 ### Testing
 
+**Note**: Testing is currently **not actively used** in this frontend project, though the infrastructure is set up.
+
 - Test files: `**/__tests__/**/*.spec.tsx` or `**/*.test.tsx`
 - Setup: `jest.setup.js`
 - Coverage from `src/**/*` excluding tests and stories
 - Use `@testing-library/react-native`
+
+When development reaches a stage where testing is needed, the testing infrastructure is ready to use.
 
 ### File-Based Routing Conventions
 
