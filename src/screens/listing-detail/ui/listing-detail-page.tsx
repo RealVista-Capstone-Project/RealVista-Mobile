@@ -1,14 +1,12 @@
 import { ActivityIndicator, ScrollView } from 'react-native'
 
 import { type SimilarListing } from '@/entities/listing'
-import { useLogout } from '@/features/auth'
 import { ContactFormModal } from '@/features/chat'
 import { useListingDetail } from '@/features/get-listing-detail'
 import { useListingPriceHistory } from '@/features/get-listing-price-history'
 import { useSimilarListings } from '@/features/get-similar-listings'
 import { LineChart, type ChartDataPoint } from '@/shared/ui/bna/line-chart'
 import { Box } from '@/shared/ui/box'
-import { Button, ButtonText } from '@/shared/ui/button'
 import { Divider } from '@/shared/ui/divider'
 import { type RealVistaPropertyCardData } from '@/shared/ui/realvista-property-listing-card'
 import { Text } from '@/shared/ui/text'
@@ -57,8 +55,6 @@ export function ListingDetailPage() {
   const { data: listing, isLoading, error } = useListingDetail()
   const { data: priceHistoryData } = useListingPriceHistory()
   const { listings: similarListings } = useSimilarListings(5)
-
-  const { mutate: logout } = useLogout()
 
   const handleToggleFavorite = (id: string) => {
     console.log('Toggle favorite:', id)
@@ -173,17 +169,8 @@ export function ListingDetailPage() {
   console.log('amenities', listing.amenities)
   return (
     <Box className='flex-1 bg-white'>
-      <Box className='p-6 flex-row justify-between items-center'>
+      <Box className='p-6'>
         <PropertyHeader />
-        <Button
-          size='sm'
-          action='negative'
-          variant='outline'
-          onPress={() => logout()}
-          className='rounded-full'
-        >
-          <ButtonText>Đăng xuất</ButtonText>
-        </Button>
       </Box>
 
       <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
