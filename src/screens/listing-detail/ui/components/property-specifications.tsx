@@ -1,84 +1,146 @@
+import type { Attribute } from '@/entities/listing'
 import { Box } from '@/shared/ui/box'
 import IconLucide from '@/shared/ui/icon-lucide/icon'
 import { Text } from '@/shared/ui/text'
+import { useState } from 'react'
+import { Pressable } from 'react-native'
 
 interface PropertySpecificationsProps {
-  beds: number
-  baths: number
+  attributes: Attribute[]
+  status: string
 }
 
-export function PropertySpecifications({ beds, baths }: PropertySpecificationsProps) {
+// Map attribute icon names to Lucide icon names
+const iconMap: Record<string, string> = {
+  bed: 'BedDouble',
+  bedroom: 'BedDouble',
+  bath: 'Bath',
+  bathroom: 'Bath',
+  area: 'Layers2',
+  size: 'Layers2',
+  square: 'Layers2',
+  property_type: 'PaintbrushVertical',
+  type: 'PaintbrushVertical',
+  default: 'Info',
+}
+
+/**
+ * Get Lucide icon name from attribute icon/code
+ */
+const getIconName = (attribute: Attribute): string => {
+  const iconKey = attribute.icon?.toLowerCase() || attribute.attribute_code?.toLowerCase() || ''
+  return iconMap[iconKey] || iconMap.default
+}
+
+/**
+ * Render a single specification item in a card-style layout
+ */
+const SpecificationItem = ({
+  label,
+  value,
+  iconName,
+  unit,
+}: {
+  label: string
+  value: string
+  iconName: string
+  unit?: string
+}) => {
   return (
-    <Box className='mb-6 rounded-lg border border-purple-96 bg-white p-6'>
-      {/* First Row: Bed, Bath, Sqft */}
-      <Box className='mb-6 flex-row justify-between'>
-        {/* Bed */}
-        <Box className='w-20'>
-          <Text className='mb-4 text-main-black/50' size='sm'>
-            Phòng ngủ
-          </Text>
-          <Box className='flex-row items-center gap-2'>
-            <IconLucide size={20} name='BedDouble' color='#808494' />
-            <Text size='lg' bold className='text-main-black'>
-              {beds}
-            </Text>
-          </Box>
-        </Box>
+    <Box className='flex flex-1 flex-col gap-2'>
+      {/* Label */}
+      <Text className='text-grey-500' size='sm'>
+        {label}
+      </Text>
 
-        {/* Bath */}
-        <Box className='w-20'>
-          <Text className='mb-4 text-main-black/50' size='sm'>
-            Phòng tắm
-          </Text>
-          <Box className='flex-row items-center gap-2'>
-            <IconLucide size={20} name='Bath' color='#808494' />
-            <Text size='lg' bold className='text-main-black'>
-              {baths}
-            </Text>
-          </Box>
+      {/* Value with icon */}
+      <Box className='flex-row items-center gap-1'>
+        <Box className='rounded-full bg-purple-98 p-1'>
+          <IconLucide size={18} name={iconName as any} color='#00092980' />
         </Box>
+        <Text size='lg' bold className='text-main-black'>
+          {value}
+        </Text>
+      </Box>
+    </Box>
+  )
+}
 
-        {/* Square Area */}
-        <Box className='w-24'>
-          <Text className='mb-4 text-main-black/50' size='sm'>
-            Diện tích
-          </Text>
-          <Box className='flex-row items-center gap-2'>
-            <IconLucide size={20} name='Layers2' color='#808494' />
-            <Text size='lg' bold className='text-main-black'>
-              6x7.5 m²
-            </Text>
+export function PropertySpecifications({ attributes, status }: PropertySpecificationsProps) {
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  // Items per row (3 columns)
+  const itemsPerRow = 3
+  // Show 2 rows initially (6 items), then expand to show all
+  const initialRowsToShow = 2
+
+  // Create data rows with attributes
+  const dataRows: { type: 'attribute' | 'status'; data?: Attribute; status?: string }[][] = []
+  for (let i = 0; i < attributes.length; i += itemsPerRow) {
+    const row: { type: 'attribute' | 'status'; data?: Attribute }[] = attributes
+      .slice(i, i + itemsPerRow)
+      .map((attr) => ({ type: 'attribute' as const, data: attr }))
+    dataRows.push(row)
+  }
+
+  // Calculate visible rows
+  const totalRows = dataRows.length
+  const visibleRows = isExpanded ? totalRows : Math.min(initialRowsToShow, totalRows)
+  const hasMore = totalRows > initialRowsToShow
+  const remainingCount = (totalRows - initialRowsToShow) * itemsPerRow
+
+  return (
+    <Box className='mb-6 rounded-xl border border-purple-96 bg-white p-5'>
+      {/* Section Title */}
+      <Text className='mb-4 text-main-black' size='lg' bold>
+        Thông tin chi tiết
+      </Text>
+
+      {/* Grid of specifications */}
+      <Box className='gap-5'>
+        {dataRows.slice(0, visibleRows).map((row, rowIndex) => (
+          <Box
+            key={rowIndex}
+            className={`flex-row ${rowIndex < visibleRows - 1 ? 'border-b border-purple-98 pb-5' : ''} gap-4`}
+          >
+            {row.map((item, itemIndex) => {
+              if (item.type === 'attribute' && item.data) {
+                return (
+                  <SpecificationItem
+                    key={`attr-${item.data.attribute_id}`}
+                    label={item.data.attribute_name}
+                    value={item.data.display_value}
+                    iconName={getIconName(item.data)}
+                    unit={item.data.unit}
+                  />
+                )
+              }
+              return null
+            })}
+
+            {/* Fill empty slots in incomplete rows */}
+            {row.length < itemsPerRow &&
+              Array.from({ length: itemsPerRow - row.length }).map((_, emptyIndex) => (
+                <Box key={`empty-${emptyIndex}`} className='flex-1' />
+              ))}
           </Box>
-        </Box>
+        ))}
       </Box>
 
-      {/* Second Row: Repair Quality, Status */}
-      <Box className='flex-row gap-5'>
-        <Box className='w-36'>
-          <Text className='mb-4 text-main-black/50' size='sm'>
-            Chất lượng
+      {/* Show More / Show Less Button */}
+      {hasMore && (
+        <Pressable
+          onPress={() => setIsExpanded(!isExpanded)}
+          className='mt-5 flex-row items-center justify-center'
+        >
+          <Text className='text-brand-primary' size='sm' bold>
+            {isExpanded ? `Thu gọn` : `Xem thêm ${remainingCount} thông số`}
           </Text>
-          <Box className='flex-row items-center gap-2'>
-            <IconLucide size={20} name='PaintbrushVertical' color='#808494' />
-            <Text size='lg' bold className='text-main-black'>
-              Modern Loft
-            </Text>
+          <Box className='ml-1'>
+            <IconLucide size={16} name={isExpanded ? 'ChevronUp' : 'ChevronDown'} color='#7065F0' />
           </Box>
-        </Box>
-
-        {/* Status */}
-        <Box className='w-28'>
-          <Text className='mb-4 text-main-black/50' size='sm'>
-            Trạng thái
-          </Text>
-          <Box className='flex-row items-center gap-2'>
-            <IconLucide size={20} name='CircleCheck' color='#808494' />
-            <Text size='lg' bold className='text-main-black'>
-              Hoạt động
-            </Text>
-          </Box>
-        </Box>
-      </Box>
+        </Pressable>
+      )}
     </Box>
   )
 }
