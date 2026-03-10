@@ -1,7 +1,9 @@
 import { addDays, addMinutes, format } from 'date-fns'
+import { useRouter } from 'expo-router'
 import { useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native'
 
+import { useAuth } from '@/features/auth'
 import { BottomSheet } from '@/shared/ui/bna/bottom-sheet'
 import { DatePicker } from '@/shared/ui/bna/date-picker'
 import { Box } from '@/shared/ui/box'
@@ -26,6 +28,8 @@ export function BookTourBottomSheet({ listingId, isVisible, onClose }: BookTourB
   const [selectedDuration, setSelectedDuration] = useState<number | null>(null)
   const [step, setStep] = useState<'selection' | 'confirmation'>('selection')
 
+  const { isAuthenticated } = useAuth()
+  const router = useRouter()
   const toast = useToast()
   const { mutate: bookTour, isPending: submitting } = useBookTour()
 
@@ -167,9 +171,38 @@ export function BookTourBottomSheet({ listingId, isVisible, onClose }: BookTourB
       isVisible={isVisible}
       onClose={onClose}
       title='Lên lịch xem nhà'
-      snapPoints={[0.8, 0.95]}
+      snapPoints={isAuthenticated ? [0.8, 0.95] : [0.4]}
     >
-      {step === 'selection' ? (
+      {!isAuthenticated ? (
+        <Box className='space-y-6 py-4'>
+          <Box className='space-y-2 items-center'>
+            <Text className='text-xl text-main-black' bold>
+              Bạn chưa đăng nhập
+            </Text>
+            <Text className='text-center text-gray-500'>
+              Vui lòng đăng nhập để có thể đặt lịch xem nhà và nhận được sự hỗ trợ tốt nhất.
+            </Text>
+          </Box>
+          <Box className='space-y-3 pt-2'>
+            <Button
+              onPress={() => {
+                onClose()
+                router.push('/login')
+              }}
+              className='w-full bg-main-primary border-main-primary justify-center'
+            >
+              <ButtonText className='text-white text-center'>Đăng nhập</ButtonText>
+            </Button>
+            <Button
+              onPress={onClose}
+              variant='outline'
+              className='w-full border-gray-200 justify-center'
+            >
+              <ButtonText className='text-gray-600 text-center'>Để sau</ButtonText>
+            </Button>
+          </Box>
+        </Box>
+      ) : step === 'selection' ? (
         <Box className='space-y-6 pb-8'>
           {/* Date Selection */}
           <Box className='space-y-2'>
@@ -351,9 +384,9 @@ export function BookTourBottomSheet({ listingId, isVisible, onClose }: BookTourB
                 onPress={() => setStep('selection')}
                 disabled={submitting}
                 variant='outline'
-                className='border-main-primary'
+                className='w-full border-main-primary justify-center'
               >
-                <ButtonText className='text-main-primary'>Quay lại</ButtonText>
+                <ButtonText className='text-main-primary text-center'>Quay lại</ButtonText>
               </Button>
             </Box>
             <Box className='flex-1'>
@@ -361,12 +394,12 @@ export function BookTourBottomSheet({ listingId, isVisible, onClose }: BookTourB
                 onPress={handleBook}
                 disabled={submitting}
                 variant='solid'
-                className='bg-main-primary border-main-primary'
+                className='w-full bg-main-primary border-main-primary justify-center'
               >
                 {submitting ? (
                   <ButtonSpinner color='#fff' />
                 ) : (
-                  <ButtonText className='text-white'>Xác nhận đặt lịch</ButtonText>
+                  <ButtonText className='text-white text-center'>Xác nhận đặt lịch</ButtonText>
                 )}
               </Button>
             </Box>
