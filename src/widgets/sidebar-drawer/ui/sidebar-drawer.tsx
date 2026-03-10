@@ -43,7 +43,7 @@ export function SidebarDrawer() {
     } else if (itemId === 'About') {
       router.replace('/about')
     } else if (itemId === 'Messages') {
-      router.push('/messages' as Href)
+      router.replace('/messages')
     }
   }
 
