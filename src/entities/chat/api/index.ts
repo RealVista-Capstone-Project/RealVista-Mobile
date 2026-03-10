@@ -1,11 +1,22 @@
 import http from '@/shared/lib/http'
-import type { Message, SendMessagePayload } from '../model/types'
+import type {
+  ConversationListItem,
+  MessagePaginationResponse,
+  SendMessagePayload,
+  SendMessageResponse,
+} from '../model/types'
 
 export const chatApi = {
-  /**
-   * Send a message (or initiate a conversation)
-   * POST /conversations/messages
-   */
+  /** GET /conversations - list user conversations */
+  getConversations: () => http.get<ConversationListItem[]>('/conversations'),
+
+  /** GET /conversations/:id/messages - get messages for a conversation */
+  getMessages: (
+    conversationId: string,
+    params?: { limit?: number; before?: string; after?: string }
+  ) => http.get<MessagePaginationResponse>(`/conversations/${conversationId}/messages`, { params }),
+
+  /** POST /conversations/messages - send a message */
   sendMessage: (payload: SendMessagePayload) =>
-    http.post<Message>('/conversations/messages', payload),
+    http.post<SendMessageResponse>('/conversations/messages', payload),
 } as const
