@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { ActivityIndicator, Alert, ScrollView, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native'
 import { useRouter } from 'expo-router'
 import {
   ArrowDownUp,
@@ -14,6 +14,7 @@ import {
 import type { BookmarkListingCard, GetBookmarksParams } from '@/entities/bookmark'
 import { useBookmarks, useToggleBookmark } from '@/features/bookmark'
 import { Box } from '@/shared/ui/box'
+import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
 import {
   RealVistaPropertyCard,
   type RealVistaPropertyCardData,
@@ -76,6 +77,7 @@ export function SavedPage() {
   const [category, setCategory] = useState<CategoryCode>('ALL')
   const [listingType, setListingType] = useState<ListingTypeFilter>('SALE')
   const [sortDirection, setSortDirection] = useState<SortDirection>('NEWEST')
+  const [pendingId, setPendingId] = useState<string | null>(null)
 
   const propertyTypes = category !== 'ALL' ? CATEGORY_TYPE_CODES[category] : undefined
 
@@ -90,14 +92,7 @@ export function SavedPage() {
   const { mutate: toggleBookmark } = useToggleBookmark()
 
   const handleToggleFavorite = (id: string) => {
-    Alert.alert(
-      'Xóa khỏi yêu thích',
-      'Bạn có muốn xóa tin đăng này khỏi danh sách yêu thích không?',
-      [
-        { text: 'Hủy', style: 'cancel' },
-        { text: 'Xóa', style: 'destructive', onPress: () => toggleBookmark(id) },
-      ]
-    )
+    setPendingId(id)
   }
 
   const toggleSort = () => {
@@ -112,6 +107,18 @@ export function SavedPage() {
 
   return (
     <View className='flex-1 bg-white'>
+      <ConfirmDialog
+        visible={pendingId !== null}
+        title='Xóa khỏi yêu thích'
+        message='Bạn có muốn xóa tin đăng này khỏi danh sách yêu thích không?'
+        confirmLabel='Xóa'
+        cancelLabel='Hủy'
+        onConfirm={() => {
+          if (pendingId) toggleBookmark(pendingId)
+          setPendingId(null)
+        }}
+        onCancel={() => setPendingId(null)}
+      />
       {/* ── Filter bar ── */}
       <Box className='border-b border-gray-100 pt-3 pb-2'>
         {/* Category chips — circular icon + label below */}

@@ -7,9 +7,10 @@ import {
 import { RealVistaPropertySearchBar } from '@/shared/ui/realvista-property-listing-search-bar'
 import { useRouter } from 'expo-router'
 import React, { useState } from 'react'
-import { Alert, ScrollView, View } from 'react-native'
+import { ScrollView, View } from 'react-native'
 
 import { useToggleBookmark } from '@/features/bookmark'
+import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
 
 // Mock property data based on Figma designs
 const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
@@ -227,6 +228,7 @@ export function RentPage() {
   const router = useRouter()
   const [searchText, setSearchText] = useState('Houston')
   const [properties, setProperties] = useState<RealVistaPropertyCardData[]>(() => MOCK_PROPERTIES)
+  const [pendingId, setPendingId] = useState<string | null>(null)
   const { mutate: toggleBookmark } = useToggleBookmark()
 
   // Sync properties with MOCK_PROPERTIES on mount to fix cached state
@@ -260,14 +262,7 @@ export function RentPage() {
   const handleFavoritePress = (propertyId: string) => {
     const property = properties.find((p) => p.id === propertyId)
     if (property?.isFavorite) {
-      Alert.alert(
-        'Xóa khỏi yêu thích',
-        'Bạn có muốn xóa tin đăng này khỏi danh sách yêu thích không?',
-        [
-          { text: 'Hủy', style: 'cancel' },
-          { text: 'Xóa', style: 'destructive', onPress: () => doToggleFavorite(propertyId) },
-        ]
-      )
+      setPendingId(propertyId)
     } else {
       doToggleFavorite(propertyId)
     }
@@ -280,6 +275,18 @@ export function RentPage() {
 
   return (
     <View className='flex-1 bg-white'>
+      <ConfirmDialog
+        visible={pendingId !== null}
+        title='Xóa khỏi yêu thích'
+        message='Bạn có muốn xóa tin đăng này khỏi danh sách yêu thích không?'
+        confirmLabel='Xóa'
+        cancelLabel='Hủy'
+        onConfirm={() => {
+          if (pendingId) doToggleFavorite(pendingId)
+          setPendingId(null)
+        }}
+        onCancel={() => setPendingId(null)}
+      />
       <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
         <Box className='px-4 py-6'>
           {/* Search Bar */}

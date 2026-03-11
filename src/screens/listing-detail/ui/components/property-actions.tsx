@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Alert, TouchableOpacity } from 'react-native'
+import { TouchableOpacity } from 'react-native'
 import { Heart } from 'lucide-react-native'
 
 import type { Listing } from '@/entities/listing'
 import { shareListing } from '@/shared/lib/share'
 import { Box } from '@/shared/ui/box'
+import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
 import IconLucide from '@/shared/ui/icon-lucide/icon'
 import { Text } from '@/shared/ui/text'
 
@@ -20,10 +21,10 @@ export function PropertyActions({
   onToggleFavorite,
 }: PropertyActionsProps) {
   const [isSharing, setIsSharing] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
 
   const handleShare = async () => {
     if (isSharing) return
-
     setIsSharing(true)
     try {
       await shareListing({ listing })
@@ -34,14 +35,7 @@ export function PropertyActions({
 
   const handleFavoritePress = () => {
     if (isFavorite) {
-      Alert.alert(
-        'Xóa khỏi yêu thích',
-        'Bạn có muốn xóa tin đăng này khỏi danh sách yêu thích không?',
-        [
-          { text: 'Hủy', style: 'cancel' },
-          { text: 'Xóa', style: 'destructive', onPress: onToggleFavorite },
-        ]
-      )
+      setShowConfirm(true)
     } else {
       onToggleFavorite?.()
     }
@@ -49,6 +43,19 @@ export function PropertyActions({
 
   return (
     <Box className='mb-4 flex-row gap-4'>
+      <ConfirmDialog
+        visible={showConfirm}
+        title='Xóa khỏi yêu thích'
+        message='Bạn có muốn xóa tin đăng này khỏi danh sách yêu thích không?'
+        confirmLabel='Xóa'
+        cancelLabel='Hủy'
+        onConfirm={() => {
+          setShowConfirm(false)
+          onToggleFavorite?.()
+        }}
+        onCancel={() => setShowConfirm(false)}
+      />
+
       <TouchableOpacity
         className='flex-1 flex-row items-center justify-center gap-2 rounded-lg border-2 border-purple-92 px-6 py-3 bg-purple-98'
         onPress={handleShare}
