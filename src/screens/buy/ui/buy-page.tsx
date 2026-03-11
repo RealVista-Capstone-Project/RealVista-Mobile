@@ -5,8 +5,11 @@ import {
   type RealVistaPropertyCardData,
 } from '@/shared/ui/realvista-property-listing-card'
 import { RealVistaPropertySearchBar } from '@/shared/ui/realvista-property-listing-search-bar'
+import { useRouter } from 'expo-router'
 import React, { useState } from 'react'
-import { ScrollView, View } from 'react-native'
+import { Alert, ScrollView, View } from 'react-native'
+
+import { useToggleBookmark } from '@/features/bookmark'
 
 // Mock property data for buying (higher prices than renting)
 const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
@@ -221,8 +224,10 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
 ]
 
 export function BuyPage() {
+  const router = useRouter()
   const [searchText, setSearchText] = useState('Houston')
   const [properties, setProperties] = useState<RealVistaPropertyCardData[]>(() => MOCK_PROPERTIES)
+  const { mutate: toggleBookmark } = useToggleBookmark()
 
   // Sync properties with MOCK_PROPERTIES on mount to fix cached state
   React.useEffect(() => {
@@ -234,16 +239,38 @@ export function BuyPage() {
   }
 
   const handlePropertyPress = (propertyId: string) => {
-    console.log('Property pressed:', propertyId)
-    // TODO: Navigate to property details
+    router.push(`/listing/${propertyId}`)
+  }
+
+  const doToggleFavorite = (propertyId: string) => {
+    // Optimistic update
+    setProperties((prev) =>
+      prev.map((p) => (p.id === propertyId ? { ...p, isFavorite: !p.isFavorite } : p))
+    )
+    // Sync with API; revert on failure
+    toggleBookmark(propertyId, {
+      onError: () => {
+        setProperties((prev) =>
+          prev.map((p) => (p.id === propertyId ? { ...p, isFavorite: !p.isFavorite } : p))
+        )
+      },
+    })
   }
 
   const handleFavoritePress = (propertyId: string) => {
-    setProperties((prevProperties) =>
-      prevProperties.map((property) =>
-        property.id === propertyId ? { ...property, isFavorite: !property.isFavorite } : property
+    const property = properties.find((p) => p.id === propertyId)
+    if (property?.isFavorite) {
+      Alert.alert(
+        'Xóa khỏi yêu thích',
+        'Bạn có muốn xóa tin đăng này khỏi danh sách yêu thích không?',
+        [
+          { text: 'Hủy', style: 'cancel' },
+          { text: 'Xóa', style: 'destructive', onPress: () => doToggleFavorite(propertyId) },
+        ]
       )
-    )
+    } else {
+      doToggleFavorite(propertyId)
+    }
   }
 
   const handleOpenMaps = () => {

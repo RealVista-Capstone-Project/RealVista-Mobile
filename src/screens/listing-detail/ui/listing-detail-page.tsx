@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { ActivityIndicator, ScrollView } from 'react-native'
 
 import { type SimilarListing } from '@/entities/listing'
+import { useToggleBookmark } from '@/features/bookmark'
 import { useListingDetail } from '@/features/get-listing-detail'
 import { useListingPriceHistory } from '@/features/get-listing-price-history'
 import { useSimilarListings } from '@/features/get-similar-listings'
@@ -54,9 +56,22 @@ export function ListingDetailPage() {
   const { data: listing, isLoading, error } = useListingDetail()
   const { data: priceHistoryData } = useListingPriceHistory()
   const { listings: similarListings } = useSimilarListings(5)
+  const { mutate: toggleBookmark } = useToggleBookmark()
+
+  // Local isFavorite state — toggled optimistically on each press
+  const [isFavorite, setIsFavorite] = useState(false)
 
   const handleToggleFavorite = (id: string) => {
-    console.log('Toggle favorite:', id)
+    toggleBookmark(id, {
+      onSuccess: (data) => {
+        setIsFavorite(data.bookmarked)
+      },
+    })
+    setIsFavorite((prev) => !prev)
+  }
+
+  const handleToggleSimilarFavorite = (id: string) => {
+    toggleBookmark(id)
   }
 
   const handlePropertyClick = (id: string) => {
@@ -175,7 +190,11 @@ export function ListingDetailPage() {
       <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
         <Box className='px-6'>
           <PropertyInfo name={listing.name} address={listing.property?.street_address || 'N/A'} />
-          <PropertyActions listing={listing} />
+          <PropertyActions
+            listing={listing}
+            isFavorite={isFavorite}
+            onToggleFavorite={() => handleToggleFavorite(listing.listing_id)}
+          />
           <PropertyImageCarousel images={mediaUrls} />
 
           <PropertySpecifications attributes={listing.attributes || []} status={listing.status} />
@@ -238,7 +257,7 @@ export function ListingDetailPage() {
         </Box>
         <PropertySimilarListings
           listings={similarListingsCards}
-          onToggleFavorite={handleToggleFavorite}
+          onToggleFavorite={handleToggleSimilarFavorite}
           onPropertyClick={handlePropertyClick}
         />
       </ScrollView>

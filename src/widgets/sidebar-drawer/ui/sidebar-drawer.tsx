@@ -37,6 +37,8 @@ export function SidebarDrawer() {
       router.replace('/buy-page')
     } else if (itemId === 'Rent') {
       router.replace('/rent-page')
+    } else if (itemId === 'Favorited') {
+      router.push('/saved')
     } else if (itemId === 'About') {
       router.replace('/about')
     }
