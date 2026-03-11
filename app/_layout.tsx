@@ -17,13 +17,13 @@ import { TopNav } from '@/widgets/top-nav'
 import '../global.css'
 
 export const unstable_settings = {
-  anchor: '(tabs)',
+  anchor: 'buy-page',
 }
 
 SplashScreen.preventAutoHideAsync()
 
 const _AUTH_GROUP = '(auth)'
-const _HOME_GROUP = '(tabs)'
+const _DEFAULT_PAGE = '/buy-page'
 
 export default function RootLayout() {
   const colorScheme = useColorScheme()
@@ -49,24 +49,17 @@ export default function RootLayout() {
     }
   }, [loaded, rootNavigationState?.key])
 
-  // TODO: Remove this block before merging - for reviewer UI testing only
   useEffect(() => {
     if (!isNavigationReady || !loaded) return
-    // Using the listing_id from the API response for development
-    router.replace('/listing/71cea53a-bff0-b29b-3a9e-9e041c3d0524' as Href)
-  }, [isNavigationReady, router, loaded])
 
-  // useEffect(() => {
-  //   if (!isNavigationReady || !loaded) return
+    const inAuthGroup = segments[0] === _AUTH_GROUP
 
-  //   const inAuthGroup = segments[0] === _AUTH_GROUP
-
-  //   if (!isAuthenticated && !inAuthGroup) {
-  //     router.replace(`/${_AUTH_GROUP}/login` as Href)
-  //   } else if (isAuthenticated && inAuthGroup) {
-  //     router.replace(`/${_HOME_GROUP}` as Href)
-  //   }
-  // }, [isAuthenticated, segments, isNavigationReady, router, loaded])
+    if (!isAuthenticated && !inAuthGroup) {
+      router.replace(`/${_AUTH_GROUP}/login` as Href)
+    } else if (isAuthenticated && inAuthGroup) {
+      router.replace(_DEFAULT_PAGE as Href)
+    }
+  }, [isAuthenticated, segments, isNavigationReady, router, loaded])
 
   if (!loaded || !isNavigationReady) {
     return null
@@ -95,6 +88,15 @@ export default function RootLayout() {
                 <Stack.Screen name='modal' options={{ presentation: 'modal', title: 'Modal' }} />
                 <Stack.Screen
                   name='listing'
+                  options={{
+                    headerShown: true,
+                    header: () => <TopNav />,
+                  }}
+                />
+                <Stack.Screen name='buy-page' options={{ headerShown: false }} />
+                <Stack.Screen name='rent-page' options={{ headerShown: false }} />
+                <Stack.Screen
+                  name='saved'
                   options={{
                     headerShown: true,
                     header: () => <TopNav />,
