@@ -17,6 +17,7 @@ export interface RealVistaPropertyCardData {
   areaUnit?: string
   isPopular?: boolean
   isFavorite?: boolean
+  status?: string
 }
 
 interface RealVistaPropertyCardProps {
@@ -64,6 +65,62 @@ export function RealVistaPropertyCard({
           }}
           resizeMode='cover'
         />
+
+        {/* Sold / Rented overlay — white wash over image only */}
+        {(property.status === 'SOLD' || property.status === 'RENTED') && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(255,255,255,0.55)',
+              borderTopLeftRadius: 8,
+              borderTopRightRadius: 8,
+              zIndex: 5,
+            }}
+          />
+        )}
+
+        {/* Sold / Rented ribbon badge — mirrors POPULAR badge style */}
+        {(property.status === 'SOLD' || property.status === 'RENTED') && (
+          <View style={{ position: 'absolute', bottom: -15, left: -8, zIndex: 10 }}>
+            <View
+              style={{
+                position: 'relative',
+                height: 32,
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                borderTopLeftRadius: 8,
+                borderTopRightRadius: 8,
+                borderBottomRightRadius: 8,
+                backgroundColor: '#ef4444',
+                justifyContent: 'center',
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: 'bold',
+                  textTransform: 'uppercase',
+                  lineHeight: 16,
+                  letterSpacing: 0.5,
+                  color: 'white',
+                }}
+              >
+                {property.status === 'SOLD' ? 'Đã bán' : 'Đã cho thuê'}
+              </Text>
+
+              {/* Decorative cutout at bottom-left corner */}
+              <View style={{ position: 'absolute', left: 0, top: '200%', height: 8, width: 8 }}>
+                <Svg width={8} height={8} viewBox='0 0 8 8' fill='none' preserveAspectRatio='none'>
+                  <Path d='M8 8L0 0H8V8Z' fill='#b91c1c' />
+                </Svg>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* Popular Badge */}
         {property.isPopular && (
