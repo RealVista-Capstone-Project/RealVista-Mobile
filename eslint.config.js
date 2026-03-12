@@ -9,9 +9,4 @@ module.exports = defineConfig([
   {
     ignores: ['dist/*'],
   },
-  {
-    rules: {
-      'import/no-unresolved': ['error', { ignore: ['date-fns', 'text-encoding-polyfill', '@stomp/stompjs'] }],
-    },
-  },
 ])
