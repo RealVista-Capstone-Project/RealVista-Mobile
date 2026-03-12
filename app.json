@@ -12,12 +12,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.sep.realvista",
       "infoPlist": {
-        "LSApplicationQueriesSchemes": [
-          "fb",
-          "instagram",
-          "twitter",
-          "tiktoksharesdk"
-        ],
+        "LSApplicationQueriesSchemes": ["fb", "instagram", "twitter", "tiktoksharesdk"],
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -30,7 +25,7 @@
       },
       "config": {
         "googleMaps": {
-          "apiKey": "process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY"
+          "apiKey": "EXPO_PUBLIC_GOOGLE_MAPS_API_KEY"
         }
       },
       "package": "com.sep.realvista",
@@ -48,10 +43,7 @@
               "pathPrefix": "/vi/"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
     },
@@ -61,14 +53,15 @@
     },
     "plugins": [
       [
+        "react-native-maps",
+        {
+          "androidGoogleMapsApiKey": "EXPO_PUBLIC_GOOGLE_MAPS_API_KEY"
+        }
+      ],
+      [
         "react-native-share",
         {
-          "ios": [
-            "fb",
-            "instagram",
-            "twitter",
-            "tiktoksharesdk"
-          ],
+          "ios": ["fb", "instagram", "twitter", "tiktoksharesdk"],
           "android": [
             "com.facebook.katana",
             "com.instagram.android",
