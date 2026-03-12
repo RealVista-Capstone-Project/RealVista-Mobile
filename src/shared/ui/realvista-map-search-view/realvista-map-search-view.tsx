@@ -395,6 +395,7 @@ const styles = StyleSheet.create({
   markerContainer: {
     alignItems: 'center',
     overflow: 'visible',
+    padding: 8, // Add enough space for the absolute badge to stay within Marker bounds
   },
   // Stripped to minimum to isolate the clipping cause.
   // Web equivalent: rounded-lg bg-white px-3 py-1.5
@@ -416,8 +417,8 @@ const styles = StyleSheet.create({
   },
   countBadge: {
     position: 'absolute',
-    top: -6,
-    right: -6,
+    top: 2, // Account for 8px padding (8 - 6)
+    right: 2, // Account for 8px padding (8 - 6)
     backgroundColor: '#FF4D4F',
     borderRadius: 10,
     minWidth: 20,
