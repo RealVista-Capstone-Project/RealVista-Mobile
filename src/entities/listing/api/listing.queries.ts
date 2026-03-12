@@ -1,5 +1,5 @@
+import { listingApi } from '@/entities/listing/api'
 import { queryOptions } from '@tanstack/react-query'
-import { listingApi } from './index'
 import { listingKeys } from './keys'
 
 /**
@@ -24,6 +24,18 @@ export const listingQueries = {
       refetchOnMount: false,
     }),
 
+  priceHistory: (id: string) =>
+    queryOptions({
+      queryKey: listingKeys.priceHistory(id),
+      queryFn: () => listingApi.getPriceHistory(id).then((res) => res.data),
+      enabled: !!id,
+      // Price history doesn't change frequently
+      staleTime: 10 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      retry: 2,
+      refetchOnReconnect: true,
+      refetchOnMount: false,
+    }),
   similar: (id: string, limit: number = 5) =>
     queryOptions({
       queryKey: listingKeys.similar(id, limit),

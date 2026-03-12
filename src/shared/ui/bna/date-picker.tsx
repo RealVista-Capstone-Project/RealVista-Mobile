@@ -200,8 +200,16 @@ export function DatePicker(props: DatePickerProps) {
   // Helper function to check if a date is disabled
   const isDateDisabled = useCallback(
     (date: Date) => {
-      if (minimumDate && date < minimumDate) return true
-      if (maximumDate && date > maximumDate) return true
+      if (minimumDate) {
+        const min = new Date(minimumDate)
+        min.setHours(0, 0, 0, 0)
+        if (date < min) return true
+      }
+      if (maximumDate) {
+        const max = new Date(maximumDate)
+        max.setHours(23, 59, 59, 999)
+        if (date > max) return true
+      }
       return false
     },
     [minimumDate, maximumDate]

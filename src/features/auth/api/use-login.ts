@@ -13,9 +13,12 @@ export const useLogin = () => {
         await AsyncStorage.setItem('token', res.data.access_token)
 
         // Update user store
-        const { setToken, setIsAuthenticated } = useAuthStore.getState()
+        const { setToken, setIsAuthenticated, setUserId } = useAuthStore.getState()
         setToken(res.data.access_token)
         setIsAuthenticated(true)
+        if (res.data.user_id) {
+          setUserId(res.data.user_id)
+        }
 
         Alert.alert('Success', 'Login successful')
         router.replace('/(tabs)') // Adjust route as needed, checking app structure

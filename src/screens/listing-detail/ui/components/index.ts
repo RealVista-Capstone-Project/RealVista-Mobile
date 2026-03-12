@@ -1,4 +1,5 @@
 export * from './property-about'
+export * from './property-amenities'
 export * from './property-actions'
 export * from './property-cost-breakdown'
 export * from './property-features'
