@@ -59,6 +59,7 @@
     "buffer": "^6.0.3",
     "clsx": "^2.1.1",
     "core-js": "^3.48.0",
+    "date-fns": "^4.1.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "expo": "~54.0.33",

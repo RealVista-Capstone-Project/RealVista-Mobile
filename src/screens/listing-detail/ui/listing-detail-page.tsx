@@ -185,7 +185,7 @@ export function ListingDetailPage() {
 
           <PropertyOwner agent={listing.agent} listing={listing} />
 
-          <PropertyTourRequest />
+          <PropertyTourRequest listingId={listing.listing_id} />
 
           <Divider className='my-6' />
 
