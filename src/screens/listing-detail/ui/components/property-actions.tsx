@@ -71,7 +71,12 @@ export function PropertyActions({
         className='flex-1 flex-row items-center justify-center gap-2 rounded-lg border-2 border-purple-92 px-6 py-3 bg-purple-98'
         onPress={handleFavoritePress}
       >
-        <Heart size={20} color='#7065f0' fill={isFavorite ? '#7065f0' : 'none'} strokeWidth={2} />
+        <Heart
+          size={20}
+          color={isFavorite ? 'red' : '#7065f0'}
+          fill={isFavorite ? 'red' : 'none'}
+          strokeWidth={2}
+        />
         <Text bold className='text-main-primary'>
           {isFavorite ? 'Đã yêu thích' : 'Yêu thích'}
         </Text>

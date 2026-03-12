@@ -90,7 +90,7 @@
           }
         }
       ],
-      "expo-build-properties"
+      "expo-build-properties",
     ],
     "experiments": {
       "typedRoutes": true,
@@ -99,9 +99,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "2725aad8-d076-4db0-bd53-86fdb63a03ab"
+        "projectId": "eff03b7b-d820-4bbb-8e00-e00ea540be4f"
       }
     },
-    "owner": "yugivip277"
+    "owner": "nbquochuy"
   }
 }

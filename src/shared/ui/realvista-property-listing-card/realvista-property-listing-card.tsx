@@ -322,8 +322,8 @@ function HeartIcon({ filled = false }: { filled?: boolean }) {
     <Svg width={20} height={20} viewBox='0 0 20 20' fill='none'>
       <Path
         d='M10 17.5C10 17.5 2.5 13.75 2.5 7.91667C2.5 6.75544 2.96094 5.64181 3.78141 4.82134C4.60188 4.00087 5.71551 3.53993 6.87674 3.53993C8.28571 3.53993 9.44118 4.21569 10 5.24157C10.5588 4.21569 11.7143 3.53993 13.1233 3.53993C14.2845 3.53993 15.3981 4.00087 16.2186 4.82134C17.0391 5.64181 17.5 6.75544 17.5 7.91667C17.5 13.75 10 17.5 10 17.5Z'
-        fill={filled ? '#7065F0' : 'none'}
-        stroke='#7065F0'
+        fill={filled ? 'red' : 'none'}
+        stroke={filled ? 'red' : '#7065F0'}
         strokeWidth={2.3}
         strokeLinecap='round'
         strokeLinejoin='round'

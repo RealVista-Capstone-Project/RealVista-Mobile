@@ -1,3 +1,4 @@
+import { useLogout } from '@/features/auth'
 import { useDrawerStore } from '@/shared/stores/drawer-store'
 import { Drawer, DrawerBackdrop, DrawerBody, DrawerContent, DrawerFooter } from '@/shared/ui/drawer'
 import { IconSymbol } from '@/shared/ui/icon-symbol'
@@ -17,6 +18,7 @@ const MENU_ITEMS: MenuItem[] = [
   { id: 'My listings', label: 'Tin đăng của tôi', icon: 'apartment' },
   { id: 'Favorited', label: 'Yêu thích', icon: 'heart' },
   { id: 'Appointments', label: 'Lịch hẹn', icon: 'calendar' },
+  { id: 'Messages', label: 'Tin nhắn', icon: 'message' },
 ]
 
 const HELP_ITEMS: MenuItem[] = [
@@ -28,6 +30,7 @@ const HELP_ITEMS: MenuItem[] = [
 export function SidebarDrawer() {
   const { isOpen, setIsOpen, activeItem, setActiveItem } = useDrawerStore()
   const router = useRouter()
+  const { mutate: logout } = useLogout()
 
   const handleMenuItemPress = (itemId: string) => {
     setActiveItem(itemId)
@@ -41,7 +44,18 @@ export function SidebarDrawer() {
       router.push('/saved')
     } else if (itemId === 'About') {
       router.replace('/about')
+    } else if (itemId === 'Messages') {
+      router.replace('/messages')
     }
+  }
+
+  const handleLogout = () => {
+    setIsOpen(false)
+    logout(undefined, {
+      onSuccess: () => {
+        router.replace('/login')
+      },
+    })
   }
 
   const isItemActive = (itemId: string) => activeItem === itemId
@@ -98,6 +112,42 @@ export function SidebarDrawer() {
                 onPress={() => handleMenuItemPress(item.id)}
               />
             ))}
+          </View>
+
+          {/* Logout */}
+          <View
+            style={{
+              width: '100%',
+              marginTop: 16,
+              borderTopWidth: 1,
+              borderTopColor: '#E5E7EB',
+              paddingTop: 16,
+            }}
+          >
+            <TouchableOpacity
+              onPress={handleLogout}
+              style={{ height: 48, width: '100%' }}
+              activeOpacity={0.7}
+            >
+              <View
+                style={{
+                  height: 48,
+                  width: '100%',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 12,
+                  paddingHorizontal: 12,
+                  borderRadius: 8,
+                }}
+              >
+                <View
+                  style={{ height: 20, width: 20, alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <IconSymbol name='arrow.right.square' size={20} color='#EF4444' />
+                </View>
+                <Text style={{ fontSize: 16, fontWeight: '500', color: '#EF4444' }}>Đăng xuất</Text>
+              </View>
+            </TouchableOpacity>
           </View>
         </DrawerFooter>
       </DrawerContent>

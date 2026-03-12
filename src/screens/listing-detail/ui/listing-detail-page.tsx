@@ -3,6 +3,7 @@ import { ActivityIndicator, ScrollView } from 'react-native'
 
 import { type SimilarListing } from '@/entities/listing'
 import { useToggleBookmark } from '@/features/bookmark'
+import { ContactFormModal } from '@/features/chat'
 import { useListingDetail } from '@/features/get-listing-detail'
 import { useListingPriceHistory } from '@/features/get-listing-price-history'
 import { useSimilarListings } from '@/features/get-similar-listings'
@@ -201,9 +202,9 @@ export function ListingDetailPage() {
 
           <PropertyAbout description={listing.property?.description || ''} />
 
-          <PropertyOwner agent={listing.agent} />
+          <PropertyOwner agent={listing.agent} listing={listing} />
 
-          <PropertyTourRequest />
+          <PropertyTourRequest listingId={listing.listing_id} />
 
           <Divider className='my-6' />
 
@@ -261,6 +262,8 @@ export function ListingDetailPage() {
           onPropertyClick={handlePropertyClick}
         />
       </ScrollView>
+
+      <ContactFormModal />
     </Box>
   )
 }
