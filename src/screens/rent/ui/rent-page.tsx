@@ -1,15 +1,18 @@
+import { useMapSearch } from '@/features/map-search/api'
 import { Box } from '@/shared/ui/box'
-import { OpenMapsButton } from '@/shared/ui/open-maps-button'
+import IconLucide from '@/shared/ui/icon-lucide/icon'
 import {
-  RealVistaPropertyCard,
-  type RealVistaPropertyCardData,
-} from '@/shared/ui/realvista-property-listing-card'
+  RealVistaMapSearchView,
+  type PropertyWithCoords,
+} from '@/shared/ui/realvista-map-search-view'
+import { RealVistaPropertyCard } from '@/shared/ui/realvista-property-listing-card'
 import { RealVistaPropertySearchBar } from '@/shared/ui/realvista-property-listing-search-bar'
 import React, { useState } from 'react'
-import { ScrollView, View } from 'react-native'
+import { ScrollView, TouchableOpacity, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 // Mock property data based on Figma designs
-const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
+const MOCK_PROPERTIES: PropertyWithCoords[] = [
   {
     id: '1',
     image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800',
@@ -21,6 +24,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     area: 5,
     areaUnit: 'x7 m²',
     isPopular: true,
+    latitude: 10.795,
+    longitude: 106.678,
   },
   {
     id: '2',
@@ -33,6 +38,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     area: 6,
     areaUnit: 'x7.5 m²',
     isPopular: true,
+    latitude: 10.782,
+    longitude: 106.7,
   },
   {
     id: '3',
@@ -45,6 +52,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     area: 8,
     areaUnit: 'x10 m²',
     isPopular: true,
+    latitude: 10.77,
+    longitude: 106.685,
   },
   {
     id: '4',
@@ -56,6 +65,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     bathrooms: 2,
     area: 6,
     areaUnit: 'x8 m²',
+    latitude: 10.758,
+    longitude: 106.71,
   },
   {
     id: '5',
@@ -67,6 +78,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     bathrooms: 1,
     area: 5,
     areaUnit: 'x7.5 m²',
+    latitude: 10.8,
+    longitude: 106.66,
   },
   {
     id: '6',
@@ -78,6 +91,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     bathrooms: 1,
     area: 5,
     areaUnit: 'x7 m²',
+    latitude: 10.773,
+    longitude: 106.72,
   },
   {
     id: '7',
@@ -90,6 +105,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     area: 9,
     areaUnit: 'x12 m²',
     isPopular: true,
+    latitude: 10.81,
+    longitude: 106.695,
   },
   {
     id: '8',
@@ -101,6 +118,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     bathrooms: 2,
     area: 6,
     areaUnit: 'x8.5 m²',
+    latitude: 10.765,
+    longitude: 106.67,
   },
   {
     id: '9',
@@ -112,6 +131,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     bathrooms: 2,
     area: 7,
     areaUnit: 'x9 m²',
+    latitude: 10.788,
+    longitude: 106.645,
   },
   {
     id: '10',
@@ -124,6 +145,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     area: 8,
     areaUnit: 'x11 m²',
     isPopular: true,
+    latitude: 10.75,
+    longitude: 106.69,
   },
   {
     id: '11',
@@ -135,6 +158,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     bathrooms: 2,
     area: 6,
     areaUnit: 'x8 m²',
+    latitude: 10.805,
+    longitude: 106.715,
   },
   {
     id: '12',
@@ -147,6 +172,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     area: 10,
     areaUnit: 'x13 m²',
     isPopular: true,
+    latitude: 10.74,
+    longitude: 106.675,
   },
   {
     id: '13',
@@ -159,6 +186,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     area: 9,
     areaUnit: 'x10 m²',
     isPopular: true,
+    latitude: 10.792,
+    longitude: 106.73,
   },
   {
     id: '14',
@@ -170,6 +199,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     bathrooms: 2,
     area: 7,
     areaUnit: 'x8.5 m²',
+    latitude: 10.775,
+    longitude: 106.655,
   },
   {
     id: '15',
@@ -182,6 +213,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     area: 12,
     areaUnit: 'x15 m²',
     isPopular: true,
+    latitude: 10.815,
+    longitude: 106.705,
   },
   {
     id: '16',
@@ -194,6 +227,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     area: 11,
     areaUnit: 'x14 m²',
     isPopular: true,
+    latitude: 10.762,
+    longitude: 106.74,
   },
   {
     id: '17',
@@ -205,6 +240,8 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     bathrooms: 1,
     area: 4,
     areaUnit: 'x6 m²',
+    latitude: 10.785,
+    longitude: 106.665,
   },
   {
     id: '18',
@@ -217,12 +254,26 @@ const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
     area: 8,
     areaUnit: 'x12 m²',
     isPopular: true,
+    latitude: 10.798,
+    longitude: 106.725,
   },
 ]
 
 export function RentPage() {
   const [searchText, setSearchText] = useState('Houston')
-  const [properties, setProperties] = useState<RealVistaPropertyCardData[]>(() => MOCK_PROPERTIES)
+  const [searchMode, setSearchMode] = useState<'list' | 'map'>('list')
+  const [properties, setProperties] = useState<PropertyWithCoords[]>(() => MOCK_PROPERTIES)
+
+  // Map search — fetch markers from API when in map mode
+  const {
+    markers: mapMarkers,
+    totalCount: mapTotalCount,
+    isLoading: mapIsLoading,
+    onRegionChange,
+  } = useMapSearch({
+    listingType: 'RENT',
+    enabled: searchMode === 'map',
+  })
 
   // Sync properties with MOCK_PROPERTIES on mount to fix cached state
   React.useEffect(() => {
@@ -246,41 +297,67 @@ export function RentPage() {
     )
   }
 
-  const handleOpenMaps = () => {
-    console.log('Open maps pressed')
-    // TODO: Navigate to map view
+  const toggleSearchMode = () => {
+    setSearchMode((prev) => (prev === 'list' ? 'map' : 'list'))
   }
 
   return (
-    <View className='flex-1 bg-white'>
-      <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
-        <Box className='px-4 py-6'>
-          {/* Search Bar */}
-          <RealVistaPropertySearchBar
-            value={searchText}
-            onChangeText={setSearchText}
-            onFilterPress={handleFilterPress}
-            className='mb-6'
-            showLeaseTerm={true}
-          />
-
-          {/* Property Listings */}
-          <View className='gap-6'>
-            {properties.map((property) => (
-              <RealVistaPropertyCard
-                key={property.id}
-                property={property}
-                onClick={() => handlePropertyPress(property.id)}
-                onToggleFavorite={() => handleFavoritePress(property.id)}
-                variant='rent'
-              />
-            ))}
+    <SafeAreaView className='flex-1 bg-white' edges={['top']}>
+      <Box className='px-4 pt-6 pb-2'>
+        {/* Search Bar + Toggle Button Row */}
+        <View className='mb-4 flex-row items-center gap-3'>
+          <View className='flex-1'>
+            <RealVistaPropertySearchBar
+              value={searchText}
+              onChangeText={setSearchText}
+              onFilterPress={handleFilterPress}
+              showLeaseTerm={true}
+            />
           </View>
 
-          {/* Open Maps Button */}
-          <OpenMapsButton onPress={handleOpenMaps} className='mt-6' />
-        </Box>
-      </ScrollView>
-    </View>
+          {/* Search Mode Toggle Button */}
+          <TouchableOpacity
+            onPress={toggleSearchMode}
+            activeOpacity={0.7}
+            className='h-10 w-10 items-center justify-center rounded-lg border-[1.5px] border-purple-92 bg-white'
+          >
+            <IconLucide
+              name={searchMode === 'list' ? 'Map' : 'LayoutGrid'}
+              color='#100A55'
+              size={20}
+            />
+          </TouchableOpacity>
+        </View>
+      </Box>
+
+      {searchMode === 'list' ? (
+        /* List View */
+        <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
+          <Box className='px-4 pb-6'>
+            <View className='gap-6'>
+              {properties.map((property) => (
+                <RealVistaPropertyCard
+                  key={property.id}
+                  property={property}
+                  onClick={() => handlePropertyPress(property.id)}
+                  onToggleFavorite={() => handleFavoritePress(property.id)}
+                  variant='rent'
+                />
+              ))}
+            </View>
+          </Box>
+        </ScrollView>
+      ) : (
+        <RealVistaMapSearchView
+          properties={mapMarkers}
+          totalCount={mapTotalCount}
+          isLoading={mapIsLoading}
+          onRegionChange={onRegionChange}
+          onPropertyPress={handlePropertyPress}
+          propertyCountLabel={`${mapTotalCount} bất động sản cho thuê`}
+          variant='rent'
+        />
+      )}
+    </SafeAreaView>
   )
 }
