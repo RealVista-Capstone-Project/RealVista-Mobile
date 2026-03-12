@@ -15,6 +15,7 @@ const MAPPING: Record<string, ComponentProps<typeof MaterialIcons>['name']> = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'chevron.left': 'chevron-left',
   'chevron.down': 'keyboard-arrow-down',
   'line.3.horizontal': 'menu',
   xmark: 'close',
@@ -30,6 +31,7 @@ const MAPPING: Record<string, ComponentProps<typeof MaterialIcons>['name']> = {
   'key.fill': 'vpn-key',
   'info.circle.fill': 'info',
   plus: 'add',
+  message: 'chat-bubble',
 }
 
 type IconSymbolName = keyof typeof MAPPING

@@ -15,7 +15,7 @@ jest.mock('zustand/middleware', () => ({
 
 describe('useAuthStore', () => {
   const mockUser: User = {
-    id: 1,
+    id: '1',
     email: 'test@example.com',
     firstName: 'Test',
     lastName: 'User',
@@ -88,8 +88,8 @@ describe('useAuthStore', () => {
   it('should handle multiple setUser calls', () => {
     const { result } = renderHook(() => useAuthStore())
 
-    const user1: User = { ...mockUser, id: 1, firstName: 'User 1' }
-    const user2: User = { ...mockUser, id: 2, firstName: 'User 2' }
+    const user1: User = { ...mockUser, id: '1', firstName: 'User 1' }
+    const user2: User = { ...mockUser, id: '2', firstName: 'User 2' }
 
     act(() => {
       result.current.setUser(user1)

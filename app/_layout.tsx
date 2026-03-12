@@ -1,3 +1,4 @@
+import '@/shared/lib/websocket/polyfills'
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
 import { useFonts } from 'expo-font'
 import { Href, Stack, useRootNavigationState, useRouter, useSegments } from 'expo-router'
