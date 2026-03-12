@@ -227,6 +227,7 @@ export function BottomSheet({
   }
 
   const gesture = Gesture.Pan()
+    .activeOffsetY([-10, 10])
     .onStart(() => {
       context.value = { y: translateY.value }
     })
