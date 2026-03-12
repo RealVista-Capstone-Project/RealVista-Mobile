@@ -3,18 +3,22 @@ import IconLucide from '@/shared/ui/icon-lucide/icon'
 import { Text } from '@/shared/ui/text'
 import { TouchableOpacity } from 'react-native'
 
+import { type ListingType } from '@/entities/listing'
+
 interface ApplyAppBarProps {
   price?: string
   onPress?: () => void
   buttonLabel?: string
   onNotificationPress?: () => void
+  listingType?: ListingType
 }
 
 export function ApplyAppBar({
-  price = '$2,700',
+  price = '2.700.000₫',
   onPress,
   buttonLabel = 'Đăng ký ngay',
   onNotificationPress,
+  listingType = 'RENT',
 }: ApplyAppBarProps) {
   return (
     <Box
@@ -35,7 +39,7 @@ export function ApplyAppBar({
         {/* Price Section */}
         <Box className='flex-col gap-1'>
           <Text className='text-main-black/50' size='sm'>
-            Giá thuê
+            {listingType === 'SALE' ? 'Giá bán' : 'Giá thuê'}
           </Text>
           <Box className='flex-row items-end gap-0.5'>
             <Text
@@ -49,9 +53,11 @@ export function ApplyAppBar({
             >
               {price}
             </Text>
-            <Text className='text-main-black/50 pb-1' size='sm' style={{ lineHeight: 20 }}>
-              /tháng
-            </Text>
+            {listingType === 'RENT' && (
+              <Text className='text-main-black/50 pb-1' size='sm' style={{ lineHeight: 20 }}>
+                /tháng
+              </Text>
+            )}
           </Box>
         </Box>
 

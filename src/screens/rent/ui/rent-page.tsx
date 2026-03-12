@@ -7,7 +7,6 @@ import {
 import { RealVistaPropertySearchBar } from '@/shared/ui/realvista-property-listing-search-bar'
 import React, { useState } from 'react'
 import { ScrollView, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
 
 // Mock property data based on Figma designs
 const MOCK_PROPERTIES: RealVistaPropertyCardData[] = [
@@ -253,7 +252,7 @@ export function RentPage() {
   }
 
   return (
-    <SafeAreaView className='flex-1 bg-white' edges={['top']}>
+    <View className='flex-1 bg-white'>
       <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
         <Box className='px-4 py-6'>
           {/* Search Bar */}
@@ -282,6 +281,6 @@ export function RentPage() {
           <OpenMapsButton onPress={handleOpenMaps} className='mt-6' />
         </Box>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   )
 }

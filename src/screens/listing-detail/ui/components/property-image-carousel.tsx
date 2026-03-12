@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Image, TouchableOpacity } from 'react-native'
+import { Dimensions, Image, Modal, Pressable, ScrollView, TouchableOpacity } from 'react-native'
 
 import { Box } from '@/shared/ui/box'
 import IconLucide from '@/shared/ui/icon-lucide/icon'
@@ -11,6 +11,15 @@ interface PropertyImageCarouselProps {
 
 export function PropertyImageCarousel({ images }: PropertyImageCarouselProps) {
   const [activeImageIndex, setActiveImageIndex] = useState(0)
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false)
+  const [galleryInitialIndex, setGalleryInitialIndex] = useState(0)
+
+  const handleViewAllPhotos = () => {
+    setGalleryInitialIndex(0)
+    setIsGalleryOpen(true)
+  }
+
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window')
 
   return (
     <Box className='mb-6'>
@@ -30,9 +39,7 @@ export function PropertyImageCarousel({ images }: PropertyImageCarouselProps) {
             shadowRadius: 8,
             shadowOffset: { width: 0, height: 2 },
           }}
-          onPress={() => {
-            /* TODO: handle view all photos */
-          }}
+          onPress={handleViewAllPhotos}
         >
           <IconLucide size={20} name='Image' color='#7065f0' />
           <Text bold className='ml-2 text-lg text-main-black'>
@@ -60,6 +67,48 @@ export function PropertyImageCarousel({ images }: PropertyImageCarouselProps) {
           </TouchableOpacity>
         ))}
       </Box>
+
+      {/* Image Gallery Modal */}
+      <Modal
+        visible={isGalleryOpen}
+        animationType='fade'
+        transparent={false}
+        onRequestClose={() => setIsGalleryOpen(false)}
+      >
+        <Box className='flex-1 bg-black'>
+          {/* Header */}
+          <Box className='absolute top-0 left-0 right-0 z-10 flex-row items-center justify-between px-4 pt-12 pb-4 bg-gradient-to-b from-black/60 to-transparent'>
+            <Text bold className='text-white text-lg'>
+              Ảnh ({images.length})
+            </Text>
+            <TouchableOpacity onPress={() => setIsGalleryOpen(false)}>
+              <IconLucide size={24} name='X' color='#FFFFFF' />
+            </TouchableOpacity>
+          </Box>
+
+          {/* Image Gallery */}
+          <ScrollView
+            pagingEnabled
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ height: screenHeight }}
+          >
+            {images.map((image, index) => (
+              <Pressable
+                key={index}
+                style={{ width: screenWidth, height: screenHeight }}
+                onPress={() => setIsGalleryOpen(false)}
+              >
+                <Image
+                  source={{ uri: image }}
+                  style={{ width: screenWidth, height: screenHeight }}
+                  resizeMode='contain'
+                />
+              </Pressable>
+            ))}
+          </ScrollView>
+        </Box>
+      </Modal>
     </Box>
   )
 }

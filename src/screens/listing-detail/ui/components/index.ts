@@ -1,5 +1,7 @@
 export * from './property-about'
+export * from './property-amenities'
 export * from './property-actions'
+export * from './property-cost-breakdown'
 export * from './property-features'
 export * from './property-header'
 export * from './property-image-carousel'
