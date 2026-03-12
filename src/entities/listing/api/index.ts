@@ -1,11 +1,11 @@
 import http from '@/shared/lib/http'
 import type {
   AdvancedSearchRequest,
-  ApiResponse,
   Listing,
   ListingSearchResponse,
   PageResponse,
-  PriceHistoryResponse, SimilarListingsResponse,
+  PriceHistoryResponse,
+  SimilarListingsResponse,
 } from '../model/types'
 
 export const listingApi = {
