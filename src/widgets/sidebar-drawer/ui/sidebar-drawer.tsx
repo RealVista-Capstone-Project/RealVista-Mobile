@@ -41,11 +41,11 @@ export function SidebarDrawer() {
     } else if (itemId === 'Rent') {
       router.replace('/rent-page')
     } else if (itemId === 'Favorited') {
-      router.push('/saved')
+      router.replace('/saved')
     } else if (itemId === 'About') {
       router.replace('/about')
     } else if (itemId === 'Messages') {
-      router.replace('/messages')
+      router.replace('/messages/index')
     }
   }
 

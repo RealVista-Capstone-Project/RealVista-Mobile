@@ -123,7 +123,7 @@ export function RealVistaPropertyCard({
         )}
 
         {/* Popular Badge */}
-        {property.isPopular && (
+        {property.isPopular && property.status !== 'SOLD' && property.status !== 'RENTED' && (
           <View style={{ position: 'absolute', bottom: -15, left: -8, zIndex: 10 }}>
             {/* Main badge body with special rounded corners */}
             <View

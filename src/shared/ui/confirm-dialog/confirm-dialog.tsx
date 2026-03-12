@@ -74,10 +74,7 @@ export function ConfirmDialog({
 
             {/* Confirm */}
             <Pressable
-              onPress={() => {
-                onConfirm()
-                onCancel()
-              }}
+              onPress={onConfirm}
               style={{
                 flex: 1,
                 paddingVertical: 12,
