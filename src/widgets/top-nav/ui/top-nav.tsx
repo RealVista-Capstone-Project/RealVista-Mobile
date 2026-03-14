@@ -1,22 +1,41 @@
 import { useDrawerStore } from '@/shared/stores/drawer-store'
 import { IconSymbol } from '@/shared/ui/icon-symbol'
+import { useRouter } from 'expo-router'
 import { Text, TouchableOpacity, View } from 'react-native'
 import { MenuIcon } from '../../../../assets/icon/menu'
 import { NotificationIcon } from '../../../../assets/icon/notification'
 
-export function TopNav() {
+export function TopNav({ title, showBack }: { title?: string; showBack?: boolean }) {
   const { setIsOpen } = useDrawerStore()
+  const router = useRouter()
 
   const handleMenuPress = () => {
     setIsOpen(true)
   }
 
+  const handleBackPress = () => {
+    router.back()
+  }
+
   return (
     <View className='flex-row items-center justify-between px-4 py-3 bg-white border-b border-gray-200'>
-      {/* Hamburger Menu Button */}
-      <TouchableOpacity onPress={handleMenuPress} className='p-2'>
-        <MenuIcon />
-      </TouchableOpacity>
+      {/* Left Side - Hamburger or Back */}
+      {showBack ? (
+        <TouchableOpacity onPress={handleBackPress} className='p-2'>
+          <IconSymbol name='chevron.left' size={24} color='#100A55' />
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity onPress={handleMenuPress} className='p-2'>
+          <MenuIcon />
+        </TouchableOpacity>
+      )}
+
+      {/* Title */}
+      {title && (
+        <View className='flex-1 items-center'>
+          <Text className='text-lg font-bold text-gray-900'>{title}</Text>
+        </View>
+      )}
 
       {/* Right Side - Notifications & User Avatar */}
       <View className='flex-row items-center gap-3'>

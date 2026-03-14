@@ -1,16 +1,20 @@
+import '@/shared/lib/websocket/polyfills'
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
 import { requestNotificationPermission, onForegroundMessage } from '@/shared/lib/firebase/fcm'
 import { useFonts } from 'expo-font'
-import { Href, Stack, useRootNavigationState, useRouter, useSegments } from 'expo-router'
+import { Href, Stack, useRootNavigationState, useRouter } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect, useState } from 'react'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import 'react-native-reanimated'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { useAuthStore } from '@/entities/user'
 import { AppProviders } from '@/shared/config/providers'
 import { useColorScheme } from '@/shared/lib/hooks/use-color-scheme'
 import { GluestackUIProvider } from '@/shared/ui/gluestack-ui-provider'
+import { SidebarDrawer } from '@/widgets/sidebar-drawer'
+import { TopNav } from '@/widgets/top-nav'
 import '../global.css'
 
 export const unstable_settings = {
@@ -19,13 +23,8 @@ export const unstable_settings = {
 
 SplashScreen.preventAutoHideAsync()
 
-const _AUTH_GROUP = '(auth)'
-const _HOME_GROUP = '(tabs)'
-
 export default function RootLayout() {
   const colorScheme = useColorScheme()
-  const { isAuthenticated } = useAuthStore()
-  const segments = useSegments()
   const router = useRouter()
   const rootNavigationState = useRootNavigationState()
   const [isNavigationReady, setNavigationReady] = useState(false)
@@ -47,22 +46,23 @@ export default function RootLayout() {
   }, [loaded, rootNavigationState?.key])
 
   // TODO: Remove this block before merging - for reviewer UI testing only
-  // useEffect(() => {
-  //   if (!isNavigationReady || !loaded) return
-  //   router.replace('/dev' as Href)
-  // }, [isNavigationReady, router, loaded])
-
   useEffect(() => {
     if (!isNavigationReady || !loaded) return
+    // Using the listing_id from the API response for development
+    router.replace('/listing/71cea53a-bff0-b29b-3a9e-9e041c3d0524' as Href)
+  }, [isNavigationReady, router, loaded])
 
-    const inAuthGroup = segments[0] === _AUTH_GROUP
+  // useEffect(() => {
+  //   if (!isNavigationReady || !loaded) return
 
-    if (!isAuthenticated && !inAuthGroup) {
-      router.replace(`/${_AUTH_GROUP}/login` as Href)
-    } else if (isAuthenticated && inAuthGroup) {
-      router.replace(`/${_HOME_GROUP}` as Href)
-    }
-  }, [isAuthenticated, segments, isNavigationReady, router, loaded])
+  //   const inAuthGroup = segments[0] === _AUTH_GROUP
+
+  //   if (!isAuthenticated && !inAuthGroup) {
+  //     router.replace(`/${_AUTH_GROUP}/login` as Href)
+  //   } else if (isAuthenticated && inAuthGroup) {
+  //     router.replace(`/${_HOME_GROUP}` as Href)
+  //   }
+  // }, [isAuthenticated, segments, isNavigationReady, router, loaded])
 
   // Global Notification Listener
   useEffect(() => {
@@ -87,18 +87,39 @@ export default function RootLayout() {
   }
 
   return (
-    <AppProviders>
-      <GluestackUIProvider mode='dark'>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack>
-            <Stack.Screen name='dev' options={{ headerShown: false }} />
-            <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
-            <Stack.Screen name='(auth)/login' options={{ headerShown: false }} />
-            <Stack.Screen name='modal' options={{ presentation: 'modal', title: 'Modal' }} />
-          </Stack>
-          <StatusBar style='auto' />
-        </ThemeProvider>
-      </GluestackUIProvider>
-    </AppProviders>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AppProviders>
+        <GluestackUIProvider mode='dark'>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <SafeAreaView className='flex-1 bg-gray-50' edges={['top', 'left', 'right']}>
+              <SidebarDrawer />
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                }}
+              >
+                <Stack.Screen
+                  name='(tabs)'
+                  options={{
+                    headerShown: true,
+                    header: () => null, // Custom header per screen
+                  }}
+                />
+                <Stack.Screen name='(auth)/login' options={{ headerShown: false }} />
+                <Stack.Screen name='modal' options={{ presentation: 'modal', title: 'Modal' }} />
+                <Stack.Screen
+                  name='listing'
+                  options={{
+                    headerShown: true,
+                    header: () => <TopNav />,
+                  }}
+                />
+              </Stack>
+              <StatusBar style='auto' />
+            </SafeAreaView>
+          </ThemeProvider>
+        </GluestackUIProvider>
+      </AppProviders>
+    </GestureHandlerRootView>
   )
 }

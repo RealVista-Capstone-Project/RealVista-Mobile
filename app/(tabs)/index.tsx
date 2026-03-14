@@ -6,17 +6,17 @@ import { RoleGuard } from '@/shared/lib/auth/role-guard'
 import { Box } from '@/shared/ui/box'
 import { Heading } from '@/shared/ui/heading'
 import { Text } from '@/shared/ui/text'
-import { AppHeader } from '@/widgets/app-header'
 import { SidebarDrawer } from '@/widgets/sidebar-drawer'
 
 import { useLogout } from '@/features/auth'
+import { TopNav } from '@/widgets/top-nav'
 
 export default function HomeScreen() {
   const { mutate: logout } = useLogout()
 
   return (
     <SafeAreaView className='flex-1 bg-gray-950' edges={['top']}>
-      <AppHeader />
+      <TopNav />
       <SidebarDrawer />
       <ScrollView className='flex-1 bg-gray-950'>
         <Box className='p-4'>

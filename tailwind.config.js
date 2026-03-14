@@ -19,12 +19,38 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Brand colors from Figma
         'brand-primary': '#7065F0',
         'brand-secondary': '#100A55',
         'input-bg': '#F7F7FD',
         'input-border': '#E0DEF7',
         'text-main': '#000929',
         'text-muted': '#9EA3AE',
+
+        // Main Colors from Figma
+        'main-black': '#000929',
+        'main-white': '#FFFFFF',
+        'main-primary': '#7065F0',
+        'main-secondary': '#100A55',
+
+        // Shades of Purple from Figma
+        'purple-98': '#F7F7FD',
+        'purple-96': '#F0EFFB',
+        'purple-94': '#E8E6F9',
+        'purple-92': '#E0DEF7',
+        'purple-90': '#D8D6F5',
+
+        // Greyscale from Figma
+        'grey-50': '#F9FAFB',
+        'grey-100': '#F4F4F6',
+        'grey-200': '#E5E6EB',
+        'grey-300': '#D3D5DA',
+        'grey-400': '#9EA3AE',
+        'grey-500': '#6C727F',
+        'grey-600': '#4D5461',
+        'grey-700': '#394150',
+        'grey-800': '#212936',
+        'grey-900': '#0B0A0F',
         primary: {
           0: 'rgb(var(--color-primary-0)/<alpha-value>)',
           50: 'rgb(var(--color-primary-50)/<alpha-value>)',

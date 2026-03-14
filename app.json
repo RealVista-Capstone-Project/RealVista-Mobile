@@ -10,7 +10,16 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sep.realvista"
+      "bundleIdentifier": "com.sep.realvista",
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": [
+          "fb",
+          "instagram",
+          "twitter",
+          "tiktoksharesdk"
+        ],
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,16 +28,62 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
+      "config": {
+        "googleMaps": {
+          "apiKey": "process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY"
+        }
+      },
       "package": "com.sep.realvista",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "googleServicesFile": "./google-services.json"
+    },
+    "notification": {
+      "icon": "./assets/images/icon.png",
+      "color": "#7065F0",
+      "androidMode": "default",
+      "androidCollapsedTitle": "RealVista"
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "realvista.com",
+              "pathPrefix": "/vi/"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      [
+        "react-native-share",
+        {
+          "ios": [
+            "fb",
+            "instagram",
+            "twitter",
+            "tiktoksharesdk"
+          ],
+          "android": [
+            "com.facebook.katana",
+            "com.instagram.android",
+            "com.twitter.android",
+            "com.zhiliaoapp.musically"
+          ],
+          "enableBase64ShareAndroid": true
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",
@@ -42,15 +97,15 @@
           }
         }
       ],
-      "@react-native-firebase/app",
       [
-        "expo-build-properties",
+        "expo-notifications",
         {
-          "android": {
-            "enableProguardInReleaseBuilds": false
-          }
+          "icon": "./assets/images/icon.png",
+          "color": "#7065F0",
+          "defaultChannel": "default"
         }
       ]
+      "expo-build-properties",
     ],
     "experiments": {
       "typedRoutes": true,
@@ -61,6 +116,7 @@
       "eas": {
         "projectId": "eff03b7b-d820-4bbb-8e00-e00ea540be4f"
       }
-    }
+    },
+    "owner": "nbquochuy"
   }
 }
