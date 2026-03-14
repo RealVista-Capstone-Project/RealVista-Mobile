@@ -27,4 +27,5 @@ export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
   PROFILE: '/profile',
+  LISTING_DETAIL: '/listing/[id]',
 } as const

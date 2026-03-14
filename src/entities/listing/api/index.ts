@@ -5,6 +5,7 @@ import type {
   Listing,
   ListingSearchResponse,
   PageResponse,
+  PriceHistoryResponse,
   SimilarListingsResponse,
 } from '../model/types'
 
@@ -57,4 +58,10 @@ export const listingApi = {
     http.get<SimilarListingsResponse>(`/listings/${id}/similar`, {
       params: { limit },
     }),
+
+  /**
+   * Get listing price history
+   * GET /listings/:id/price-history
+   */
+  getPriceHistory: (id: string) => http.get<PriceHistoryResponse>(`/listings/${id}/price-history`),
 } as const

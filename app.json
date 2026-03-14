@@ -10,7 +10,11 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sep.realvista"
+      "bundleIdentifier": "com.sep.realvista",
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": ["fb", "instagram", "twitter", "tiktoksharesdk"],
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -21,19 +25,52 @@
       },
       "config": {
         "googleMaps": {
-          "apiKey": "process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY"
+          "apiKey": "EXPO_PUBLIC_GOOGLE_MAPS_API_KEY"
         }
       },
       "package": "com.sep.realvista",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "usesCleartextTraffic": true
+      "usesCleartextTraffic": true,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "realvista.com",
+              "pathPrefix": "/vi/"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      [
+        "react-native-maps",
+        {
+          "androidGoogleMapsApiKey": "EXPO_PUBLIC_GOOGLE_MAPS_API_KEY"
+        }
+      ],
+      [
+        "react-native-share",
+        {
+          "ios": ["fb", "instagram", "twitter", "tiktoksharesdk"],
+          "android": [
+            "com.facebook.katana",
+            "com.instagram.android",
+            "com.twitter.android",
+            "com.zhiliaoapp.musically"
+          ],
+          "enableBase64ShareAndroid": true
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",
@@ -46,7 +83,8 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-build-properties"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -55,8 +93,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "0ea1d05b-bbee-452d-8a07-b2130074a83c"
+        "projectId": "eff03b7b-d820-4bbb-8e00-e00ea540be4f"
       }
-    }
+    },
+    "owner": "nbquochuy"
   }
 }

@@ -25,6 +25,7 @@ interface RealVistaPropertyCardProps {
   onClick?: (id: string) => void
   className?: string
   variant?: 'rent' | 'buy'
+  layout?: 'vertical' | 'horizontal'
 }
 
 export function RealVistaPropertyCard({
@@ -33,6 +34,7 @@ export function RealVistaPropertyCard({
   onClick,
   className = '',
   variant = 'rent',
+  layout = 'vertical',
 }: RealVistaPropertyCardProps) {
   const handleFavoriteClick = (e: any) => {
     onToggleFavorite?.(property.id)
@@ -42,6 +44,8 @@ export function RealVistaPropertyCard({
     onClick?.(property.id)
   }
 
+  const ishorizontal = layout === 'horizontal'
+
   return (
     <TouchableOpacity
       onPress={handleCardClick}
@@ -50,25 +54,37 @@ export function RealVistaPropertyCard({
       style={{
         borderRadius: 8,
         borderWidth: 1.5,
+        borderColor: '#F0EFFB',
+        backgroundColor: '#FFFFFF',
+        flexDirection: ishorizontal ? 'row' : 'column',
+        height: ishorizontal ? 140 : 'auto',
       }}
     >
       {/* Property Image */}
-      <View style={{ position: 'relative', aspectRatio: 16 / 10 }}>
+      <View
+        style={{
+          position: 'relative',
+          aspectRatio: ishorizontal ? undefined : 16 / 10,
+          width: ishorizontal ? 140 : '100%',
+          height: ishorizontal ? '100%' : undefined,
+        }}
+      >
         <Image
           source={{ uri: property.image }}
           style={{
             width: '100%',
             height: '100%',
-            borderTopLeftRadius: 8,
-            borderTopRightRadius: 8,
+            borderTopLeftRadius: 6.5, // 8px - 1.5px border
+            borderTopRightRadius: ishorizontal ? 0 : 6.5,
+            borderBottomLeftRadius: ishorizontal ? 6.5 : 0,
           }}
           resizeMode='cover'
         />
 
-        {/* Popular Badge */}
-        {property.isPopular && (
+        {/* Popular Badge (Vertical only) */}
+        {!ishorizontal && property.isPopular && (
           <View style={{ position: 'absolute', bottom: -15, left: -8, zIndex: 10 }}>
-            {/* Main badge body with special rounded corners */}
+            {/* ... badge content ... */}
             <View
               className='bg-brand-primary'
               style={{
@@ -79,10 +95,10 @@ export function RealVistaPropertyCard({
                 borderTopLeftRadius: 8,
                 borderTopRightRadius: 8,
                 borderBottomRightRadius: 8,
+                backgroundColor: '#7065F0',
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                {/* Star Icon - 16x16 */}
                 <Svg width={16} height={16} viewBox='0 0 16 16' fill='none'>
                   <Path
                     fillRule='evenodd'
@@ -91,7 +107,6 @@ export function RealVistaPropertyCard({
                     fill='white'
                   />
                 </Svg>
-                {/* Text */}
                 <Text
                   style={{
                     fontSize: 12,
@@ -106,7 +121,6 @@ export function RealVistaPropertyCard({
                 </Text>
               </View>
 
-              {/* Decorative cutout at bottom-left corner - creates paper wrap effect */}
               <View style={{ position: 'absolute', left: 0, top: '200%', height: 8, width: 8 }}>
                 <Svg width={8} height={8} viewBox='0 0 8 8' fill='none' preserveAspectRatio='none'>
                   <Path d='M8 8L0 0H8V8Z' fill='#5245ED' />
@@ -118,13 +132,20 @@ export function RealVistaPropertyCard({
       </View>
 
       {/* Property Details */}
-      <View style={{ padding: 24 }}>
-        {/* Price and Favorite */}
+      <View
+        style={{
+          padding: ishorizontal ? 12 : 24,
+          paddingBottom: ishorizontal ? 12 : 24,
+          flex: 1,
+          justifyContent: ishorizontal ? 'space-between' : 'flex-start',
+        }}
+      >
+        {/* Top Section (Price + Favorite) */}
         <View
           style={{
-            marginBottom: 12,
+            marginBottom: ishorizontal ? 4 : 12,
             flexDirection: 'row',
-            alignItems: 'center',
+            alignItems: ishorizontal ? 'flex-start' : 'center',
             justifyContent: 'space-between',
           }}
         >
@@ -133,9 +154,10 @@ export function RealVistaPropertyCard({
               className="font-['PlusJakartaSans_700Bold'] text-brand-primary"
               style={{
                 fontFamily: 'PlusJakartaSans_700Bold',
-                fontSize: 24,
-                lineHeight: 36,
+                fontSize: ishorizontal ? 18 : 24,
+                lineHeight: ishorizontal ? 26 : 36,
                 letterSpacing: -1,
+                color: '#7065F0',
               }}
             >
               {formatVND(property.price)}
@@ -145,8 +167,9 @@ export function RealVistaPropertyCard({
                 className="font-['PlusJakartaSans_500Medium'] text-grey-500"
                 style={{
                   fontFamily: 'PlusJakartaSans_500Medium',
-                  fontSize: 16,
+                  fontSize: ishorizontal ? 13 : 16,
                   lineHeight: 24,
+                  color: '#6C727F',
                 }}
               >
                 /tháng
@@ -154,60 +177,86 @@ export function RealVistaPropertyCard({
             )}
           </View>
 
+          {/* Favorite Button (smaller in horizontal) */}
           <TouchableOpacity
             onPress={handleFavoriteClick}
-            className='border-purple-94 bg-white'
             style={{
-              width: 40,
-              height: 40,
+              width: ishorizontal ? 32 : 40,
+              height: ishorizontal ? 32 : 40,
               borderRadius: 20,
               borderWidth: 1.5,
+              borderColor: '#E0DEF7', // Purple 92
               alignItems: 'center',
               justifyContent: 'center',
+              backgroundColor: '#FFFFFF',
             }}
             activeOpacity={0.7}
           >
-            <HeartIcon filled={property.isFavorite} />
+            <HeartIcon filled={property.isFavorite} size={ishorizontal ? 16 : 20} />
           </TouchableOpacity>
         </View>
 
-        {/* Title */}
-        <Text
-          className="font-['PlusJakartaSans_700Bold'] text-main-black"
-          style={{
-            fontFamily: 'PlusJakartaSans_700Bold',
-            fontSize: 24,
-            lineHeight: 36,
-            letterSpacing: -1,
-            marginBottom: 4,
-          }}
-        >
-          {property.title}
-        </Text>
+        {/* Title & Address */}
+        <View style={{ marginBottom: ishorizontal ? 8 : 16 }}>
+          <Text
+            className="font-['PlusJakartaSans_700Bold'] text-main-black"
+            style={{
+              fontFamily: 'PlusJakartaSans_700Bold',
+              fontSize: ishorizontal ? 16 : 24,
+              lineHeight: ishorizontal ? 24 : 36,
+              letterSpacing: ishorizontal ? 0 : -1,
+              marginBottom: 4,
+              color: '#000929',
+            }}
+            numberOfLines={1}
+          >
+            {property.title}
+          </Text>
 
-        {/* Address */}
-        <Text
-          className="font-['PlusJakartaSans_500Medium'] text-grey-500"
-          style={{
-            fontFamily: 'PlusJakartaSans_500Medium',
-            fontSize: 16,
-            lineHeight: 24,
-            marginBottom: 16,
-          }}
-        >
-          {property.address}
-        </Text>
+          <Text
+            className="font-['PlusJakartaSans_500Medium'] text-grey-500"
+            style={{
+              fontFamily: 'PlusJakartaSans_500Medium',
+              fontSize: ishorizontal ? 13 : 16,
+              lineHeight: ishorizontal ? 18 : 24,
+              color: '#6C727F',
+            }}
+            numberOfLines={1}
+          >
+            {property.address}
+          </Text>
+        </View>
 
-        {/* Divider Line */}
-        <View className='bg-purple-94' style={{ height: 1, marginBottom: 16 }} />
+        {/* Divider Line (Horizontal only, or distinct style) */}
+        {ishorizontal && (
+          <View
+            style={{
+              height: 1,
+              backgroundColor: '#F0EFFB', // Purple 96
+              marginBottom: 8,
+              width: '100%',
+            }}
+          />
+        )}
+        {!ishorizontal && (
+          <View
+            className='bg-purple-94'
+            style={{ height: 1, marginBottom: 16, backgroundColor: '#F0EFFB' }}
+          />
+        )}
 
         {/* Property Specs */}
         <View
-          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16 }}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: ishorizontal ? 'flex-start' : 'center',
+            gap: 16,
+          }}
         >
           {/* Beds */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <BedIcon />
+            <BedIcon size={ishorizontal ? 16 : 20} />
             <Text
               className="font-['PlusJakartaSans_500Medium'] text-grey-500"
               style={{
@@ -217,13 +266,14 @@ export function RealVistaPropertyCard({
                 color: '#6C727F',
               }}
             >
-              {property.beds} PN
+              {property.beds}
+              {!ishorizontal && ' PN'}
             </Text>
           </View>
 
           {/* Bathrooms */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <BathIcon />
+            <BathIcon size={ishorizontal ? 16 : 20} />
             <Text
               className="font-['PlusJakartaSans_500Medium'] text-grey-500"
               style={{
@@ -233,13 +283,14 @@ export function RealVistaPropertyCard({
                 color: '#6C727F',
               }}
             >
-              {property.bathrooms} WC
+              {property.bathrooms}
+              {!ishorizontal && ' WC'}
             </Text>
           </View>
 
           {/* Area */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <AreaIcon />
+            <AreaIcon size={ishorizontal ? 16 : 20} />
             <Text
               className="font-['PlusJakartaSans_500Medium'] text-grey-500"
               style={{
@@ -260,9 +311,9 @@ export function RealVistaPropertyCard({
 }
 
 // Heart Icon
-function HeartIcon({ filled = false }: { filled?: boolean }) {
+function HeartIcon({ filled = false, size = 20 }: { filled?: boolean; size?: number }) {
   return (
-    <Svg width={20} height={20} viewBox='0 0 20 20' fill='none'>
+    <Svg width={size} height={size} viewBox='0 0 20 20' fill='none'>
       <Path
         d='M10 17.5C10 17.5 2.5 13.75 2.5 7.91667C2.5 6.75544 2.96094 5.64181 3.78141 4.82134C4.60188 4.00087 5.71551 3.53993 6.87674 3.53993C8.28571 3.53993 9.44118 4.21569 10 5.24157C10.5588 4.21569 11.7143 3.53993 13.1233 3.53993C14.2845 3.53993 15.3981 4.00087 16.2186 4.82134C17.0391 5.64181 17.5 6.75544 17.5 7.91667C17.5 13.75 10 17.5 10 17.5Z'
         fill={filled ? '#7065F0' : 'none'}
@@ -276,9 +327,9 @@ function HeartIcon({ filled = false }: { filled?: boolean }) {
 }
 
 // Bed Icon (BedSingle equivalent)
-function BedIcon() {
+function BedIcon({ size = 20 }: { size?: number }) {
   return (
-    <Svg width={20} height={20} viewBox='0 0 20 20' fill='none'>
+    <Svg width={size} height={size} viewBox='0 0 20 20' fill='none'>
       <Path
         d='M2.5 14.1667V8.33333M2.5 8.33333V5.83333C2.5 5.3731 2.8731 5 3.33333 5H16.6667C17.1269 5 17.5 5.3731 17.5 5.83333V8.33333M2.5 8.33333H17.5M17.5 8.33333V14.1667M2.5 14.1667H17.5M2.5 14.1667V15.8333M17.5 14.1667V15.8333M5.83333 8.33333V6.66667M14.1667 8.33333V6.66667'
         stroke='#7065F0'
@@ -291,9 +342,9 @@ function BedIcon() {
 }
 
 // Bath Icon
-function BathIcon() {
+function BathIcon({ size = 20 }: { size?: number }) {
   return (
-    <Svg width={20} height={20} viewBox='0 0 20 20' fill='none'>
+    <Svg width={size} height={size} viewBox='0 0 20 20' fill='none'>
       <Path
         d='M3.33333 7.5V5.83333C3.33333 4.91286 4.07953 4.16667 5 4.16667C5.92047 4.16667 6.66667 4.91286 6.66667 5.83333V7.5M3.33333 7.5H16.6667M3.33333 7.5V11.6667C3.33333 13.5076 4.82572 15 6.66667 15H13.3333C15.1743 15 16.6667 13.5076 16.6667 11.6667V7.5M5 15V16.6667M15 15V16.6667'
         stroke='#7065F0'
@@ -306,9 +357,9 @@ function BathIcon() {
 }
 
 // Area Icon
-function AreaIcon() {
+function AreaIcon({ size = 20 }: { size?: number }) {
   return (
-    <Svg width={20} height={20} viewBox='0 0 20 20' fill='none'>
+    <Svg width={size} height={size} viewBox='0 0 20 20' fill='none'>
       <G clipPath='url(#clip0_272_7379)'>
         <Path
           d='M8.83149 15.5437L3.45631 10.1685C2.8479 9.56011 2.8479 8.43989 3.45631 7.83148L8.83149 2.45631C9.43989 1.8479 10.5601 1.8479 11.1685 2.45631L16.5437 7.83148C17.1521 8.43989 17.1521 9.56011 16.5437 10.1685L11.1685 15.5437C10.5601 16.1521 9.43989 16.1521 8.83149 15.5437V15.5437Z'

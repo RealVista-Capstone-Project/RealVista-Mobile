@@ -1,7 +1,8 @@
+import { useLogout } from '@/features/auth'
 import { useDrawerStore } from '@/shared/stores/drawer-store'
 import { Drawer, DrawerBackdrop, DrawerBody, DrawerContent, DrawerFooter } from '@/shared/ui/drawer'
 import { IconSymbol } from '@/shared/ui/icon-symbol'
-import { useRouter, Href } from 'expo-router'
+import { useRouter, type Href } from 'expo-router'
 import { Text, TouchableOpacity, View } from 'react-native'
 import LogoFill from '../../../../assets/images/logo-fill.svg'
 
@@ -18,16 +19,19 @@ const MENU_ITEMS: MenuItem[] = [
   { id: 'My applications', label: 'Đơn ứng tuyển', icon: 'doc.plaintext.fill' },
   { id: 'My listings', label: 'Tin đăng của tôi', icon: 'apartment' },
   { id: 'Appointments', label: 'Lịch hẹn', icon: 'calendar' },
+  { id: 'Messages', label: 'Tin nhắn', icon: 'message' },
 ]
 
 const HELP_ITEMS: MenuItem[] = [
   { id: 'Help', label: 'Trợ giúp', icon: 'help' },
+  { id: 'About', label: 'Về RealVista', icon: 'info.circle.fill' },
   { id: 'Settings', label: 'Cài đặt', icon: 'settings' },
 ]
 
 export function SidebarDrawer() {
   const { isOpen, setIsOpen, activeItem, setActiveItem } = useDrawerStore()
   const router = useRouter()
+  const { mutate: logout } = useLogout()
 
   const handleMenuItemPress = (itemId: string) => {
     setActiveItem(itemId)
@@ -39,6 +43,10 @@ export function SidebarDrawer() {
       router.replace('/rent-page')
     } else if (itemId === 'My applications') {
       router.push('/my-applications' as Href)
+    } else if (itemId === 'About') {
+      router.replace('/about')
+    } else if (itemId === 'Messages') {
+      router.replace('/messages')
     }
   }
 
@@ -96,6 +104,18 @@ export function SidebarDrawer() {
                 onPress={() => handleMenuItemPress(item.id)}
               />
             ))}
+            <MenuItemComponent
+              item={{
+                id: 'Logout',
+                label: 'Đăng xuất',
+                icon: 'rectangle.portrait.and.arrow.right',
+              }}
+              isActive={false}
+              onPress={() => {
+                setIsOpen(false)
+                logout()
+              }}
+            />
           </View>
         </DrawerFooter>
       </DrawerContent>

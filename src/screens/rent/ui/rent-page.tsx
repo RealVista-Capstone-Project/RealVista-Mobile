@@ -1,5 +1,9 @@
+import { useMapSearch } from '@/features/map-search/api'
 import { useListingSearch } from '@/features/search/use-listing-search'
 import { OpenMapsButton } from '@/shared/ui/open-maps-button'
+import { Box } from '@/shared/ui/box'
+import IconLucide from '@/shared/ui/icon-lucide/icon'
+import { RealVistaMapSearchView } from '@/shared/ui/realvista-map-search-view'
 import {
   RealVistaPropertyCard,
   type RealVistaPropertyCardData,
@@ -9,12 +13,14 @@ import {
   type FilterValues,
 } from '@/shared/ui/realvista-property-listing-search-bar'
 import { useRouter } from 'expo-router'
-import React, { useMemo } from 'react'
-import { ActivityIndicator, FlatList, Text, View } from 'react-native'
+import React, { useMemo, useState } from 'react'
+import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 export function RentPage() {
   const router = useRouter()
+  const [searchMode, setSearchMode] = useState<'list' | 'map'>('list')
+
   const {
     listings,
     isLoading,
@@ -26,6 +32,17 @@ export function RentPage() {
     nextPage,
   } = useListingSearch({
     listingType: 'RENT',
+  })
+
+  // Map search — fetch markers from API when in map mode
+  const {
+    markers: mapMarkers,
+    totalCount: mapTotalCount,
+    isLoading: mapIsLoading,
+    onRegionChange,
+  } = useMapSearch({
+    listingType: 'RENT',
+    enabled: searchMode === 'map',
   })
 
   // Map API listings to UI card data
@@ -69,23 +86,38 @@ export function RentPage() {
     router.push(`/listing/${propertyId}`)
   }
 
-  const handleOpenMaps = () => {
-    // Navigate to map view (implementation pending)
-    // console.log('Open maps pressed')
+  const toggleSearchMode = () => {
+    setSearchMode((prev) => (prev === 'list' ? 'map' : 'list'))
   }
 
   const renderHeader = (
     <View className='px-4 py-6'>
-      {/* Search Bar */}
-      <RealVistaPropertySearchBar
-        value={criteria.location}
-        onChangeText={handleSearchChange}
-        onFiltersChange={handleFiltersChange}
-        placeholder='Tìm kiếm theo địa điểm'
-        className='mb-6'
-        showLeaseTerm={true}
-        maxPriceLimit={100_000_000} // 100 triệu/tháng — phù hợp với BĐS cho thuê
-      />
+      {/* Search Bar + Toggle Button Row */}
+      <View className='mb-4 flex-row items-center gap-3'>
+        <View className='flex-1'>
+          <RealVistaPropertySearchBar
+            value={criteria.location}
+            onChangeText={handleSearchChange}
+            onFiltersChange={handleFiltersChange}
+            placeholder='Tìm kiếm theo địa điểm'
+            showLeaseTerm={true}
+            maxPriceLimit={100_000_000} // 100 triệu/tháng — phù hợp với BĐS cho thuê
+          />
+        </View>
+
+        {/* Search Mode Toggle Button */}
+        <TouchableOpacity
+          onPress={toggleSearchMode}
+          activeOpacity={0.7}
+          className='h-10 w-10 items-center justify-center rounded-lg border-[1.5px] border-purple-92 bg-white'
+        >
+          <IconLucide
+            name={searchMode === 'list' ? 'Map' : 'LayoutGrid'}
+            color='#100A55'
+            size={20}
+          />
+        </TouchableOpacity>
+      </View>
       {/* Error State */}
       {error && (
         <View className='py-10 items-center px-4'>
@@ -106,7 +138,7 @@ export function RentPage() {
         </View>
       )}
       {/* Open Maps Button */}
-      {!isLoading && <OpenMapsButton onPress={handleOpenMaps} className='mt-6' />}
+      {!isLoading && <OpenMapsButton onPress={toggleSearchMode} className='mt-6' />}
     </View>
   )
 
@@ -121,33 +153,52 @@ export function RentPage() {
 
   return (
     <SafeAreaView className='flex-1 bg-white' edges={['top']}>
-      {isLoading && propertyCardData.length === 0 ? (
-        <View className='flex-1 justify-center items-center'>
-          <ActivityIndicator size='large' color='#7065F0' />
-        </View>
-      ) : (
-        <FlatList
-          data={propertyCardData}
-          renderItem={({ item }) => (
-            <View className='px-4 mb-6'>
-              <RealVistaPropertyCard
-                property={item}
-                onClick={() => handlePropertyPress(item.id)}
-                // Favorite logic to be implemented with store
-                onToggleFavorite={() => {}}
-                variant='rent'
-              />
+      {searchMode === 'list' ? (
+        /* List View */
+        <>
+          {isLoading && propertyCardData.length === 0 ? (
+            <View className='flex-1 justify-center items-center'>
+              <ActivityIndicator size='large' color='#7065F0' />
             </View>
+          ) : (
+            <FlatList
+              data={propertyCardData}
+              renderItem={({ item }) => (
+                <View className='px-4 mb-6'>
+                  <RealVistaPropertyCard
+                    property={item}
+                    onClick={() => handlePropertyPress(item.id)}
+                    // Favorite logic to be implemented with store
+                    onToggleFavorite={() => {}}
+                    variant='rent'
+                  />
+                </View>
+              )}
+              keyExtractor={(item) => item.id}
+              ListHeaderComponent={renderHeader}
+              ListFooterComponent={renderFooter}
+              ListEmptyComponent={renderEmpty}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ flexGrow: 1 }}
+              onEndReached={nextPage}
+              onEndReachedThreshold={0.5}
+            />
           )}
-          keyExtractor={(item) => item.id}
-          ListHeaderComponent={renderHeader}
-          ListFooterComponent={renderFooter}
-          ListEmptyComponent={renderEmpty}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ flexGrow: 1 }}
-          onEndReached={nextPage}
-          onEndReachedThreshold={0.5}
-        />
+        </>
+      ) : (
+        /* Map View */
+        <>
+          {renderHeader}
+          <RealVistaMapSearchView
+            properties={mapMarkers}
+            totalCount={mapTotalCount}
+            isLoading={mapIsLoading}
+            onRegionChange={onRegionChange}
+            onPropertyPress={handlePropertyPress}
+            propertyCountLabel={`${mapTotalCount} bất động sản cho thuê`}
+            variant='rent'
+          />
+        </>
       )}
     </SafeAreaView>
   )

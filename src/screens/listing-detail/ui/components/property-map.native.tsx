@@ -1,12 +1,28 @@
 import { useRef, useState } from 'react'
 import { Linking, Platform, TouchableOpacity, View } from 'react-native'
-import MapView, { Marker, PROVIDER_GOOGLE, type Region } from 'react-native-maps'
 import { Path, Svg } from 'react-native-svg'
 
 import { MAP_CONFIG } from '@/shared/config/maps'
 import { lightColors } from '@/shared/theme/color'
 import { OpenMapsButton } from '@/shared/ui/open-maps-button'
 import { Text } from '@/shared/ui/text'
+
+// Lazy-load react-native-maps to avoid TurboModuleRegistry crash in Expo Go
+// (native module is only available in a development build, not Expo Go)
+let MapViewComponent: typeof import('react-native-maps').default | undefined
+let MarkerComponent: typeof import('react-native-maps').Marker | undefined
+let PROVIDER_GOOGLE_VAL: typeof import('react-native-maps').PROVIDER_GOOGLE | undefined
+type Region = import('react-native-maps').Region
+
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const maps = require('react-native-maps')
+  MapViewComponent = maps.default
+  MarkerComponent = maps.Marker
+  PROVIDER_GOOGLE_VAL = maps.PROVIDER_GOOGLE
+} catch {
+  // Native module not available (e.g. Expo Go) — map will show fallback UI
+}
 
 interface PropertyMapProps {
   latitude: number
@@ -16,7 +32,7 @@ interface PropertyMapProps {
 }
 
 export function PropertyMap({ latitude, longitude, address, city = 'Houston' }: PropertyMapProps) {
-  const mapRef = useRef<MapView>(null)
+  const mapRef = useRef<InstanceType<NonNullable<typeof MapViewComponent>>>(null)
   const [region, setRegion] = useState<Region>({
     latitude,
     longitude,
@@ -103,46 +119,69 @@ export function PropertyMap({ latitude, longitude, address, city = 'Houston' }: 
       {/* Map Container */}
       <View className='gap-6'>
         <View className='relative h-[300px] overflow-hidden rounded-lg'>
-          <MapView
-            ref={mapRef}
-            provider={PROVIDER_GOOGLE}
-            style={{ flex: 1 }}
-            region={region}
-            onRegionChangeComplete={setRegion}
-          >
-            <Marker coordinate={{ latitude, longitude }} title={address}>
-              <PropertyMarker />
-            </Marker>
-          </MapView>
+          {MapViewComponent && MarkerComponent ? (
+            <>
+              <MapViewComponent
+                ref={mapRef}
+                provider={PROVIDER_GOOGLE_VAL}
+                style={{ flex: 1 }}
+                region={region}
+                onRegionChangeComplete={setRegion}
+              >
+                <MarkerComponent coordinate={{ latitude, longitude }} title={address}>
+                  <PropertyMarker />
+                </MarkerComponent>
+              </MapViewComponent>
 
-          {/* Zoom Controls */}
-          <View className='absolute right-3 top-1/2 -translate-y-1/2'>
-            <View className='overflow-hidden rounded-lg border-[1.5px] border-purple-92 bg-main-white'>
-              <TouchableOpacity
-                onPress={handleRecenter}
-                className='h-10 w-10 items-center justify-center border-b border-purple-92'
-                activeOpacity={0.7}
-              >
-                <LocateIcon />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleZoomIn}
-                className='h-10 w-10 items-center justify-center border-b border-purple-92'
-                activeOpacity={0.7}
-              >
-                <Text className='text-lg font-bold text-main-secondary'>+</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleZoomOut}
-                className='h-10 w-10 items-center justify-center'
-                activeOpacity={0.7}
-              >
-                <Text className='text-lg font-bold text-main-secondary'>−</Text>
-              </TouchableOpacity>
+              {/* Zoom Controls */}
+              <View className='absolute right-3 top-1/2 -translate-y-1/2'>
+                <View className='overflow-hidden rounded-lg border-[1.5px] border-purple-92 bg-main-white'>
+                  <TouchableOpacity
+                    onPress={handleRecenter}
+                    className='h-10 w-10 items-center justify-center border-b border-purple-92'
+                    activeOpacity={0.7}
+                  >
+                    <LocateIcon />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleZoomIn}
+                    className='h-10 w-10 items-center justify-center border-b border-purple-92'
+                    activeOpacity={0.7}
+                  >
+                    <Text className='text-lg font-bold text-main-secondary'>+</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleZoomOut}
+                    className='h-10 w-10 items-center justify-center'
+                    activeOpacity={0.7}
+                  >
+                    <Text className='text-lg font-bold text-main-secondary'>−</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </>
+          ) : (
+            /* Fallback UI when react-native-maps is not available (Expo Go) */
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: '#E8EDF3',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 8,
+                gap: 8,
+              }}
+            >
+              <Text className='text-main-secondary font-jakarta-semibold text-sm text-center px-4'>
+                🗺️ Bản đồ chỉ khả dụng trong bản build
+              </Text>
+              <Text className='text-gray-400 text-xs text-center px-6'>
+                Vui lòng sử dụng development build để xem bản đồ
+              </Text>
             </View>
-          </View>
+          )}
 
-          {/* Open Google Maps Button */}
+          {/* Open Google Maps Button — always visible */}
           <View className='absolute bottom-4 left-4'>
             <OpenMapsButton onPress={handleOpenMaps} />
           </View>
