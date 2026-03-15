@@ -31,6 +31,7 @@
       "package": "com.sep.realvista",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
+      "usesCleartextTraffic": true,
       "intentFilters": [
         {
           "action": "VIEW",
@@ -83,7 +84,7 @@
           }
         }
       ],
-      "expo-build-properties",
+      "expo-build-properties"
     ],
     "experiments": {
       "typedRoutes": true,

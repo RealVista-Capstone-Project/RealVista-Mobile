@@ -1,268 +1,37 @@
+import { useListingSearch } from '@/features/search/use-listing-search'
 import { useMapSearch } from '@/features/map-search/api'
 import { Box } from '@/shared/ui/box'
 import IconLucide from '@/shared/ui/icon-lucide/icon'
+import { OpenMapsButton } from '@/shared/ui/open-maps-button'
+import { RealVistaMapSearchView } from '@/shared/ui/realvista-map-search-view'
 import {
-  RealVistaMapSearchView,
-  type PropertyWithCoords,
-} from '@/shared/ui/realvista-map-search-view'
-import { RealVistaPropertyCard } from '@/shared/ui/realvista-property-listing-card'
-import { RealVistaPropertySearchBar } from '@/shared/ui/realvista-property-listing-search-bar'
-import React, { useState } from 'react'
-import { ScrollView, TouchableOpacity, View } from 'react-native'
+  RealVistaPropertyCard,
+  type RealVistaPropertyCardData,
+} from '@/shared/ui/realvista-property-listing-card'
+import {
+  RealVistaPropertySearchBar,
+  type FilterValues,
+} from '@/shared/ui/realvista-property-listing-search-bar'
+import { useRouter } from 'expo-router'
+import React, { useMemo, useState } from 'react'
+import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-// Mock property data based on Figma designs
-const MOCK_PROPERTIES: PropertyWithCoords[] = [
-  {
-    id: '1',
-    image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800',
-    title: 'Palm Harbor',
-    address: '2699 Green Valley, Highland Lake, FL',
-    price: 2000000000,
-    beds: 3,
-    bathrooms: 2,
-    area: 5,
-    areaUnit: 'x7 m²',
-    isPopular: true,
-    latitude: 10.795,
-    longitude: 106.678,
-  },
-  {
-    id: '2',
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800',
-    title: 'Beverly Springfield',
-    address: '2821 Lake Sevilla, Palm Harbor, TX',
-    price: 27000000,
-    beds: 4,
-    bathrooms: 2,
-    area: 6,
-    areaUnit: 'x7.5 m²',
-    isPopular: true,
-    latitude: 10.782,
-    longitude: 106.7,
-  },
-  {
-    id: '3',
-    image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800',
-    title: 'Faulkner Ave',
-    address: '909 Woodland St, Michigan, IN',
-    price: 45000000,
-    beds: 4,
-    bathrooms: 3,
-    area: 8,
-    areaUnit: 'x10 m²',
-    isPopular: true,
-    latitude: 10.77,
-    longitude: 106.685,
-  },
-  {
-    id: '4',
-    image: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800',
-    title: 'St. Crystal',
-    address: '210 US Highway, Highland Lake, FL',
-    price: 24000000,
-    beds: 4,
-    bathrooms: 2,
-    area: 6,
-    areaUnit: 'x8 m²',
-    latitude: 10.758,
-    longitude: 106.71,
-  },
-  {
-    id: '5',
-    image: 'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=800',
-    title: 'Cove Red',
-    address: '243 Curlew Road, Palm Harbor, TX',
-    price: 15000000,
-    beds: 2,
-    bathrooms: 1,
-    area: 5,
-    areaUnit: 'x7.5 m²',
-    latitude: 10.8,
-    longitude: 106.66,
-  },
-  {
-    id: '6',
-    image: 'https://images.unsplash.com/photo-1600573472592-401b489a3cdc?w=800',
-    title: 'The Old Steele',
-    address: '103 Lake Shores, Michigan, IN',
-    price: 16000000,
-    beds: 3,
-    bathrooms: 1,
-    area: 5,
-    areaUnit: 'x7 m²',
-    latitude: 10.773,
-    longitude: 106.72,
-  },
-  {
-    id: '7',
-    image: 'https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?w=800',
-    title: 'Sunset Villa',
-    address: '456 Ocean Drive, Miami Beach, FL',
-    price: 32000000,
-    beds: 5,
-    bathrooms: 3,
-    area: 9,
-    areaUnit: 'x12 m²',
-    isPopular: true,
-    latitude: 10.81,
-    longitude: 106.695,
-  },
-  {
-    id: '8',
-    image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800',
-    title: 'Modern Loft',
-    address: '789 Downtown Ave, Seattle, WA',
-    price: 29000000,
-    beds: 2,
-    bathrooms: 2,
-    area: 6,
-    areaUnit: 'x8.5 m²',
-    latitude: 10.765,
-    longitude: 106.67,
-  },
-  {
-    id: '9',
-    image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800',
-    title: 'Garden Retreat',
-    address: '321 Maple Street, Portland, OR',
-    price: 21000000,
-    beds: 3,
-    bathrooms: 2,
-    area: 7,
-    areaUnit: 'x9 m²',
-    latitude: 10.788,
-    longitude: 106.645,
-  },
-  {
-    id: '10',
-    image: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800',
-    title: 'Riverside Manor',
-    address: '555 River Road, Austin, TX',
-    price: 38000000,
-    beds: 4,
-    bathrooms: 3,
-    area: 8,
-    areaUnit: 'x11 m²',
-    isPopular: true,
-    latitude: 10.75,
-    longitude: 106.69,
-  },
-  {
-    id: '11',
-    image: 'https://images.unsplash.com/photo-1599427303058-f04cbcf4756f?w=800',
-    title: 'Urban Heights',
-    address: '888 Skyline Blvd, Denver, CO',
-    price: 26500000,
-    beds: 3,
-    bathrooms: 2,
-    area: 6,
-    areaUnit: 'x8 m²',
-    latitude: 10.805,
-    longitude: 106.715,
-  },
-  {
-    id: '12',
-    image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800',
-    title: 'Lakefront Estate',
-    address: '999 Lakeside Drive, Minneapolis, MN',
-    price: 42000000,
-    beds: 5,
-    bathrooms: 4,
-    area: 10,
-    areaUnit: 'x13 m²',
-    isPopular: true,
-    latitude: 10.74,
-    longitude: 106.675,
-  },
-  {
-    id: '13',
-    image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800',
-    title: 'Blue Horizon',
-    address: '123 Sky Way, Santa Monica, CA',
-    price: 52000000,
-    beds: 4,
-    bathrooms: 3,
-    area: 9,
-    areaUnit: 'x10 m²',
-    isPopular: true,
-    latitude: 10.792,
-    longitude: 106.73,
-  },
-  {
-    id: '14',
-    image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800',
-    title: 'Hillside Haven',
-    address: '742 Terrace Dr, Boulder, CO',
-    price: 34000000,
-    beds: 3,
-    bathrooms: 2,
-    area: 7,
-    areaUnit: 'x8.5 m²',
-    latitude: 10.775,
-    longitude: 106.655,
-  },
-  {
-    id: '15',
-    image: 'https://images.unsplash.com/photo-1576941089067-2de3c901e126?w=800',
-    title: 'Pinecrest Lodge',
-    address: '88 Forest Ln, Tahoe, NV',
-    price: 48000000,
-    beds: 5,
-    bathrooms: 4,
-    area: 12,
-    areaUnit: 'x15 m²',
-    isPopular: true,
-    latitude: 10.815,
-    longitude: 106.705,
-  },
-  {
-    id: '16',
-    image: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=800',
-    title: 'Seaside Sanctuary',
-    address: '55 Coastal Path, Malibu, CA',
-    price: 65000000,
-    beds: 4,
-    bathrooms: 4,
-    area: 11,
-    areaUnit: 'x14 m²',
-    isPopular: true,
-    latitude: 10.762,
-    longitude: 106.74,
-  },
-  {
-    id: '17',
-    image: 'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?w=800',
-    title: 'Maple Cottage',
-    address: '213 Willow St, Burlington, VT',
-    price: 18000000,
-    beds: 2,
-    bathrooms: 1,
-    area: 4,
-    areaUnit: 'x6 m²',
-    latitude: 10.785,
-    longitude: 106.665,
-  },
-  {
-    id: '18',
-    image: 'https://images.unsplash.com/photo-1449844908441-8829872d2607?w=800',
-    title: 'Skyline Penthouse',
-    address: '101 highrise Blvd, Chicago, IL',
-    price: 72000000,
-    beds: 3,
-    bathrooms: 3,
-    area: 8,
-    areaUnit: 'x12 m²',
-    isPopular: true,
-    latitude: 10.798,
-    longitude: 106.725,
-  },
-]
-
 export function RentPage() {
-  const [searchText, setSearchText] = useState('Houston')
+  const router = useRouter()
   const [searchMode, setSearchMode] = useState<'list' | 'map'>('list')
-  const [properties, setProperties] = useState<PropertyWithCoords[]>(() => MOCK_PROPERTIES)
+  const {
+    listings,
+    isLoading,
+    isFetchingNextPage,
+    error,
+    search,
+    updateCriteria,
+    criteria,
+    nextPage,
+  } = useListingSearch({
+    listingType: 'RENT',
+  })
 
   // Map search — fetch markers from API when in map mode
   const {
@@ -275,31 +44,103 @@ export function RentPage() {
     enabled: searchMode === 'map',
   })
 
-  // Sync properties with MOCK_PROPERTIES on mount to fix cached state
-  React.useEffect(() => {
-    setProperties(MOCK_PROPERTIES)
-  }, [])
-  const handleFilterPress = () => {
-    console.log('Filter pressed')
-    // TODO: Implement filter functionality
+  // Map API listings to UI card data
+  const propertyCardData: RealVistaPropertyCardData[] = useMemo(() => {
+    return listings.map((listing) => ({
+      id: listing.listing_id,
+      image: listing.thumbnail || 'https://via.placeholder.com/800',
+      title: listing.name,
+      address: listing.location,
+      price: listing.price,
+      beds: listing.bedrooms || 0,
+      bathrooms: listing.bathrooms || 0,
+      area: listing.area,
+      areaUnit: 'm²',
+      isPopular: listing.boosted || false,
+      description: '',
+    }))
+  }, [listings])
+
+  const handleSearchChange = (text: string) => {
+    updateCriteria({ location: text })
+  }
+
+  const handleFiltersChange = (filters: FilterValues) => {
+    search({
+      location: criteria.location,
+      propertyCategory: filters.propertyCategory,
+      propertyType: filters.propertyType,
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+      minArea: filters.minArea,
+      maxArea: filters.maxArea,
+      dynamicAttributes: filters.dynamicAttributes,
+      sortBy: filters.sortBy,
+    })
   }
 
   const handlePropertyPress = (propertyId: string) => {
-    console.log('Property pressed:', propertyId)
-    // TODO: Navigate to property details
+    router.push(`/listing/${propertyId}`)
   }
 
   const handleFavoritePress = (propertyId: string) => {
-    setProperties((prevProperties) =>
-      prevProperties.map((property) =>
-        property.id === propertyId ? { ...property, isFavorite: !property.isFavorite } : property
-      )
-    )
+    // TODO: Implement favorite functionality with store
+    console.log('Toggle favorite for property:', propertyId)
   }
 
   const toggleSearchMode = () => {
     setSearchMode((prev) => (prev === 'list' ? 'map' : 'list'))
   }
+
+  const handleOpenMaps = () => {
+    console.log('Open maps pressed')
+    // TODO: Navigate to map view
+  }
+
+  const renderHeader = (
+    <View className='px-4 py-6'>
+      {/* Search Bar */}
+      <RealVistaPropertySearchBar
+        value={criteria.location}
+        onChangeText={handleSearchChange}
+        onFiltersChange={handleFiltersChange}
+        placeholder='Tìm kiếm theo địa điểm'
+        className='mb-6'
+        showLeaseTerm={true}
+        maxPriceLimit={100_000_000}
+      />
+      {/* Error State */}
+      {error && (
+        <View className='py-10 items-center px-4'>
+          <Text className="font-['PlusJakartaSans_500Medium'] text-red-500 text-center mb-2">
+            Đã xảy ra lỗi khi tải dữ liệu.
+          </Text>
+          <Text className='text-gray-400 text-center text-xs mb-4'>{error.message}</Text>
+        </View>
+      )}
+    </View>
+  )
+
+  const renderFooter = () => (
+    <View className='px-4 pb-6'>
+      {isFetchingNextPage && (
+        <View className='py-4 items-center'>
+          <ActivityIndicator size='small' color='#7065F0' />
+        </View>
+      )}
+      {/* Open Maps Button */}
+      {!isLoading && <OpenMapsButton onPress={handleOpenMaps} className='mt-6' />}
+    </View>
+  )
+
+  const renderEmpty = () =>
+    !isLoading && !error ? (
+      <View className='py-10 items-center px-4'>
+        <Text className="font-['PlusJakartaSans_500Medium'] text-gray-500 text-base">
+          Không tìm thấy bất động sản nào.
+        </Text>
+      </View>
+    ) : null
 
   return (
     <SafeAreaView className='flex-1 bg-white' edges={['top']}>
@@ -308,10 +149,12 @@ export function RentPage() {
         <View className='mb-4 flex-row items-center gap-3'>
           <View className='flex-1'>
             <RealVistaPropertySearchBar
-              value={searchText}
-              onChangeText={setSearchText}
-              onFilterPress={handleFilterPress}
+              value={criteria.location}
+              onChangeText={handleSearchChange}
+              onFiltersChange={handleFiltersChange}
+              placeholder='Tìm kiếm theo địa điểm'
               showLeaseTerm={true}
+              maxPriceLimit={100_000_000}
             />
           </View>
 
@@ -331,23 +174,36 @@ export function RentPage() {
       </Box>
 
       {searchMode === 'list' ? (
-        /* List View */
-        <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
-          <Box className='px-4 pb-6'>
-            <View className='gap-6'>
-              {properties.map((property) => (
+        /* List View with API data */
+        isLoading && propertyCardData.length === 0 ? (
+          <View className='flex-1 justify-center items-center'>
+            <ActivityIndicator size='large' color='#7065F0' />
+          </View>
+        ) : (
+          <FlatList
+            data={propertyCardData}
+            renderItem={({ item }) => (
+              <View className='px-4 mb-6'>
                 <RealVistaPropertyCard
-                  key={property.id}
-                  property={property}
-                  onClick={() => handlePropertyPress(property.id)}
-                  onToggleFavorite={() => handleFavoritePress(property.id)}
+                  property={item}
+                  onClick={() => handlePropertyPress(item.id)}
+                  onToggleFavorite={() => handleFavoritePress(item.id)}
                   variant='rent'
                 />
-              ))}
-            </View>
-          </Box>
-        </ScrollView>
+              </View>
+            )}
+            keyExtractor={(item) => item.id}
+            ListHeaderComponent={renderHeader}
+            ListFooterComponent={renderFooter}
+            ListEmptyComponent={renderEmpty}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ flexGrow: 1 }}
+            onEndReached={nextPage}
+            onEndReachedThreshold={0.5}
+          />
+        )
       ) : (
+        /* Map View */
         <RealVistaMapSearchView
           properties={mapMarkers}
           totalCount={mapTotalCount}
