@@ -1,66 +1,32 @@
-import { useState, useEffect } from 'react'
-import { ScrollView, TouchableOpacity, Alert } from 'react-native'
-import { Box } from '@/shared/ui/box'
-import { Text } from '@/shared/ui/text'
-import IconLucide from '@/shared/ui/icon-lucide/icon'
+import { usePushNotifications } from '@/features/notifications'
 import { NotificationService } from '@/shared/services/notification'
-import { usePushNotifications, useNotificationListeners } from '@/features/notifications'
+import { useNotification } from '@/shared/services/notification/notification-provider'
+import { Box } from '@/shared/ui/box'
+import IconLucide from '@/shared/ui/icon-lucide/icon'
+import { Text } from '@/shared/ui/text'
 import * as Clipboard from 'expo-clipboard'
+import { useState } from 'react'
+import { Alert, ScrollView, TouchableOpacity } from 'react-native'
 
 /**
  * Notification Test Screen
  * For manual testing of notification functionality
  */
 export function NotificationTestPage() {
-  const [pushToken, setPushToken] = useState<string | null>(null)
-  const [lastNotification, setLastNotification] = useState<any>(null)
-  const [lastResponse, setLastResponse] = useState<any>(null)
-  const [permissionStatus, setPermissionStatus] = useState<string>('unknown')
+  const {
+    expoPushToken,
+    devicePushToken,
+    notification: lastReceivedNotification,
+    error: providerError,
+    isLoading: providerLoading,
+  } = useNotification()
+
+  const { registerDevice, isRegistering, error: apiError } = usePushNotifications()
   const [localNotificationCount, setLocalNotificationCount] = useState(0)
 
-  const { registerDevice } = usePushNotifications()
-
-  // Setup notification listeners
-  useNotificationListeners(
-    (notification) => {
-      console.log('📬 Notification received:', notification)
-      setLastNotification(notification)
-    },
-    (response) => {
-      console.log('👆 User tapped notification:', response)
-      setLastResponse(response)
-    }
-  )
-
-  // Check permissions on mount
-  useEffect(() => {
-    checkPermissions()
-  }, [])
-
-  const checkPermissions = async () => {
-    const hasPermission = await NotificationService.requestPermissions()
-    setPermissionStatus(hasPermission ? 'granted' : 'denied')
-  }
-
-  const handleRegisterDevice = async () => {
-    const token = await registerDevice()
-    if (token) {
-      setPushToken(token)
-      Alert.alert('Success', 'Device registered!\nToken copied to clipboard')
-      await Clipboard.setStringAsync(token)
-    } else {
-      Alert.alert(
-        'Expo Go Limitation',
-        'Push notifications không hoạt động trên Expo Go SDK 53+.\n\nBạn có thể test Local Notifications thay thế!'
-      )
-    }
-  }
-
-  const handleCopyToken = async () => {
-    if (pushToken) {
-      await Clipboard.setStringAsync(pushToken)
-      Alert.alert('Copied', 'Token copied to clipboard')
-    }
+  const copyToClipboard = async (text: string) => {
+    await Clipboard.setStringAsync(text)
+    Alert.alert('Đã sao chép', 'Token đã được lưu vào bộ nhớ tạm')
   }
 
   const handleScheduleLocal = async () => {
@@ -99,172 +65,126 @@ export function NotificationTestPage() {
         <Text className='mb-4 text-main-black/70'>Test local notifications (works in Expo Go)</Text>
 
         {/* Expo Go Warning */}
-        <Box className='mb-6 rounded-lg border-2 border-orange-300 bg-orange-50 p-4'>
-          <Box className='mb-2 flex-row items-center gap-2'>
-            <IconLucide name='TriangleAlert' size={20} color='#F59E0B' />
-            <Text bold className='text-orange-600'>
-              Expo Go Limitation
-            </Text>
-          </Box>
-          <Text className='mb-2 text-sm text-orange-700'>
-            Push notifications (Firebase) không hoạt động trên Expo Go SDK 53+
-          </Text>
-          <Text className='text-sm text-orange-700'>
-            ✅ Local Notifications vẫn hoạt động bình thường!
-          </Text>
-        </Box>
 
-        {/* Permission Status */}
-        <Box className='mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4'>
-          <Box className='mb-2 flex-row items-center gap-2'>
-            <IconLucide
-              name={permissionStatus === 'granted' ? 'Check' : 'X'}
-              size={20}
-              color={permissionStatus === 'granted' ? '#10B981' : '#EF4444'}
-            />
-            <Text bold className='text-main-black'>
-              Permission Status
+        <Box className='gap-y-6'>
+          {/* Status Section */}
+          <Box className='mb-6 rounded-lg bg-white p-4 shadow-sm border border-gray-100'>
+            <Text bold className='mb-4 text-lg'>
+              System Status
             </Text>
-          </Box>
-          <Text className='text-main-black/70'>{permissionStatus}</Text>
-        </Box>
 
-        {/* Push Token */}
-        {pushToken && (
-          <Box className='mb-6 rounded-lg border border-purple-200 bg-purple-50 p-4'>
-            <Box className='mb-2 flex-row items-center justify-between'>
-              <Text bold className='text-main-black'>
-                Push Token
+            <Box className='mb-4 flex-row justify-between'>
+              <Text className='text-gray-500'>Provider Status:</Text>
+              <Text bold className={providerLoading ? 'text-blue-500' : 'text-green-500'}>
+                {providerLoading ? 'Initializing...' : 'Ready'}
               </Text>
-              <TouchableOpacity onPress={handleCopyToken}>
-                <IconLucide name='Copy' size={18} color='#7065F0' />
-              </TouchableOpacity>
             </Box>
-            <Text className='text-xs text-main-black/70' numberOfLines={3}>
-              {pushToken}
-            </Text>
-          </Box>
-        )}
 
-        {/* Actions */}
-        <Box className='gap-3'>
-          {/* Schedule Local Notification - PRIMARY */}
-          <TouchableOpacity
-            onPress={handleScheduleLocal}
-            className='flex-row items-center justify-between rounded-lg bg-brand-primary p-4'
-          >
-            <Box className='flex-row items-center gap-3'>
-              <IconLucide name='Bell' size={24} color='#FFFFFF' />
-              <Box>
-                <Text bold className='text-white'>
-                  Test Local Notification
+            {(providerError || apiError) && (
+              <Box className='mb-4 rounded bg-red-50 p-2'>
+                <Text className='text-xs text-red-600'>
+                  Error: {providerError?.message || apiError?.message}
                 </Text>
-                <Text className='text-xs text-white/80'>Hoạt động trên Expo Go ✅</Text>
+              </Box>
+            )}
+
+            {/* Expo Token */}
+            <Box className='mb-4'>
+              <Text className='mb-1 text-xs text-gray-500'>Expo Push Token:</Text>
+              <Box className='flex-row items-center justify-between rounded bg-gray-50 p-2'>
+                <Text numberOfLines={1} className='flex-1 text-xs font-mono text-gray-700'>
+                  {expoPushToken || 'Chưa có token'}
+                </Text>
+                {expoPushToken && (
+                  <TouchableOpacity onPress={() => copyToClipboard(expoPushToken)} className='ml-2'>
+                    <IconLucide name='Copy' size={16} color='#4B5563' />
+                  </TouchableOpacity>
+                )}
               </Box>
             </Box>
-            <Text className='text-white/80'>#{localNotificationCount}</Text>
-          </TouchableOpacity>
 
-          {/* Set Badge */}
-          <TouchableOpacity
-            onPress={handleSetBadge}
-            className='flex-row items-center gap-3 rounded-lg bg-orange-500 p-4'
-          >
-            <IconLucide name='Hash' size={24} color='#FFFFFF' />
-            <Text bold className='text-white'>
-              Set Badge Count (5)
-            </Text>
-          </TouchableOpacity>
+            {/* Native FCM Token */}
+            <Box>
+              <Text className='mb-1 text-xs text-gray-500'>Native FCM Token (cho Backend):</Text>
+              <Box className='flex-row items-center justify-between rounded bg-gray-50 p-2'>
+                <Text numberOfLines={1} className='flex-1 text-xs font-mono text-gray-700'>
+                  {devicePushToken || 'Chưa có token'}
+                </Text>
+                {devicePushToken && (
+                  <TouchableOpacity
+                    onPress={() => devicePushToken && copyToClipboard(devicePushToken)}
+                    className='ml-2'
+                  >
+                    <IconLucide name='Copy' size={16} color='#4B5563' />
+                  </TouchableOpacity>
+                )}
+              </Box>
+            </Box>
+          </Box>
 
-          {/* Clear Badge */}
-          <TouchableOpacity
-            onPress={handleClearBadge}
-            className='flex-row items-center gap-3 rounded-lg bg-gray-500 p-4'
-          >
-            <IconLucide name='X' size={24} color='#FFFFFF' />
-            <Text bold className='text-white'>
-              Clear Badge
-            </Text>
-          </TouchableOpacity>
-
-          {/* Divider */}
-          <Box className='my-2 border-t border-gray-200' />
-          <Text className='mb-2 text-sm text-gray-500'>⚠️ Không hoạt động trên Expo Go:</Text>
-
-          {/* Register Device - DISABLED */}
-          <TouchableOpacity
-            onPress={handleRegisterDevice}
-            disabled={true}
-            className='flex-row items-center justify-between rounded-lg bg-gray-300 p-4'
-          >
-            <Box className='flex-row items-center gap-3'>
-              <IconLucide name='Smartphone' size={24} color='#808494' />
-              <Text bold className='text-gray-600'>
-                Register Device (Không khả dụng)
+          {/* Last Received Notification */}
+          {lastReceivedNotification && (
+            <Box className='mb-6 rounded-lg border border-green-200 bg-green-50 p-4'>
+              <Text bold className='mb-2 text-green-800'>
+                Last Received Notification:
+              </Text>
+              <Text className='text-sm text-green-700'>
+                Title: {lastReceivedNotification.request.content.title}
+              </Text>
+              <Text className='text-sm text-green-700'>
+                Body: {lastReceivedNotification.request.content.body}
               </Text>
             </Box>
-          </TouchableOpacity>
+          )}
 
-          {/* Send Test Notification - DISABLED */}
-          <TouchableOpacity
-            disabled={true}
-            className='flex-row items-center justify-between rounded-lg bg-gray-300 p-4'
-          >
-            <Box className='flex-row items-center gap-3'>
-              <IconLucide name='Send' size={24} color='#808494' />
-              <Text bold className='text-gray-600'>
-                Send Test via Backend (Không khả dụng)
+          {/* Actions Section */}
+          <Box className='gap-y-4'>
+            <Text bold className='text-lg'>
+              Actions
+            </Text>
+
+            <TouchableOpacity
+              onPress={handleScheduleLocal}
+              className='flex-row items-center justify-center gap-2 rounded-xl bg-main-black p-4'
+            >
+              <IconLucide name='Bell' size={20} color='white' />
+              <Text bold className='text-white'>
+                Send Local Notification
               </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => registerDevice()}
+              disabled={isRegistering}
+              className={`flex-row items-center justify-center gap-2 rounded-xl p-4 ${
+                isRegistering ? 'bg-gray-300' : 'bg-main-black'
+              }`}
+            >
+              <IconLucide name='RefreshCw' size={20} color='white' />
+              <Text bold className='text-white'>
+                {isRegistering ? 'Registering...' : 'Register Device (API)'}
+              </Text>
+            </TouchableOpacity>
+
+            <Box className='flex-row gap-4'>
+              <TouchableOpacity
+                onPress={handleSetBadge}
+                className='flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white p-4'
+              >
+                <IconLucide name='CircleDot' size={20} color='#1F2937' />
+                <Text bold>Set Badge (5)</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleClearBadge}
+                className='flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white p-4'
+              >
+                <IconLucide name='Trash2' size={20} color='#EF4444' />
+                <Text bold className='text-red-500'>
+                  Clear Badge
+                </Text>
+              </TouchableOpacity>
             </Box>
-          </TouchableOpacity>
-        </Box>
-
-        {/* Last Notification Received */}
-        {lastNotification && (
-          <Box className='mt-6 rounded-lg border border-green-200 bg-green-50 p-4'>
-            <Text bold className='mb-2 text-main-black'>
-              Last Notification Received
-            </Text>
-            <Text className='text-xs text-main-black/70'>
-              {JSON.stringify(lastNotification.request.content, null, 2)}
-            </Text>
-          </Box>
-        )}
-
-        {/* Last Notification Response */}
-        {lastResponse && (
-          <Box className='mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4'>
-            <Text bold className='mb-2 text-main-black'>
-              Last User Tap
-            </Text>
-            <Text className='text-xs text-main-black/70'>
-              {JSON.stringify(lastResponse.notification.request.content, null, 2)}
-            </Text>
-          </Box>
-        )}
-
-        {/* Instructions */}
-        <Box className='mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4'>
-          <Text bold className='mb-2 text-main-black'>
-            📝 Testing Instructions (Expo Go)
-          </Text>
-          <Text className='mb-2 text-sm text-main-black/70'>
-            1. Click &quot;Test Local Notification&quot; để gửi notification
-          </Text>
-          <Text className='mb-2 text-sm text-main-black/70'>
-            2. Notification sẽ xuất hiện ngay lập tức
-          </Text>
-          <Text className='mb-2 text-sm text-main-black/70'>
-            3. Kiểm tra section &quot;Last Notification Received&quot; bên dưới
-          </Text>
-          <Text className='mb-2 text-sm text-main-black/70'>4. Test badge count (iOS only)</Text>
-          <Box className='mt-3 rounded bg-blue-50 p-3'>
-            <Text className='text-xs font-bold text-blue-700'>
-              💡 Để test Push Notifications (Firebase):
-            </Text>
-            <Text className='text-xs text-blue-700'>
-              Cần build development build, không thể dùng Expo Go
-            </Text>
           </Box>
         </Box>
       </Box>
