@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { TouchableOpacity } from 'react-native'
-import { useRouter } from 'expo-router'
+import { Href, useRouter } from 'expo-router'
 
 import type { Listing } from '@/entities/listing'
 import { shareListing } from '@/shared/lib/share'
@@ -13,6 +13,7 @@ interface PropertyActionsProps {
 }
 
 export function PropertyActions({ listing }: PropertyActionsProps) {
+  const router = useRouter()
   const [isSharing, setIsSharing] = useState(false)
 
   const handleShare = async () => {
@@ -46,7 +47,7 @@ export function PropertyActions({ listing }: PropertyActionsProps) {
       </TouchableOpacity>
       {/* TEST: Notification Button */}
       <TouchableOpacity
-        onPress={() => router.push('/notification-test')}
+        onPress={() => router.push('/notification-test' as Href)}
         className='flex-1 flex-row items-center justify-center gap-2 rounded-lg border-2 border-purple-92 px-6 py-3 bg-purple-98'
       >
         <IconLucide size={20} name='Bell' color='#7065f0' />
