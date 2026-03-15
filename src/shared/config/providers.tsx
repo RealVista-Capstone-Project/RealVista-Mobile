@@ -1,6 +1,8 @@
 import { ReactQueryProvider } from '@/shared/lib/react-query/QueryClientProvider'
 import { ReactElement, ReactNode } from 'react'
 
+import { PostHogProvider } from './posthog-provider'
+
 type Provider = ({ children }: { children: ReactNode }) => ReactElement
 
 export function combineProviders(...providers: Provider[]) {
@@ -12,7 +14,4 @@ export function combineProviders(...providers: Provider[]) {
   }
 }
 
-export const AppProviders = combineProviders(
-  ReactQueryProvider
-  // Add more providers here (Theme, Auth, etc.)
-)
+export const AppProviders = combineProviders(ReactQueryProvider, PostHogProvider)

@@ -1,3 +1,4 @@
+import { behaviorTracker } from '@/shared/lib/analytics'
 import { Box } from '@/shared/ui/box'
 import { OpenMapsButton } from '@/shared/ui/open-maps-button'
 import {
@@ -235,10 +236,18 @@ export function BuyPage() {
 
   const handlePropertyPress = (propertyId: string) => {
     console.log('Property pressed:', propertyId)
+    behaviorTracker.trackClick(propertyId, {
+      source_page: 'buy',
+    })
     // TODO: Navigate to property details
   }
 
   const handleFavoritePress = (propertyId: string) => {
+    const property = properties.find((p) => p.id === propertyId)
+    const willBeFavorite = !property?.isFavorite
+    behaviorTracker.trackBookmark(propertyId, willBeFavorite ? 'add' : 'remove', {
+      source_page: 'buy',
+    })
     setProperties((prevProperties) =>
       prevProperties.map((property) =>
         property.id === propertyId ? { ...property, isFavorite: !property.isFavorite } : property

@@ -1,4 +1,5 @@
 import { useMapSearch } from '@/features/map-search/api'
+import { behaviorTracker } from '@/shared/lib/analytics'
 import { Box } from '@/shared/ui/box'
 import IconLucide from '@/shared/ui/icon-lucide/icon'
 import {
@@ -286,10 +287,18 @@ export function RentPage() {
 
   const handlePropertyPress = (propertyId: string) => {
     console.log('Property pressed:', propertyId)
+    behaviorTracker.trackClick(propertyId, {
+      source_page: 'rent',
+    })
     // TODO: Navigate to property details
   }
 
   const handleFavoritePress = (propertyId: string) => {
+    const property = properties.find((p) => p.id === propertyId)
+    const willBeFavorite = !property?.isFavorite
+    behaviorTracker.trackBookmark(propertyId, willBeFavorite ? 'add' : 'remove', {
+      source_page: 'rent',
+    })
     setProperties((prevProperties) =>
       prevProperties.map((property) =>
         property.id === propertyId ? { ...property, isFavorite: !property.isFavorite } : property

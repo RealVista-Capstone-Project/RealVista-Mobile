@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { ActivityIndicator, ScrollView } from 'react-native'
 
 import { type SimilarListing } from '@/entities/listing'
@@ -5,6 +6,7 @@ import { ContactFormModal } from '@/features/chat'
 import { useListingDetail } from '@/features/get-listing-detail'
 import { useListingPriceHistory } from '@/features/get-listing-price-history'
 import { useSimilarListings } from '@/features/get-similar-listings'
+import { behaviorTracker } from '@/shared/lib/analytics'
 import { LineChart, type ChartDataPoint } from '@/shared/ui/bna/line-chart'
 import { Box } from '@/shared/ui/box'
 import { Divider } from '@/shared/ui/divider'
@@ -58,11 +60,30 @@ export function ListingDetailPage() {
 
   const handleToggleFavorite = (id: string) => {
     console.log('Toggle favorite:', id)
+    behaviorTracker.trackBookmark(id, 'add', {
+      source_page: 'detail',
+    })
   }
 
   const handlePropertyClick = (id: string) => {
     console.log('Property clicked:', id)
+    behaviorTracker.trackClick(id, {
+      source_page: 'similar',
+    })
   }
+
+  // Track listing view when detail page loads
+  useEffect(() => {
+    if (listing) {
+      behaviorTracker.trackView(listing.listing_id, {
+        listing_type: listing.listing_type,
+        property_type: listing.propertyType?.property_type_name,
+        price: listing.price,
+        source_page: 'detail',
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listing?.listing_id])
 
   // Transform similar listings to card format
   const similarListingsCards: RealVistaPropertyCardData[] =
