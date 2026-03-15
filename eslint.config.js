@@ -26,4 +26,19 @@ module.exports = defineConfig([
       ],
     },
   },
+  {
+    rules: {
+      'import/no-unresolved': [
+        'error',
+        {
+          ignore: [
+            'date-fns',
+            'text-encoding-polyfill',
+            '@stomp/stompjs',
+            'react-native-gifted-charts',
+          ],
+        },
+      ],
+    },
+  },
 ])
