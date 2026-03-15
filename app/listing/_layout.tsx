@@ -1,9 +1,5 @@
-import { Box } from '@/shared/ui/box'
-import { ApplyAppBar } from '@/widgets/apply-appbar'
 import { Tabs, useRouter } from 'expo-router'
-import { View } from 'react-native'
 import { ListingLayoutContainer } from '@/screens/listing'
-import { Tabs } from 'expo-router'
 
 /**
  * Listing Layout - Routing configuration only

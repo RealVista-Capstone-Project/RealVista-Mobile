@@ -42,7 +42,7 @@
       "icon": "./assets/images/icon.png",
       "color": "#7065F0",
       "androidMode": "default",
-      "androidCollapsedTitle": "RealVista"
+      "androidCollapsedTitle": "RealVista",
       "intentFilters": [
         {
           "action": "VIEW",
@@ -104,8 +104,8 @@
           "color": "#7065F0",
           "defaultChannel": "default"
         }
-      ]
-      "expo-build-properties",
+      ],
+      "expo-build-properties"
     ],
     "experiments": {
       "typedRoutes": true,
