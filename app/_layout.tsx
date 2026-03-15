@@ -1,6 +1,5 @@
-import '@/shared/lib/websocket/polyfills'
+import { NotificationService } from '@/shared/services/notification'
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
-import { requestNotificationPermission, onForegroundMessage } from '@/shared/lib/firebase/fcm'
 import { useFonts } from 'expo-font'
 import { Href, Stack, useRootNavigationState, useRouter } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
@@ -64,22 +63,15 @@ export default function RootLayout() {
   //   }
   // }, [isAuthenticated, segments, isNavigationReady, router, loaded])
 
-  // Global Notification Listener
   useEffect(() => {
-    // 1. Request Permission on App Start (optional, or wait for user action)
-    requestNotificationPermission().then((granted) => {
+    // Request Permission on App Start (or wait for user action)
+    // The NotificationProvider already handles registration on mount,
+    // but we can still check permissions here if needed for early UI logic.
+    NotificationService.requestPermissions().then((granted) => {
       if (granted) {
         console.log('Global notification permission granted')
       }
     })
-
-    // 2. Listen for foreground messages globally
-    const unsubscribe = onForegroundMessage((remoteMessage) => {
-      console.log('Global Foreground Notification:', remoteMessage.notification)
-      // You can show a toast or custom UI here
-    })
-
-    return () => unsubscribe()
   }, [])
 
   if (!loaded || !isNavigationReady) {

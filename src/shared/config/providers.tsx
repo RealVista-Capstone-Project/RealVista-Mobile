@@ -1,5 +1,6 @@
 import { ReactQueryProvider } from '@/shared/lib/react-query/QueryClientProvider'
 import { ReactElement, ReactNode } from 'react'
+import { NotificationProvider } from '../services/notification/notification-provider'
 
 type Provider = ({ children }: { children: ReactNode }) => ReactElement
 
@@ -13,6 +14,7 @@ export function combineProviders(...providers: Provider[]) {
 }
 
 export const AppProviders = combineProviders(
-  ReactQueryProvider
+  ReactQueryProvider as Provider,
+  NotificationProvider as Provider
   // Add more providers here (Theme, Auth, etc.)
 )

@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from 'react'
-import { NotificationService } from '@/shared/services/notification'
 import { notificationApi } from '@/entities/notification'
+import { NotificationService } from '@/shared/services/notification'
 import type * as Notifications from 'expo-notifications'
+import { useCallback, useEffect, useState } from 'react'
 
 /**
  * Feature Hook: Push Notification Setup
@@ -20,7 +20,12 @@ export function usePushNotifications() {
     setError(null)
 
     try {
-      const token = await NotificationService.registerDevice()
+      const hasPermission = await NotificationService.requestPermissions()
+      if (!hasPermission) {
+        throw new Error('Permission not granted')
+      }
+
+      const token = await NotificationService.getDevicePushToken()
 
       if (!token) {
         throw new Error('Failed to get push token')

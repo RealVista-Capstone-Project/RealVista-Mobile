@@ -1,7 +1,7 @@
-import * as Notifications from 'expo-notifications'
-import * as Device from 'expo-device'
-import { Platform } from 'react-native'
 import Constants from 'expo-constants'
+import * as Device from 'expo-device'
+import * as Notifications from 'expo-notifications'
+import { Platform } from 'react-native'
 
 /**
  * Push Notification Service
@@ -31,6 +31,20 @@ export class NotificationService {
       return false
     }
     return true
+  }
+
+  /**
+   * Configure Android notification channel
+   */
+  static async setupChannels(): Promise<void> {
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('default', {
+        name: 'default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#7065F0', // Using app theme color
+      })
+    }
   }
 
   /**
@@ -92,6 +106,24 @@ export class NotificationService {
   }
 
   /**
+   * Get Native Device Token (FCM for Android, APNs for iOS)
+   * Use this if your backend sends directly via Firebase Admin SDK
+   */
+  static async getDevicePushToken(): Promise<string | null> {
+    if (!this.isDeviceSupported()) {
+      return null
+    }
+
+    try {
+      const tokenData = await Notifications.getDevicePushTokenAsync()
+      return tokenData.data
+    } catch (error) {
+      console.error('Failed to get device push token:', error)
+      return null
+    }
+  }
+
+  /**
    * Get device information for token registration
    */
   static getDeviceInfo(): {
@@ -110,14 +142,27 @@ export class NotificationService {
    * @returns Push token if successful, null otherwise
    */
   static async registerDevice(): Promise<string | null> {
-    const hasPermission = await this.requestPermissions()
-    if (!hasPermission) {
-      return null
+    if (!this.isDeviceSupported()) {
+      throw new Error('Must use physical device for push notifications')
+    }
+
+    await this.setupChannels()
+
+    const { status: existingStatus } = await Notifications.getPermissionsAsync()
+    let finalStatus = existingStatus
+
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync()
+      finalStatus = status
+    }
+
+    if (finalStatus !== 'granted') {
+      throw new Error('Permission not granted to get push token!')
     }
 
     const token = await this.getPushToken()
     if (!token) {
-      return null
+      throw new Error('Failed to get push token')
     }
 
     return token
