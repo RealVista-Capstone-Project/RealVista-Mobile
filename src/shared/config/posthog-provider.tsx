@@ -9,7 +9,7 @@ import { useEffect, type ReactNode } from 'react'
 import { useAuthStore } from '@/entities/user'
 import { behaviorTracker, destroyEventQueue } from '@/shared/lib/analytics'
 
-const POSTHOG_KEY = 'phc_ong5Ek667U8GZn1bAftpWfP2WYPiefXtidQJepGI1dA'
+const POSTHOG_KEY = 'phc_ong5Ek667U8GZn1bAftpWfP2WYPiefXtidQJepGI1dicvzczcxvzxcvtest'
 const POSTHOG_HOST = 'https://us.i.posthog.com'
 
 /**
