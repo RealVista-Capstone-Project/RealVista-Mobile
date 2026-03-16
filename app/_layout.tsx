@@ -1,7 +1,7 @@
-import '@/shared/lib/websocket/polyfills'
+import { NotificationService } from '@/shared/services/notification'
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
 import { useFonts } from 'expo-font'
-import { Href, Stack, useRootNavigationState, useRouter, useSegments } from 'expo-router'
+import { Href, Stack, useRootNavigationState, useRouter } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect, useState } from 'react'
@@ -9,7 +9,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { useAuthStore } from '@/entities/user'
 import { AppProviders } from '@/shared/config/providers'
 import { useColorScheme } from '@/shared/lib/hooks/use-color-scheme'
 import { GluestackUIProvider } from '@/shared/ui/gluestack-ui-provider'
@@ -23,13 +22,8 @@ export const unstable_settings = {
 
 SplashScreen.preventAutoHideAsync()
 
-const _AUTH_GROUP = '(auth)'
-const _HOME_GROUP = '(tabs)'
-
 export default function RootLayout() {
   const colorScheme = useColorScheme()
-  const { isAuthenticated } = useAuthStore()
-  const segments = useSegments()
   const router = useRouter()
   const rootNavigationState = useRootNavigationState()
   const [isNavigationReady, setNavigationReady] = useState(false)
@@ -68,6 +62,17 @@ export default function RootLayout() {
   //     router.replace(`/${_HOME_GROUP}` as Href)
   //   }
   // }, [isAuthenticated, segments, isNavigationReady, router, loaded])
+
+  useEffect(() => {
+    // Request Permission on App Start (or wait for user action)
+    // The NotificationProvider already handles registration on mount,
+    // but we can still check permissions here if needed for early UI logic.
+    NotificationService.requestPermissions().then((granted) => {
+      if (granted) {
+        console.log('Global notification permission granted')
+      }
+    })
+  }, [])
 
   if (!loaded || !isNavigationReady) {
     return null

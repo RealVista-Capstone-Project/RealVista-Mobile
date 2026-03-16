@@ -31,6 +31,13 @@
       "package": "com.sep.realvista",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
+      "googleServicesFile": "./google-services.json"
+    },
+    "notification": {
+      "icon": "./assets/images/icon.png",
+      "color": "#7065F0",
+      "androidMode": "default",
+      "androidCollapsedTitle": "RealVista",
       "usesCleartextTraffic": true,
       "intentFilters": [
         {
@@ -82,6 +89,14 @@
           "dark": {
             "backgroundColor": "#000000"
           }
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#7065F0",
+          "defaultChannel": "default"
         }
       ],
       "expo-build-properties"
