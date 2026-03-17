@@ -11,6 +11,9 @@ type RealVistaPropertySearchBarProps = {
   onFiltersChange?: (filters: FilterValues) => void
   className?: string
   showLeaseTerm?: boolean
+  initialFilters?: Partial<FilterValues>
+  /** Max price for slider in filter modal. Default: 10B (SALE). Use 100M for RENT. */
+  maxPriceLimit?: number
 }
 
 export function RealVistaPropertySearchBar({
@@ -21,20 +24,23 @@ export function RealVistaPropertySearchBar({
   onFiltersChange,
   className = '',
   showLeaseTerm = true,
+  initialFilters = {},
+  maxPriceLimit,
 }: RealVistaPropertySearchBarProps) {
   const [internalValue, setInternalValue] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
   const [filters, setFilters] = useState<FilterValues>({
-    category: [],
-    priceRange: { min: 5000000, max: 100000000 },
-    bedrooms: 0,
-    bathrooms: 0,
+    propertyCategory: undefined,
+    minPrice: undefined, // No constraint by default — pages pass their own defaults
+    maxPrice: undefined,
+    dynamicAttributes: {},
     rentalPeriod: 'Any',
+    ...initialFilters,
   })
 
   const handleFilterPress = () => {
-    console.log('Filter pressed')
+    // if (__DEV__) console.log('Filter pressed')
     setIsFilterModalOpen(true)
     onFilterPress?.()
   }
@@ -45,13 +51,27 @@ export function RealVistaPropertySearchBar({
     onFiltersChange?.(newFilters)
   }
 
-  const value = controlledValue !== undefined ? controlledValue : internalValue
-  const handleChangeText = (text: string) => {
-    if (onChangeText) {
-      onChangeText(text)
-    } else {
-      setInternalValue(text)
+  // Local state for debounce
+  const [localValue, setLocalValue] = useState(controlledValue || '')
+
+  React.useEffect(() => {
+    if (controlledValue !== undefined) {
+      setLocalValue(controlledValue)
     }
+  }, [controlledValue])
+
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      if (onChangeText) {
+        onChangeText(localValue)
+      }
+    }, 500)
+
+    return () => clearTimeout(handler)
+  }, [localValue])
+
+  const handleChangeText = (text: string) => {
+    setLocalValue(text)
   }
 
   return (
@@ -68,7 +88,7 @@ export function RealVistaPropertySearchBar({
 
         {/* Text Input */}
         <TextInput
-          value={value}
+          value={localValue}
           onChangeText={handleChangeText}
           placeholder={placeholder}
           placeholderTextColor='#6C727F'
@@ -95,6 +115,7 @@ export function RealVistaPropertySearchBar({
         filters={filters}
         onApply={handleApplyFilters}
         showLeaseTerm={showLeaseTerm}
+        maxPriceLimit={maxPriceLimit}
       />
     </>
   )

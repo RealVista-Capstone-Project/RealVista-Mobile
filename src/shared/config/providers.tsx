@@ -1,5 +1,6 @@
 import { ReactQueryProvider } from '@/shared/lib/react-query/QueryClientProvider'
 import { ReactElement, ReactNode } from 'react'
+import { NotificationProvider } from '../services/notification/notification-provider'
 
 import { PostHogProvider } from './posthog-provider'
 
@@ -14,4 +15,9 @@ export function combineProviders(...providers: Provider[]) {
   }
 }
 
-export const AppProviders = combineProviders(ReactQueryProvider, PostHogProvider)
+export const AppProviders = combineProviders(
+  ReactQueryProvider as Provider,
+  NotificationProvider as Provider,
+  PostHogProvider as Provider
+  // Add more providers here (Theme, Auth, etc.)
+)

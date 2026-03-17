@@ -36,7 +36,9 @@ class HttpClient {
       baseURL: this.baseURL,
       headers: {
         'Content-Type': 'application/json',
+        Accept: 'application/json',
       },
+      timeout: 30000, // 30 seconds
     })
 
     this.setupInterceptors()
@@ -52,13 +54,28 @@ class HttpClient {
         }
         return config
       },
-      (error) => Promise.reject(error)
+      (error) => {
+        if (__DEV__) {
+          console.error('[HTTP] Request Error:', error)
+        }
+        return Promise.reject(error)
+      }
     )
 
-    // Response interceptor - handle errors
     this.client.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        return response
+      },
       async (error: AxiosError<ApiResponse<unknown>>) => {
+        if (__DEV__) {
+          console.error('[HTTP] Response Error:', {
+            message: error.message,
+            code: error.code,
+            url: error.config?.url,
+            status: error.response?.status,
+            data: error.response?.data,
+          })
+        }
         const { response } = error
 
         if (response) {
@@ -93,10 +110,13 @@ class HttpClient {
           return Promise.reject(httpError)
         }
 
+        // Network error details
+        console.error('[HTTP] Network Error Details:', error.toJSON())
+
         // Network error
         const networkError: HttpError = {
           status: 0,
-          message: 'Network error. Please check your connection.',
+          message: `Network error: ${error.message}`,
           name: 'HttpError',
         }
         return Promise.reject(networkError)

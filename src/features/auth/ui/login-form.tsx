@@ -35,7 +35,7 @@ export function LoginForm() {
   })
 
   useEffect(() => {
-    console.log(Platform.OS)
+    // console.log(Platform.OS)
     if (response?.type === 'success') {
       const { id_token } = response.params
       const token = id_token

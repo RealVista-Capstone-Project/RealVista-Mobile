@@ -131,6 +131,26 @@ export function ListingDetailPage() {
       ? listing.media.map((m) => m.media_url)
       : ['']
 
+  // Construct effective agent from listing.agent or listing.user (fallback)
+  const effectiveAgent =
+    listing.agent ||
+    (listing.user
+      ? {
+          user_id: listing.user.user_id || '',
+          first_name: listing.user.first_name || '',
+          last_name: listing.user.last_name || '',
+          full_name: listing.user.full_name || listing.user.business_name || 'Người dùng',
+          email: listing.user.email || '',
+          phone: listing.user.phone || '',
+          company: listing.user.business_name || '',
+          business_name: listing.user.business_name || '',
+          avatar_url:
+            listing.user.avatar_url ||
+            'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400',
+          is_verified: listing.user.status === 'VERIFIED',
+        }
+      : null)
+
   // Transform cost_breakdown fees into pie chart data
   const chartData = (() => {
     const breakdown = listing.cost_breakdown
@@ -202,9 +222,11 @@ export function ListingDetailPage() {
 
           <PropertySpecifications attributes={listing.attributes || []} status={listing.status} />
 
-          <PropertyAbout description={listing.property?.description || ''} />
+          <PropertyAbout
+            description={listing.property?.descriptions || listing.descriptions || ''}
+          />
 
-          <PropertyOwner agent={listing.agent} listing={listing} />
+          {effectiveAgent && <PropertyOwner agent={effectiveAgent as any} listing={listing} />}
 
           <PropertyTourRequest listingId={listing.listing_id} />
 

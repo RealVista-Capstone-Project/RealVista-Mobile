@@ -36,6 +36,14 @@
       "package": "com.sep.realvista",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
+      "googleServicesFile": "./google-services.json"
+    },
+    "notification": {
+      "icon": "./assets/images/icon.png",
+      "color": "#7065F0",
+      "androidMode": "default",
+      "androidCollapsedTitle": "RealVista",
+      "usesCleartextTraffic": true,
       "intentFilters": [
         {
           "action": "VIEW",
@@ -96,8 +104,16 @@
           }
         }
       ],
-      "expo-build-properties",
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#7065F0",
+          "defaultChannel": "default"
+        }
+      ],
+      "expo-build-properties"
     ],
     "experiments": {
       "typedRoutes": true,

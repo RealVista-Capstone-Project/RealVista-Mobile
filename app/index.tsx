@@ -1,11 +1,29 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
+import { useRouter } from 'expo-router'
 
 export default function Page() {
+  const router = useRouter()
+
   return (
     <View style={styles.container}>
       <View style={styles.main}>
         <Text style={styles.title}>Hello World</Text>
         <Text style={styles.subtitle}>This is the first page of your app.</Text>
+
+        {/* TEMPORARY: Test Notification Button */}
+        <TouchableOpacity
+          onPress={() => router.push('/notification-test')}
+          style={{
+            marginTop: 40,
+            backgroundColor: '#7065F0',
+            padding: 20,
+            borderRadius: 12,
+          }}
+        >
+          <Text style={{ color: 'white', fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>
+            🔔 Test Notifications
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   )
