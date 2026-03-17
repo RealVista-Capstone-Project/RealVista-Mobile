@@ -1,6 +1,5 @@
-import { behaviorTracker } from '@/shared/lib/analytics'
-import { Box } from '@/shared/ui/box'
 import { useListingSearch } from '@/features/search/use-listing-search'
+import { behaviorTracker } from '@/shared/lib/analytics'
 import { OpenMapsButton } from '@/shared/ui/open-maps-button'
 import {
   RealVistaPropertyCard,
@@ -52,26 +51,19 @@ export function BuyPage() {
   }
 
   const handlePropertyPress = (propertyId: string) => {
-    console.log('Property pressed:', propertyId)
     behaviorTracker.trackClick(propertyId, {
       source_page: 'buy',
     })
-    // TODO: Navigate to property details
+    router.push(`/listing/${propertyId}`)
   }
 
   const handleFavoritePress = (propertyId: string) => {
-    const property = properties.find((p) => p.id === propertyId)
-    const willBeFavorite = !property?.isFavorite
-    behaviorTracker.trackBookmark(propertyId, willBeFavorite ? 'add' : 'remove', {
+    behaviorTracker.trackBookmark(propertyId, 'add', {
       source_page: 'buy',
     })
-    setProperties((prevProperties) =>
-      prevProperties.map((property) =>
-        property.id === propertyId ? { ...property, isFavorite: !property.isFavorite } : property
-      )
-    )
+    // TODO: Wire up favorite state management
   }
-  
+
   const handleFiltersChange = (filters: FilterValues) => {
     // Replace filter criteria but preserve currently typed location
     search({
@@ -85,10 +77,6 @@ export function BuyPage() {
       dynamicAttributes: filters.dynamicAttributes,
       sortBy: filters.sortBy,
     })
-  }
-
-  const handlePropertyPress = (propertyId: string) => {
-    router.push(`/listing/${propertyId}`)
   }
 
   const handleOpenMaps = () => {

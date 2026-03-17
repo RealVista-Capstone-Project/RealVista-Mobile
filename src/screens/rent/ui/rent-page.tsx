@@ -81,25 +81,17 @@ export function RentPage() {
   }
 
   const handlePropertyPress = (propertyId: string) => {
-    console.log('Property pressed:', propertyId)
     behaviorTracker.trackClick(propertyId, {
       source_page: 'rent',
     })
-    // TODO: Navigate to property details
+    router.push(`/listing/${propertyId}`)
   }
 
   const handleFavoritePress = (propertyId: string) => {
-    const property = properties.find((p) => p.id === propertyId)
-    const willBeFavorite = !property?.isFavorite
-    behaviorTracker.trackBookmark(propertyId, willBeFavorite ? 'add' : 'remove', {
+    behaviorTracker.trackBookmark(propertyId, 'add', {
       source_page: 'rent',
     })
-    setProperties((prevProperties) =>
-      prevProperties.map((property) =>
-        property.id === propertyId ? { ...property, isFavorite: !property.isFavorite } : property
-      )
-    )
-    router.push(`/listing/${propertyId}`)
+    // TODO: Wire up favorite state management
   }
 
   const toggleSearchMode = () => {
