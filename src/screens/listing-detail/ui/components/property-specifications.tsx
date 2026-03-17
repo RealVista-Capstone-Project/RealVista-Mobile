@@ -66,7 +66,7 @@ const SpecificationItem = ({
   )
 }
 
-export function PropertySpecifications({ attributes, status }: PropertySpecificationsProps) {
+export function PropertySpecifications({ attributes = [], status }: PropertySpecificationsProps) {
   const [isExpanded, setIsExpanded] = useState(false)
 
   // Items per row (3 columns)
@@ -76,8 +76,9 @@ export function PropertySpecifications({ attributes, status }: PropertySpecifica
 
   // Create data rows with attributes
   const dataRows: { type: 'attribute' | 'status'; data?: Attribute; status?: string }[][] = []
-  for (let i = 0; i < attributes.length; i += itemsPerRow) {
-    const row: { type: 'attribute' | 'status'; data?: Attribute }[] = attributes
+  const safeAttributes = attributes || []
+  for (let i = 0; i < safeAttributes.length; i += itemsPerRow) {
+    const row: { type: 'attribute' | 'status'; data?: Attribute }[] = safeAttributes
       .slice(i, i + itemsPerRow)
       .map((attr) => ({ type: 'attribute' as const, data: attr }))
     dataRows.push(row)

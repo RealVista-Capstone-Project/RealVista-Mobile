@@ -8,5 +8,25 @@ module.exports = defineConfig([
   eslintPluginPrettierRecommended,
   {
     ignores: ['dist/*'],
+    rules: {
+      // Disable import/no-unresolved for Expo packages
+      // TypeScript already validates imports, and ESLint has issues resolving Expo modules
+      'import/no-unresolved': [
+        'error',
+        {
+          ignore: [
+            '^expo-',
+            '^@expo/',
+            'date-fns',
+            'date-fns/locale',
+            '^react-native',
+            '^@react-native',
+            'text-encoding-polyfill',
+            '@stomp/stompjs',
+            'react-native-gifted-charts',
+          ],
+        },
+      ],
+    },
   },
 ])

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { TouchableOpacity } from 'react-native'
 import { Heart } from 'lucide-react-native'
+import { Href, useRouter } from 'expo-router'
 
 import type { Listing } from '@/entities/listing'
 import { shareListing } from '@/shared/lib/share'
@@ -20,6 +21,7 @@ export function PropertyActions({
   isFavorite = false,
   onToggleFavorite,
 }: PropertyActionsProps) {
+  const router = useRouter()
   const [isSharing, setIsSharing] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
@@ -79,6 +81,16 @@ export function PropertyActions({
         />
         <Text bold className='text-main-primary'>
           {isFavorite ? 'Đã yêu thích' : 'Yêu thích'}
+        </Text>
+      </TouchableOpacity>
+      {/* TEST: Notification Button */}
+      <TouchableOpacity
+        onPress={() => router.push('/notification-test' as Href)}
+        className='flex-1 flex-row items-center justify-center gap-2 rounded-lg border-2 border-purple-92 px-6 py-3 bg-purple-98'
+      >
+        <IconLucide size={20} name='Bell' color='#7065f0' />
+        <Text bold className='text-main-primary'>
+          Test
         </Text>
       </TouchableOpacity>
     </Box>
