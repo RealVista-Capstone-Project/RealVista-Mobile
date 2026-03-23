@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { ActivityIndicator, ScrollView } from 'react-native'
+import { ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native'
+import { useRouter } from 'expo-router'
 
 import { type SimilarListing } from '@/entities/listing'
 import { useToggleBookmark } from '@/features/bookmark'
@@ -54,6 +55,7 @@ function transformSimilarListing(listing: SimilarListing): RealVistaPropertyCard
 }
 
 export function ListingDetailPage() {
+  const router = useRouter()
   const { data: listing, isLoading, error } = useListingDetail()
   const { data: priceHistoryData } = useListingPriceHistory()
   const { listings: similarListings } = useSimilarListings(5)
@@ -77,6 +79,10 @@ export function ListingDetailPage() {
 
   const handlePropertyClick = (id: string) => {
     console.log('Property clicked:', id)
+  }
+
+  const handleBackToHome = () => {
+    router.push('/buy-page')
   }
 
   // Transform similar listings to card format
@@ -283,6 +289,31 @@ export function ListingDetailPage() {
           onToggleFavorite={handleToggleSimilarFavorite}
           onPropertyClick={handlePropertyClick}
         />
+
+        {/* Back to Home Button */}
+        <Box className='px-6 py-8'>
+          <TouchableOpacity
+            onPress={handleBackToHome}
+            activeOpacity={0.7}
+            className='bg-brand-primary rounded-lg py-3 px-4 items-center'
+            style={{
+              backgroundColor: '#7065F0',
+              borderRadius: 8,
+              paddingVertical: 12,
+            }}
+          >
+            <Text
+              style={{
+                color: 'white',
+                fontSize: 16,
+                fontWeight: '600',
+                fontFamily: 'PlusJakartaSans_600SemiBold',
+              }}
+            >
+              ← Về trang chủ
+            </Text>
+          </TouchableOpacity>
+        </Box>
       </ScrollView>
 
       <ContactFormModal />

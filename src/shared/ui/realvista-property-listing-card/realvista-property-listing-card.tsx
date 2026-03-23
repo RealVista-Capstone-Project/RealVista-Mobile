@@ -1,8 +1,37 @@
+import { Attribute } from '@/entities/listing/model/types'
 import { formatVND } from '@/shared/lib/format-currency'
 import { Text } from '@/shared/ui/text'
 import React from 'react'
 import { Image, TouchableOpacity, View } from 'react-native'
 import { ClipPath, Defs, G, Path, Rect, Svg } from 'react-native-svg'
+
+// Helper function to get icon based on attribute icon name (matching FE AttributeIcon mapping)
+function getIconByName(iconName: string | null, size: number = 20) {
+  if (!iconName) return null
+
+  const normalized = iconName.toLowerCase().replace(/[-_\s]/g, '')
+
+  // Map icon names to icon components
+  switch (normalized) {
+    case 'bed':
+    case 'beds':
+    case 'bedroom':
+    case 'bedrooms':
+      return <BedIcon size={size} />
+    case 'bath':
+    case 'baths':
+    case 'bathroom':
+    case 'bathrooms':
+      return <BathIcon size={size} />
+    case 'area':
+    case 'maximize':
+    case 'usablearea':
+    case 'landarea':
+      return <AreaIcon size={size} />
+    default:
+      return null
+  }
+}
 
 export interface RealVistaPropertyCardData {
   id: string
@@ -11,13 +40,14 @@ export interface RealVistaPropertyCardData {
   address: string
   price: number
   currency?: string
-  beds: number
-  bathrooms: number
-  area: number
+  beds?: number
+  bathrooms?: number
+  area?: number
   areaUnit?: string
   isPopular?: boolean
   isFavorite?: boolean
   status?: string
+  attributes?: Attribute[]
 }
 
 interface RealVistaPropertyCardProps {
@@ -311,56 +341,101 @@ export function RealVistaPropertyCard({
             gap: 16,
           }}
         >
-          {/* Beds */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <BedIcon size={ishorizontal ? 16 : 20} />
-            <Text
-              className="font-['PlusJakartaSans_500Medium'] text-grey-500"
-              style={{
-                fontFamily: 'PlusJakartaSans_500Medium',
-                fontSize: 14,
-                lineHeight: 19.6,
-                color: '#6C727F',
-              }}
-            >
-              {property.beds}
-              {!ishorizontal && ' PN'}
-            </Text>
-          </View>
+          {/* Dynamic Attributes (if available) */}
+          {property.attributes && property.attributes.length > 0 ? (
+            property.attributes
+              .filter((attr) => {
+                if (attr.value_boolean !== null && attr.value_boolean !== undefined)
+                  return attr.value_boolean === true
+                if (attr.value_number !== null && attr.value_number !== undefined) return true
+                if (attr.value_text !== null && attr.value_text !== undefined) return true
+                return false
+              })
+              .slice(0, 3)
+              .map((attr) => (
+                <View
+                  key={attr.attribute_id}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  {/* Use icon from attribute, fallback to code-based icon */}
+                  {attr.icon
+                    ? getIconByName(attr.icon, ishorizontal ? 16 : 20)
+                    : getIconByName(attr.attribute_code, ishorizontal ? 16 : 20)}
+                  <Text
+                    className="font-['PlusJakartaSans_500Medium'] text-grey-500"
+                    style={{
+                      fontFamily: 'PlusJakartaSans_500Medium',
+                      fontSize: 14,
+                      lineHeight: 19.6,
+                      color: '#6C727F',
+                    }}
+                  >
+                    {attr.value_boolean === true
+                      ? attr.attribute_name
+                      : attr.value_text !== null && attr.value_text !== undefined
+                        ? attr.value_text
+                        : [attr.value_number, attr.attribute_name].filter(Boolean).join(' ')}
+                  </Text>
+                </View>
+              ))
+          ) : (
+            <>
+              {/* Beds */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <BedIcon size={ishorizontal ? 16 : 20} />
+                <Text
+                  className="font-['PlusJakartaSans_500Medium'] text-grey-500"
+                  style={{
+                    fontFamily: 'PlusJakartaSans_500Medium',
+                    fontSize: 14,
+                    lineHeight: 19.6,
+                    color: '#6C727F',
+                  }}
+                >
+                  {property.beds || 0}
+                  {!ishorizontal && ' PN'}
+                </Text>
+              </View>
 
-          {/* Bathrooms */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <BathIcon size={ishorizontal ? 16 : 20} />
-            <Text
-              className="font-['PlusJakartaSans_500Medium'] text-grey-500"
-              style={{
-                fontFamily: 'PlusJakartaSans_500Medium',
-                fontSize: 14,
-                lineHeight: 19.6,
-                color: '#6C727F',
-              }}
-            >
-              {property.bathrooms}
-              {!ishorizontal && ' WC'}
-            </Text>
-          </View>
+              {/* Bathrooms */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <BathIcon size={ishorizontal ? 16 : 20} />
+                <Text
+                  className="font-['PlusJakartaSans_500Medium'] text-grey-500"
+                  style={{
+                    fontFamily: 'PlusJakartaSans_500Medium',
+                    fontSize: 14,
+                    lineHeight: 19.6,
+                    color: '#6C727F',
+                  }}
+                >
+                  {property.bathrooms || 0}
+                  {!ishorizontal && ' WC'}
+                </Text>
+              </View>
 
-          {/* Area */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <AreaIcon size={ishorizontal ? 16 : 20} />
-            <Text
-              className="font-['PlusJakartaSans_500Medium'] text-grey-500"
-              style={{
-                fontFamily: 'PlusJakartaSans_500Medium',
-                fontSize: 14,
-                lineHeight: 19.6,
-                color: '#6C727F',
-              }}
-            >
-              {property.area}
-              {property.areaUnit || 'm²'}
-            </Text>
-          </View>
+              {/* Area */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <AreaIcon size={ishorizontal ? 16 : 20} />
+                <Text
+                  className="font-['PlusJakartaSans_500Medium'] text-grey-500"
+                  style={{
+                    fontFamily: 'PlusJakartaSans_500Medium',
+                    fontSize: 14,
+                    lineHeight: 19.6,
+                    color: '#6C727F',
+                  }}
+                >
+                  {property.area || 0}
+                  {property.areaUnit || 'm²'}
+                </Text>
+              </View>
+            </>
+          )}
         </View>
       </View>
     </TouchableOpacity>
