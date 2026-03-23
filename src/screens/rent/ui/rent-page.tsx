@@ -62,6 +62,9 @@ export function RentPage() {
       area: listing.area,
       areaUnit: 'm²',
       isPopular: listing.boosted || false,
+      isFavorite: listing.is_favorite || false,
+      status: listing.status,
+      attributes: listing.attributes || [],
       description: '',
     }))
   }, [listings])
@@ -111,7 +114,7 @@ export function RentPage() {
   }
 
   const renderHeader = (
-    <View className='px-4 py-6'>
+    <View className='px-4 pt-2'>
       <ConfirmDialog
         visible={pendingId !== null}
         title='Xóa khỏi yêu thích'
@@ -123,16 +126,6 @@ export function RentPage() {
           setPendingId(null)
         }}
         onCancel={() => setPendingId(null)}
-      />
-      {/* Search Bar */}
-      <RealVistaPropertySearchBar
-        value={criteria.location}
-        onChangeText={handleSearchChange}
-        onFiltersChange={handleFiltersChange}
-        placeholder='Tìm kiếm theo địa điểm'
-        className='mb-6'
-        showLeaseTerm={true}
-        maxPriceLimit={100_000_000}
       />
       {/* Error State */}
       {error && (
@@ -168,10 +161,10 @@ export function RentPage() {
     ) : null
 
   return (
-    <SafeAreaView className='flex-1 bg-white' edges={['top']}>
-      <Box className='px-4 pt-6 pb-2'>
+    <SafeAreaView className='flex-1 bg-white' edges={[]}>
+      <Box className='px-4 pt-3 pb-2'>
         {/* Search Bar + Toggle Button Row */}
-        <View className='mb-4 flex-row items-center gap-3'>
+        <View className='flex-row items-center gap-3'>
           <View className='flex-1'>
             <RealVistaPropertySearchBar
               value={criteria.location}

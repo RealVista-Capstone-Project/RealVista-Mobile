@@ -77,13 +77,13 @@ export function RealVistaPropertySearchBar({
   return (
     <>
       <View
-        className={`flex-row items-center rounded-lg border-2 bg-purple-98 px-4 py-3 ${
+        className={`flex-row items-center rounded-lg border-2 bg-purple-98 px-3 py-1.5 ${
           isFocused ? 'border-brand-primary' : 'border-purple-92'
         } ${className}`}
       >
         {/* Search Icon */}
-        <View className='mr-3'>
-          <IconLucide name='Search' color='#7065F0' size={24} />
+        <View className='mr-2'>
+          <IconLucide name='Search' color='#7065F0' size={18} />
         </View>
 
         {/* Text Input */}
@@ -94,17 +94,17 @@ export function RealVistaPropertySearchBar({
           placeholderTextColor='#6C727F'
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          className="flex-1 font-['PlusJakartaSans_500Medium'] text-base text-main-black"
-          style={{ fontFamily: 'PlusJakartaSans_500Medium', fontSize: 16 }}
+          className="flex-1 font-['PlusJakartaSans_500Medium'] text-sm text-main-black"
+          style={{ fontFamily: 'PlusJakartaSans_500Medium', fontSize: 14 }}
         />
 
         {/* Filter Button */}
         <TouchableOpacity
           onPress={handleFilterPress}
-          className='ml-3 h-10 w-10 items-center justify-center rounded-lg bg-brand-primary'
+          className='ml-2 h-7 w-7 items-center justify-center rounded-lg bg-brand-primary'
           activeOpacity={0.7}
         >
-          <IconLucide name='SlidersHorizontal' color='white' size={20} />
+          <IconLucide name='SlidersHorizontal' color='white' size={16} />
         </TouchableOpacity>
       </View>
 

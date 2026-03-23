@@ -1,5 +1,9 @@
 import { useListingSearch } from '@/features/search/use-listing-search'
+import { useMapSearch } from '@/features/map-search/api'
+import { Box } from '@/shared/ui/box'
+import IconLucide from '@/shared/ui/icon-lucide/icon'
 import { OpenMapsButton } from '@/shared/ui/open-maps-button'
+import { RealVistaMapSearchView } from '@/shared/ui/realvista-map-search-view'
 import {
   RealVistaPropertyCard,
   type RealVistaPropertyCardData,
@@ -10,7 +14,7 @@ import {
 } from '@/shared/ui/realvista-property-listing-search-bar'
 import { useRouter } from 'expo-router'
 import React, { useMemo, useState } from 'react'
-import { ActivityIndicator, FlatList, Text, View } from 'react-native'
+import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useToggleBookmark } from '@/features/bookmark'
@@ -18,6 +22,7 @@ import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
 
 export function BuyPage() {
   const router = useRouter()
+  const [searchMode, setSearchMode] = useState<'list' | 'map'>('list')
   const [pendingId, setPendingId] = useState<string | null>(null)
   const { mutate: toggleBookmark } = useToggleBookmark()
   const {
@@ -33,6 +38,17 @@ export function BuyPage() {
     listingType: 'SALE',
   })
 
+  // Map search — fetch markers from API when in map mode
+  const {
+    markers: mapMarkers,
+    totalCount: mapTotalCount,
+    isLoading: mapIsLoading,
+    onRegionChange,
+  } = useMapSearch({
+    listingType: 'SALE',
+    enabled: searchMode === 'map',
+  })
+
   // Map API listings to UI card data
   const propertyCardData: RealVistaPropertyCardData[] = useMemo(() => {
     return listings.map((listing) => ({
@@ -46,6 +62,9 @@ export function BuyPage() {
       area: listing.area,
       areaUnit: 'm²',
       isPopular: listing.boosted || false,
+      isFavorite: listing.is_favorite || false,
+      status: listing.status,
+      attributes: listing.attributes || [],
     }))
   }, [listings])
 
@@ -86,13 +105,16 @@ export function BuyPage() {
     }
   }
 
+  const toggleSearchMode = () => {
+    setSearchMode((prev) => (prev === 'list' ? 'map' : 'list'))
+  }
+
   const handleOpenMaps = () => {
-    // Navigate to map view (implementation pending)
-    // console.log('Open maps pressed')
+    console.log('Open maps pressed')
   }
 
   const renderHeader = (
-    <View className='px-4 py-6'>
+    <View className='px-4 pt-2'>
       <ConfirmDialog
         visible={pendingId !== null}
         title='Xóa khỏi yêu thích'
@@ -104,16 +126,6 @@ export function BuyPage() {
           setPendingId(null)
         }}
         onCancel={() => setPendingId(null)}
-      />
-      {/* Search Bar */}
-      <RealVistaPropertySearchBar
-        value={criteria.location}
-        onChangeText={handleSearchChange}
-        onFiltersChange={handleFiltersChange}
-        placeholder='Tìm kiếm theo địa điểm'
-        className='mb-6'
-        showLeaseTerm={false}
-        maxPriceLimit={10_000_000_000} // 10 tỷ — phù hợp với BĐS mua bán
       />
       {/* Error State */}
       {error && (
@@ -150,32 +162,75 @@ export function BuyPage() {
     ) : null
 
   return (
-    <SafeAreaView className='flex-1 bg-white' edges={['top']}>
-      {isLoading && propertyCardData.length === 0 ? (
-        <View className='flex-1 justify-center items-center'>
-          <ActivityIndicator size='large' color='#7065F0' />
+    <SafeAreaView className='flex-1 bg-white' edges={[]}>
+      <Box className='px-4 pt-3 pb-2'>
+        {/* Search Bar + Toggle Button Row */}
+        <View className='flex-row items-center gap-3'>
+          <View className='flex-1'>
+            <RealVistaPropertySearchBar
+              value={criteria.location}
+              onChangeText={handleSearchChange}
+              onFiltersChange={handleFiltersChange}
+              placeholder='Tìm kiếm theo địa điểm'
+              showLeaseTerm={false}
+              maxPriceLimit={10_000_000_000}
+            />
+          </View>
+
+          {/* Search Mode Toggle Button */}
+          <TouchableOpacity
+            onPress={toggleSearchMode}
+            activeOpacity={0.7}
+            className='h-10 w-10 items-center justify-center rounded-lg border-[1.5px] border-purple-92 bg-white'
+          >
+            <IconLucide
+              name={searchMode === 'list' ? 'Map' : 'LayoutGrid'}
+              color='#100A55'
+              size={20}
+            />
+          </TouchableOpacity>
         </View>
+      </Box>
+
+      {searchMode === 'list' ? (
+        /* List View with API data */
+        isLoading && propertyCardData.length === 0 ? (
+          <View className='flex-1 justify-center items-center'>
+            <ActivityIndicator size='large' color='#7065F0' />
+          </View>
+        ) : (
+          <FlatList
+            data={propertyCardData}
+            renderItem={({ item }) => (
+              <View className='px-4 mb-6'>
+                <RealVistaPropertyCard
+                  property={item}
+                  onClick={() => handlePropertyPress(item.id)}
+                  onToggleFavorite={() => handleFavoritePress(item.id)}
+                  variant='buy'
+                />
+              </View>
+            )}
+            keyExtractor={(item) => item.id}
+            ListHeaderComponent={renderHeader}
+            ListFooterComponent={renderFooter}
+            ListEmptyComponent={renderEmpty}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ flexGrow: 1 }}
+            onEndReached={nextPage}
+            onEndReachedThreshold={0.5}
+          />
+        )
       ) : (
-        <FlatList
-          data={propertyCardData}
-          renderItem={({ item }) => (
-            <View className='px-4 mb-6'>
-              <RealVistaPropertyCard
-                property={item}
-                onClick={() => handlePropertyPress(item.id)}
-                onToggleFavorite={() => handleFavoritePress(item.id)}
-                variant='buy'
-              />
-            </View>
-          )}
-          keyExtractor={(item) => item.id}
-          ListHeaderComponent={renderHeader}
-          ListFooterComponent={renderFooter}
-          ListEmptyComponent={renderEmpty}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ flexGrow: 1 }}
-          onEndReached={nextPage}
-          onEndReachedThreshold={0.5}
+        /* Map View */
+        <RealVistaMapSearchView
+          properties={mapMarkers}
+          totalCount={mapTotalCount}
+          isLoading={mapIsLoading}
+          onRegionChange={onRegionChange}
+          onPropertyPress={handlePropertyPress}
+          propertyCountLabel={`${mapTotalCount} bất động sản bán`}
+          variant='buy'
         />
       )}
     </SafeAreaView>
