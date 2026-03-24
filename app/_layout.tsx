@@ -15,6 +15,7 @@ import { useColorScheme } from '@/shared/lib/hooks/use-color-scheme'
 import { GluestackUIProvider } from '@/shared/ui/gluestack-ui-provider'
 import { SidebarDrawer } from '@/widgets/sidebar-drawer'
 import { TopNav } from '@/widgets/top-nav'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import '../global.css'
 
 export const unstable_settings = {
@@ -32,6 +33,8 @@ export default function RootLayout() {
   const rootNavigationState = useRootNavigationState()
   const segments = useSegments()
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const token = useAuthStore((state) => state.token)
+  const logout = useAuthStore((state) => state.logout)
   const [isNavigationReady, setNavigationReady] = useState(false)
   const [loaded] = useFonts({
     PlusJakartaSans_500Medium: require('../assets/fonts/PlusJakartaSans-Medium.ttf'),
@@ -50,17 +53,45 @@ export default function RootLayout() {
     }
   }, [loaded, rootNavigationState?.key])
 
+  // Validate token on app start
+  useEffect(() => {
+    const validateToken = async () => {
+      const storedToken = await AsyncStorage.getItem('token')
+
+      // If user claims to be authenticated but no token in storage, logout
+      if (isAuthenticated && !storedToken) {
+        console.log('[Auth] No token found in storage, logging out')
+        logout()
+      }
+
+      // If token in storage but user not authenticated in state, also clear
+      if (!isAuthenticated && storedToken) {
+        console.log('[Auth] Token found but not authenticated, clearing storage')
+        await AsyncStorage.removeItem('token')
+        await AsyncStorage.removeItem('refresh_token')
+      }
+    }
+
+    if (isNavigationReady && loaded) {
+      validateToken()
+    }
+  }, [isNavigationReady, loaded])
+
+  // Route guard - redirect based on auth state
   useEffect(() => {
     if (!isNavigationReady || !loaded) return
 
     const inAuthGroup = segments[0] === _AUTH_GROUP
 
-    if (!isAuthenticated && !inAuthGroup) {
+    // If not authenticated (or no token), redirect to login
+    if ((!isAuthenticated || !token) && !inAuthGroup) {
       router.replace(`/${_AUTH_GROUP}/login` as Href)
-    } else if (isAuthenticated && inAuthGroup) {
+    }
+    // If authenticated with token, redirect away from auth pages
+    else if (isAuthenticated && token && inAuthGroup) {
       router.replace(_DEFAULT_PAGE as Href)
     }
-  }, [isAuthenticated, segments, isNavigationReady, router, loaded])
+  }, [isAuthenticated, token, segments, isNavigationReady, router, loaded])
 
   useEffect(() => {
     // Request Permission on App Start (or wait for user action)
