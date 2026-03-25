@@ -106,6 +106,13 @@ export default function RootLayout() {
                     header: () => <TopNav />,
                   }}
                 />
+                <Stack.Screen
+                  name='notifications'
+                  options={{
+                    headerShown: true,
+                    header: () => <TopNav showBack />,
+                  }}
+                />
               </Stack>
               <StatusBar style='auto' />
             </SafeAreaView>
