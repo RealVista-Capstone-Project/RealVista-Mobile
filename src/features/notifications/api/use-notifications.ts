@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { notificationQueries, useMarkAsRead, useMarkAllAsRead } from '@/entities/notification'
+import type { Notification } from '@/entities/notification'
 
 /**
  * Feature Hook: Get Notifications List
@@ -46,7 +47,7 @@ export function useUnreadCount() {
   const query = useQuery(notificationQueries.list(0, 100))
 
   return useMemo(() => {
-    const unreadCount = query.data?.content?.filter((n) => !n.is_read).length ?? 0
+    const unreadCount = query.data?.content?.filter((n: Notification) => !n.is_read).length ?? 0
 
     return {
       count: unreadCount,

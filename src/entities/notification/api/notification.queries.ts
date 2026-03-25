@@ -1,5 +1,5 @@
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
-import type { PaginatedNotificationResponse } from '../model/types'
+import type { Notification, PaginatedNotificationResponse } from '../model/types'
 import { notificationApi } from './index'
 import { notificationKeys } from './keys'
 import { PaginatedNotificationResponseSchema } from '../model/schema'
@@ -20,7 +20,7 @@ export const notificationQueries = {
   list: (page = 0, size = 20) =>
     queryOptions({
       queryKey: notificationKeys.list(page),
-      queryFn: async () => {
+      queryFn: async (): Promise<PaginatedNotificationResponse> => {
         const res = await notificationApi.getNotifications(page, size)
 
         // Backend wraps data in { success, data: { content, ... } }
@@ -31,7 +31,7 @@ export const notificationQueries = {
           throw new Error('Invalid notification data received')
         }
 
-        return validated.data
+        return validated.data as PaginatedNotificationResponse
       },
       staleTime: 30 * 1000, // 30 seconds
       gcTime: 5 * 60 * 1000, // 5 minutes
