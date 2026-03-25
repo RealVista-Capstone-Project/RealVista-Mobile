@@ -1,7 +1,8 @@
 import { NotificationService } from '@/shared/services/notification'
+import { useAuthStore } from '@/entities/user'
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
 import { useFonts } from 'expo-font'
-import { Href, Stack, useRootNavigationState, useRouter } from 'expo-router'
+import { Href, Stack, useRootNavigationState, useRouter, useSegments } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect, useState } from 'react'
@@ -16,6 +17,9 @@ import { SidebarDrawer } from '@/widgets/sidebar-drawer'
 import { TopNav } from '@/widgets/top-nav'
 import '../global.css'
 
+const _AUTH_GROUP = '(auth)'
+const _HOME_GROUP = '(tabs)'
+
 export const unstable_settings = {
   anchor: '(tabs)',
 }
@@ -26,6 +30,8 @@ export default function RootLayout() {
   const colorScheme = useColorScheme()
   const router = useRouter()
   const rootNavigationState = useRootNavigationState()
+  const segments = useSegments()
+  const { isAuthenticated } = useAuthStore()
   const [isNavigationReady, setNavigationReady] = useState(false)
   const [loaded] = useFonts({
     PlusJakartaSans_500Medium: require('../assets/fonts/PlusJakartaSans-Medium.ttf'),

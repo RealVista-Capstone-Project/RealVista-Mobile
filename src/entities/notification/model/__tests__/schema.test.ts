@@ -1,4 +1,4 @@
-import { NotificationSchema, NotificationListResponseSchema, PushTokenSchema } from '../schema'
+import { NotificationSchema, PaginatedNotificationResponseSchema, PushTokenSchema } from '../schema'
 import type { Notification } from '../types'
 
 describe('Notification Schemas', () => {
@@ -40,24 +40,28 @@ describe('Notification Schemas', () => {
     })
   })
 
-  describe('NotificationListResponseSchema', () => {
-    it('should validate correct list response', () => {
+  describe('PaginatedNotificationResponseSchema', () => {
+    it('should validate correct paginated response', () => {
       const response = {
-        data: [],
-        total: 0,
-        page: 1,
-        limit: 20,
+        content: [],
+        page: 0,
+        size: 20,
+        total_elements: 0,
+        total_pages: 0,
       }
-      const result = NotificationListResponseSchema.safeParse(response)
+      const result = PaginatedNotificationResponseSchema.safeParse(response)
       expect(result.success).toBe(true)
     })
 
-    it('should reject negative total', () => {
+    it('should reject negative total_elements', () => {
       const invalid = {
-        data: [],
-        total: -1,
+        content: [],
+        page: 0,
+        size: 20,
+        total_elements: -1,
+        total_pages: 0,
       }
-      const result = NotificationListResponseSchema.safeParse(invalid)
+      const result = PaginatedNotificationResponseSchema.safeParse(invalid)
       expect(result.success).toBe(false)
     })
   })

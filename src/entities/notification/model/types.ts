@@ -18,6 +18,7 @@ export type EventType =
   | 'APPOINTMENT_CONFIRMED'
   | 'APPOINTMENT_CANCELLED'
   | 'NEW_MESSAGE'
+  | 'NEW_TOUR_REQUEST'
   | 'LISTING_EXPIRED'
   | 'LISTING_SOLD'
   | 'SYSTEM'
@@ -58,11 +59,16 @@ export interface PushToken {
 // API Response Types
 // ============================================
 
-export interface NotificationListResponse {
-  data: Notification[]
-  total: number
+/**
+ * Paginated response from GET /api/v1/notifications
+ * Backend returns Spring Page-style pagination
+ */
+export interface PaginatedNotificationResponse {
+  content: Notification[]
   page: number
-  limit: number
+  size: number
+  total_elements: number
+  total_pages: number
 }
 
 export interface SendTestNotificationRequest {

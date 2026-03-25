@@ -23,7 +23,7 @@ export function NotificationBadge() {
       }}
     >
       <Text className='text-xs font-bold text-white' style={{ lineHeight: 14 }}>
-        {count > 99 ? '99+' : count}
+        {count > 99 ? '99+' : String(count)}
       </Text>
     </Box>
   )

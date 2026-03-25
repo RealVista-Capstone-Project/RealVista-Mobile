@@ -1,7 +1,7 @@
 import http from '@/shared/lib/http'
 import type {
   Notification,
-  NotificationListResponse,
+  PaginatedNotificationResponse,
   PushToken,
   SendTestNotificationRequest,
   SendTestNotificationResponse,
@@ -9,60 +9,51 @@ import type {
 
 /**
  * Notification API Client
- * Handles all notification-related API calls
+ * Aligned with backend contract from notification-plan.md:
+ *   GET  /api/v1/notifications           - paginated list ({ content, page, size, total_elements, total_pages })
+ *   PUT  /api/v1/notifications/read-all  - mark all as read
+ *   PUT  /api/v1/notifications/{id}/read - mark single as read
  */
 export const notificationApi = {
   /**
    * Get user notifications (paginated)
-   * TODO: Backend endpoint not implemented yet - placeholder for future
-   * GET /api/notifications
+   * GET /api/v1/notifications?page=0&size=20
+   * Response: { success, data: { content, page, size, total_elements, total_pages } }
    */
-  getNotifications: (page = 1, limit = 20) =>
-    http.get<NotificationListResponse>('/notifications', {
-      params: { page, limit },
+  getNotifications: (page = 0, size = 20) =>
+    http.get<PaginatedNotificationResponse>('/notifications', {
+      params: { page, size },
     }),
 
   /**
-   * Get unread notification count
-   * TODO: Backend endpoint not implemented yet - placeholder for future
-   * GET /api/notifications/unread-count
-   */
-  getUnreadCount: () => http.get<{ count: number }>('/notifications/unread-count'),
-
-  /**
-   * Mark notification as read
-   * TODO: Backend endpoint not implemented yet - placeholder for future
-   * PATCH /api/notifications/:id/read
+   * Mark a single notification as read
+   * PUT /api/v1/notifications/{id}/read
    */
   markAsRead: (notificationId: string) =>
-    http.patch<Notification>(`/notifications/${notificationId}/read`),
+    http.put<Notification>(`/notifications/${notificationId}/read`),
 
   /**
    * Mark all notifications as read
-   * TODO: Backend endpoint not implemented yet - placeholder for future
-   * PATCH /api/notifications/read-all
+   * PUT /api/v1/notifications/read-all
    */
-  markAllAsRead: () => http.patch<void>('/notifications/read-all'),
+  markAllAsRead: () => http.put<void>('/notifications/read-all'),
 
   /**
    * Delete notification
-   * TODO: Backend endpoint not implemented yet - placeholder for future
-   * DELETE /api/notifications/:id
+   * DELETE /api/v1/notifications/{id}
    */
   deleteNotification: (notificationId: string) =>
     http.delete<void>(`/notifications/${notificationId}`),
 
   /**
    * Register push notification token
-   * TODO: Backend endpoint not implemented yet - placeholder for future
-   * POST /api/notifications/tokens
+   * POST /api/v1/notifications/tokens
    */
   registerPushToken: (data: PushToken) => http.post<void>('/notifications/tokens', data),
 
   /**
    * Unregister push notification token
-   * TODO: Backend endpoint not implemented yet - placeholder for future
-   * DELETE /api/notifications/tokens/:token
+   * DELETE /api/v1/notifications/tokens/{token}
    */
   unregisterPushToken: (token: string) => http.delete<void>(`/notifications/tokens/${token}`),
 

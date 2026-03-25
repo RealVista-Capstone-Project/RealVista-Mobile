@@ -2,6 +2,7 @@ import { FlatList, RefreshControl, ActivityIndicator, TouchableOpacity } from 'r
 import { Box } from '@/shared/ui/box'
 import { Text } from '@/shared/ui/text'
 import { useNotifications } from '@/features/notifications'
+import type { Notification } from '@/entities/notification'
 import { NotificationItem } from './components'
 
 import IconLucide from '@/shared/ui/icon-lucide/icon'
@@ -31,7 +32,7 @@ export function NotificationsPage() {
       <Box className='bg-white px-5 pb-2 pt-4'>
         <Box className='flex-row items-center justify-between'>
           <Text className='font-jakarta-bold text-2xl text-main-black'>Thông báo</Text>
-          {notifications.some((n) => !n.is_read) && (
+          {notifications.some((n: Notification) => !n.is_read) && (
             <TouchableOpacity
               onPress={() => markAllAsRead()}
               disabled={isMarkingAllAsRead}
