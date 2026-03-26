@@ -12,6 +12,7 @@ import {
 } from 'lucide-react-native'
 
 import type { BookmarkListingCard, GetBookmarksParams } from '@/entities/bookmark'
+import type { Attribute } from '@/entities/listing/model/types'
 import { useBookmarks, useToggleBookmark } from '@/features/bookmark'
 import { Box } from '@/shared/ui/box'
 import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
@@ -49,6 +50,38 @@ type ListingTypeFilter = 'SALE' | 'RENT' | null
 
 // ── Transform ─────────────────────────────────────────────────────────────────
 
+function mapBookmarkAttributesToCardAttributes(
+  attributes: BookmarkListingCard['attributes']
+): Attribute[] {
+  return attributes.map((attr) => {
+    const dataType: Attribute['data_type'] =
+      attr.value_number !== undefined
+        ? 'NUMBER'
+        : attr.value_boolean !== undefined
+          ? 'BOOLEAN'
+          : 'TEXT'
+
+    const displayValue =
+      attr.value_text ?? attr.value_number?.toString() ?? (attr.value_boolean ? 'Yes' : 'No')
+
+    return {
+      icon: attr.attribute_code,
+      text: dataType === 'TEXT',
+      number: dataType === 'NUMBER',
+      boolean: dataType === 'BOOLEAN',
+      attribute_id: attr.attribute_code,
+      attribute_code: attr.attribute_code,
+      attribute_name: attr.attribute_name,
+      data_type: dataType,
+      value_text: attr.value_text,
+      value_number: attr.value_number,
+      value_boolean: attr.value_boolean,
+      display_value: displayValue,
+      unit: undefined,
+    }
+  })
+}
+
 function transformBookmarkToCard(bookmark: BookmarkListingCard): RealVistaPropertyCardData {
   const bedrooms =
     bookmark.attributes.find((a) => a.attribute_code === 'BEDROOMS')?.value_number ?? 0
@@ -67,6 +100,7 @@ function transformBookmarkToCard(bookmark: BookmarkListingCard): RealVistaProper
     area: area,
     isFavorite: true,
     status: bookmark.status,
+    attributes: mapBookmarkAttributesToCardAttributes(bookmark.attributes || []),
   }
 }
 
