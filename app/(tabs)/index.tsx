@@ -6,6 +6,7 @@ import { RoleGuard } from '@/shared/lib/auth/role-guard'
 import { Box } from '@/shared/ui/box'
 import { Heading } from '@/shared/ui/heading'
 import { Text } from '@/shared/ui/text'
+import { RecommendedListings } from '@/widgets/recommended-listings'
 import { SidebarDrawer } from '@/widgets/sidebar-drawer'
 
 import { useLogout } from '@/features/auth'
@@ -41,6 +42,9 @@ export default function HomeScreen() {
 
           {/* Home Page Content */}
           <HomePage />
+
+          {/* AI-Powered Recommendations */}
+          <RecommendedListings />
 
           <Box className='mt-8 mb-8'>
             <Button title='Logout' color='#ef4444' onPress={() => logout()} />

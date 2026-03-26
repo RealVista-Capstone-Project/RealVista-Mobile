@@ -1,4 +1,5 @@
 import { useListingSearch } from '@/features/search/use-listing-search'
+import { behaviorTracker } from '@/shared/lib/analytics'
 import { OpenMapsButton } from '@/shared/ui/open-maps-button'
 import {
   RealVistaPropertyCard,
@@ -8,6 +9,7 @@ import {
   RealVistaPropertySearchBar,
   type FilterValues,
 } from '@/shared/ui/realvista-property-listing-search-bar'
+import { RecommendedListings } from '@/widgets/recommended-listings'
 import { useRouter } from 'expo-router'
 import React, { useMemo } from 'react'
 import { ActivityIndicator, FlatList, Text, View } from 'react-native'
@@ -49,6 +51,26 @@ export function BuyPage() {
     updateCriteria({ location: text })
   }
 
+  const handlePropertyPress = (propertyId: string, price: number, position: number) => {
+    behaviorTracker.trackClick(propertyId, {
+      listing_type: 'SALE',
+      price,
+      position,
+      source_page: 'buy',
+    })
+    router.push(`/listing/${propertyId}`)
+  }
+
+  const handleFavoritePress = (propertyId: string, price: number, position: number) => {
+    behaviorTracker.trackBookmark(propertyId, 'add', {
+      listing_type: 'SALE',
+      price,
+      position,
+      source_page: 'buy',
+    })
+    // TODO: Wire up favorite state management
+  }
+
   const handleFiltersChange = (filters: FilterValues) => {
     // Replace filter criteria but preserve currently typed location
     search({
@@ -64,36 +86,36 @@ export function BuyPage() {
     })
   }
 
-  const handlePropertyPress = (propertyId: string) => {
-    router.push(`/listing/${propertyId}`)
-  }
-
   const handleOpenMaps = () => {
     // Navigate to map view (implementation pending)
     // console.log('Open maps pressed')
   }
 
   const renderHeader = (
-    <View className='px-4 py-6'>
-      {/* Search Bar */}
-      <RealVistaPropertySearchBar
-        value={criteria.location}
-        onChangeText={handleSearchChange}
-        onFiltersChange={handleFiltersChange}
-        placeholder='Tìm kiếm theo địa điểm'
-        className='mb-6'
-        showLeaseTerm={false}
-        maxPriceLimit={10_000_000_000} // 10 tỷ — phù hợp với BĐS mua bán
-      />
-      {/* Error State */}
-      {error && (
-        <View className='py-10 items-center px-4'>
-          <Text className="font-['PlusJakartaSans_500Medium'] text-red-500 text-center mb-2">
-            Đã xảy ra lỗi khi tải dữ liệu.
-          </Text>
-          <Text className='text-gray-400 text-center text-xs mb-4'>{error.message}</Text>
-        </View>
-      )}
+    <View>
+      <View className='px-4 py-6'>
+        {/* Search Bar */}
+        <RealVistaPropertySearchBar
+          value={criteria.location}
+          onChangeText={handleSearchChange}
+          onFiltersChange={handleFiltersChange}
+          placeholder='Tìm kiếm theo địa điểm'
+          className='mb-6'
+          showLeaseTerm={false}
+          maxPriceLimit={10_000_000_000} // 10 tỷ — phù hợp với BĐS mua bán
+        />
+        {/* Error State */}
+        {error && (
+          <View className='py-10 items-center px-4'>
+            <Text className="font-['PlusJakartaSans_500Medium'] text-red-500 text-center mb-2">
+              Đã xảy ra lỗi khi tải dữ liệu.
+            </Text>
+            <Text className='text-gray-400 text-center text-xs mb-4'>{error.message}</Text>
+          </View>
+        )}
+      </View>
+      {/* AI-powered recommendations */}
+      <RecommendedListings />
     </View>
   )
 
@@ -128,12 +150,12 @@ export function BuyPage() {
       ) : (
         <FlatList
           data={propertyCardData}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <View className='px-4 mb-6'>
               <RealVistaPropertyCard
                 property={item}
-                onClick={() => handlePropertyPress(item.id)}
-                onToggleFavorite={() => {}}
+                onClick={() => handlePropertyPress(item.id, item.price, index)}
+                onToggleFavorite={() => handleFavoritePress(item.id, item.price, index)}
                 variant='buy'
               />
             </View>

@@ -9,8 +9,8 @@ module.exports = defineConfig([
   {
     ignores: ['dist/*'],
     rules: {
-      // Disable import/no-unresolved for Expo packages
-      // TypeScript already validates imports, and ESLint has issues resolving Expo modules
+      // Disable import/no-unresolved for packages that ESLint can't resolve
+      // TypeScript already validates imports; this avoids false positives
       'import/no-unresolved': [
         'error',
         {
@@ -21,18 +21,6 @@ module.exports = defineConfig([
             'date-fns/locale',
             '^react-native',
             '^@react-native',
-          ],
-        },
-      ],
-    },
-  },
-  {
-    rules: {
-      'import/no-unresolved': [
-        'error',
-        {
-          ignore: [
-            'date-fns',
             'text-encoding-polyfill',
             '@stomp/stompjs',
             'react-native-gifted-charts',
