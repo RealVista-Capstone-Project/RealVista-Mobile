@@ -21,7 +21,7 @@ export const useLogin = () => {
         }
 
         Alert.alert('Success', 'Login successful')
-        router.replace('/(tabs)') // Adjust route as needed, checking app structure
+        router.replace('/(tabs)/explore')
       } else {
         Alert.alert('Error', res.message || 'Login failed')
       }

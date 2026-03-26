@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
 import Constants from 'expo-constants'
 import { Platform } from 'react-native'
+import { useAuthStore } from '@/entities/user'
 
 const getBaseUrl = (): string => {
   if (process.env.EXPO_PUBLIC_API_URL) {
@@ -67,14 +68,22 @@ class HttpClient {
         return response
       },
       async (error: AxiosError<ApiResponse<unknown>>) => {
+        const isUnreadCountUnavailable =
+          error.config?.url?.includes('/notifications/unread-count') &&
+          error.response?.status === 500
+
         if (__DEV__) {
-          console.error('[HTTP] Response Error:', {
+          const logPayload = {
             message: error.message,
             code: error.code,
             url: error.config?.url,
             status: error.response?.status,
             data: error.response?.data,
-          })
+          }
+
+          if (!isUnreadCountUnavailable) {
+            console.error('[HTTP] Response Error:', logPayload)
+          }
         }
         const { response } = error
 
@@ -82,10 +91,19 @@ class HttpClient {
           const status = response.status
           const data = response.data
 
-          // Handle 401 - Unauthorized
+          // Handle 401 - Unauthorized (token expired or invalid)
           if (status === 401) {
+            // Clear token from storage
             await AsyncStorage.removeItem('token')
-            // Navigate to login (you might want to use a navigation service here)
+            await AsyncStorage.removeItem('refresh_token')
+
+            // Clear auth state - this will trigger route guard to redirect to login
+            const { logout } = useAuthStore.getState()
+            logout()
+
+            if (__DEV__) {
+              console.log('[HTTP] Token expired/invalid - user logged out')
+            }
           }
 
           // Handle 422 - Entity Error (validation errors)
