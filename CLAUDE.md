@@ -49,6 +49,7 @@ This codebase follows **Feature-Sliced Design (FSD)**, a modern architectural me
 #### Why FSD?
 
 **Benefits:**
+
 - **Scalability**: Naturally accommodates growth without tangled dependencies
 - **Parallel Development**: Teams can work on different slices independently
 - **Maintainability**: Clear boundaries make it easier to locate, modify, and refactor code
@@ -56,6 +57,7 @@ This codebase follows **Feature-Sliced Design (FSD)**, a modern architectural me
 - **Testability**: Self-contained slices are easier to test in isolation
 
 **When to Apply:**
+
 - Projects scaling beyond a few simple pages
 - Multiple teams collaborating on the same codebase
 - Complex business domains with clear feature boundaries
@@ -227,6 +229,7 @@ When adding new functionality, follow this decomposition order:
 5. **Create screens/** - Wire everything together for routes
 
 **Example**: Building a property search feature
+
 - `shared/ui/search-input.tsx` - Generic search input component
 - `entities/property/` - Property entity with API, types, state
 - `features/search-property/` - Search functionality, filters, results
@@ -256,11 +259,13 @@ src/
 ### FSD vs Traditional Architectures
 
 **Traditional MVC/Layered Architecture:**
+
 - Groups by technical concern: `/components`, `/services`, `/utils`
 - Creates monolithic files as features grow
 - Difficult to locate all code for a specific feature
 
 **Feature-Sliced Design:**
+
 - Groups by business domain: `/entities/user`, `/features/auth`
 - Each slice is self-contained with its own segments
 - Easy to locate all code for a specific feature
@@ -269,6 +274,7 @@ src/
 ### FSD Best Practices & Common Pitfalls
 
 **Do's:**
+
 - Start by identifying business domains (entities) before building features
 - Keep slices focused and cohesive - one slice per business concept
 - Use public API (index.ts) to control what's exposed from each slice
@@ -276,6 +282,7 @@ src/
 - **Note**: Testing is currently skipped - `__tests__/` segments may exist but are not actively used
 
 **Don'ts:**
+
 - Don't import between slices at the same layer (e.g., feature → feature)
 - Don't put business logic in shared/ - it's for utilities and UI primitives
 - Don't create circular dependencies between layers
@@ -283,6 +290,7 @@ src/
 - Don't skip the entity layer if you have reusable business domains
 
 **Common Pitfalls:**
+
 - **Over-engineering**: Don't create entities for simple one-off features - start with features, extract entities when reuse is needed
 - **Wrong layer placement**: If unsure where code belongs, start lower (shared) and move up as needed
 - **Ignoring import rules**: Linting rules should catch import violations - configure ESLint to enforce FSD import rules
