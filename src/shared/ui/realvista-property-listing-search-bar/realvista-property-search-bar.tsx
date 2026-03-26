@@ -27,7 +27,7 @@ export function RealVistaPropertySearchBar({
   initialFilters = {},
   maxPriceLimit,
 }: RealVistaPropertySearchBarProps) {
-  const [internalValue, setInternalValue] = useState('')
+  const onChangeTextRef = React.useRef(onChangeText)
   const [isFocused, setIsFocused] = useState(false)
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
   const [filters, setFilters] = useState<FilterValues>({
@@ -61,9 +61,13 @@ export function RealVistaPropertySearchBar({
   }, [controlledValue])
 
   React.useEffect(() => {
+    onChangeTextRef.current = onChangeText
+  }, [onChangeText])
+
+  React.useEffect(() => {
     const handler = setTimeout(() => {
-      if (onChangeText) {
-        onChangeText(localValue)
+      if (onChangeTextRef.current) {
+        onChangeTextRef.current(localValue)
       }
     }, 500)
 
@@ -76,35 +80,36 @@ export function RealVistaPropertySearchBar({
 
   return (
     <>
-      <View
-        className={`flex-row items-center rounded-lg border-2 bg-purple-98 px-3 py-1.5 ${
-          isFocused ? 'border-brand-primary' : 'border-purple-92'
-        } ${className}`}
-      >
-        {/* Search Icon */}
-        <View className='mr-2'>
-          <IconLucide name='Search' color='#7065F0' size={18} />
-        </View>
+      <View className={`flex-row items-center ${className}`}>
+        <View
+          className={`h-11 flex-1 flex-row items-center rounded-lg bg-purple-98 px-3 ${
+            isFocused ? 'border-brand-primary' : 'border-purple-92'
+          }`}
+        >
+          {/* Search Icon */}
+          <View className='mr-2'>
+            <IconLucide name='Search' color='#7065F0' size={18} />
+          </View>
 
-        {/* Text Input */}
-        <TextInput
-          value={localValue}
-          onChangeText={handleChangeText}
-          placeholder={placeholder}
-          placeholderTextColor='#6C727F'
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          className="flex-1 font-['PlusJakartaSans_500Medium'] text-sm text-main-black"
-          style={{ fontFamily: 'PlusJakartaSans_500Medium', fontSize: 14 }}
-        />
+          {/* Text Input */}
+          <TextInput
+            value={localValue}
+            onChangeText={handleChangeText}
+            placeholder={placeholder}
+            placeholderTextColor='#6C727F'
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            className='font-jakarta-medium text-sm text-main-black'
+          />
+        </View>
 
         {/* Filter Button */}
         <TouchableOpacity
           onPress={handleFilterPress}
-          className='ml-2 h-7 w-7 items-center justify-center rounded-lg bg-brand-primary'
+          className='ml-2 h-10 w-10 items-center justify-center rounded-lg bg-brand-primary'
           activeOpacity={0.7}
         >
-          <IconLucide name='SlidersHorizontal' color='white' size={16} />
+          <IconLucide name='SlidersHorizontal' color='white' size={20} />
         </TouchableOpacity>
       </View>
 

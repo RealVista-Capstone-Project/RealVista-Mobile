@@ -12,10 +12,8 @@ interface PropertyImageCarouselProps {
 export function PropertyImageCarousel({ images }: PropertyImageCarouselProps) {
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
-  const [galleryInitialIndex, setGalleryInitialIndex] = useState(0)
 
   const handleViewAllPhotos = () => {
-    setGalleryInitialIndex(0)
     setIsGalleryOpen(true)
   }
 

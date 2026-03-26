@@ -51,6 +51,7 @@ function transformSimilarListing(listing: SimilarListing): RealVistaPropertyCard
     areaUnit: listing.display_area,
     isPopular: listing.similarity_score === 100,
     isFavorite: false,
+    attributes: listing.attributes || [],
   }
 }
 

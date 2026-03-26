@@ -38,6 +38,7 @@ export interface RealVistaPropertyCardData {
   image: string
   title: string
   address: string
+  categoryLabel?: string
   price: number
   currency?: string
   beds?: number
@@ -238,7 +239,7 @@ export function RealVistaPropertyCard({
         >
           <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
             <Text
-              className="font-['PlusJakartaSans_700Bold'] text-brand-primary"
+              className='font-jakarta-bold text-brand-primary'
               style={{
                 fontFamily: 'PlusJakartaSans_700Bold',
                 fontSize: ishorizontal ? 18 : 24,
@@ -251,7 +252,7 @@ export function RealVistaPropertyCard({
             </Text>
             {variant === 'rent' && (
               <Text
-                className="font-['PlusJakartaSans_500Medium'] text-grey-500"
+                className='font-jakarta-medium text-grey-500'
                 style={{
                   fontFamily: 'PlusJakartaSans_500Medium',
                   fontSize: ishorizontal ? 13 : 16,
@@ -286,7 +287,7 @@ export function RealVistaPropertyCard({
         {/* Title & Address */}
         <View style={{ marginBottom: ishorizontal ? 8 : 16 }}>
           <Text
-            className="font-['PlusJakartaSans_700Bold'] text-main-black"
+            className='font-jakarta-bold text-main-black'
             style={{
               fontFamily: 'PlusJakartaSans_700Bold',
               fontSize: ishorizontal ? 16 : 24,
@@ -301,7 +302,7 @@ export function RealVistaPropertyCard({
           </Text>
 
           <Text
-            className="font-['PlusJakartaSans_500Medium'] text-grey-500"
+            className='font-jakarta-medium text-grey-500'
             style={{
               fontFamily: 'PlusJakartaSans_500Medium',
               fontSize: ishorizontal ? 13 : 16,
@@ -366,7 +367,7 @@ export function RealVistaPropertyCard({
                     ? getIconByName(attr.icon, ishorizontal ? 16 : 20)
                     : getIconByName(attr.attribute_code, ishorizontal ? 16 : 20)}
                   <Text
-                    className="font-['PlusJakartaSans_500Medium'] text-grey-500"
+                    className='font-jakarta-medium text-grey-500'
                     style={{
                       fontFamily: 'PlusJakartaSans_500Medium',
                       fontSize: 14,
@@ -388,7 +389,7 @@ export function RealVistaPropertyCard({
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <BedIcon size={ishorizontal ? 16 : 20} />
                 <Text
-                  className="font-['PlusJakartaSans_500Medium'] text-grey-500"
+                  className='font-jakarta-medium text-grey-500'
                   style={{
                     fontFamily: 'PlusJakartaSans_500Medium',
                     fontSize: 14,
@@ -405,7 +406,7 @@ export function RealVistaPropertyCard({
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <BathIcon size={ishorizontal ? 16 : 20} />
                 <Text
-                  className="font-['PlusJakartaSans_500Medium'] text-grey-500"
+                  className='font-jakarta-medium text-grey-500'
                   style={{
                     fontFamily: 'PlusJakartaSans_500Medium',
                     fontSize: 14,
@@ -422,7 +423,7 @@ export function RealVistaPropertyCard({
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <AreaIcon size={ishorizontal ? 16 : 20} />
                 <Text
-                  className="font-['PlusJakartaSans_500Medium'] text-grey-500"
+                  className='font-jakarta-medium text-grey-500'
                   style={{
                     fontFamily: 'PlusJakartaSans_500Medium',
                     fontSize: 14,
