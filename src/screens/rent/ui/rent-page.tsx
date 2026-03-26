@@ -1,11 +1,9 @@
 import { useListingSearch } from '@/features/search/use-listing-search'
-import { useMapSearch } from '@/features/map-search/api'
 import { Box } from '@/shared/ui/box'
-import IconLucide from '@/shared/ui/icon-lucide/icon'
-import { OpenMapsButton } from '@/shared/ui/open-maps-button'
-import { RealVistaMapSearchView } from '@/shared/ui/realvista-map-search-view'
+import { resolveListingCategoryLabel } from '@/shared/lib/resolve-listing-category-label'
 import {
-  RealVistaPropertyCard,
+  RealVistaPropertyHorizontalCard,
+  RealVistaRecommendedPropertyCard,
   type RealVistaPropertyCardData,
 } from '@/shared/ui/realvista-property-listing-card'
 import {
@@ -18,12 +16,67 @@ import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useToggleBookmark } from '@/features/bookmark'
+import { useMapSearch } from '@/features/map-search/api'
+import IconLucide from '@/shared/ui/icon-lucide/icon'
+import { RealVistaMapSearchView } from '@/shared/ui/realvista-map-search-view'
 import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
+
+const MOCK_RECOMMENDED_PROPERTIES: RealVistaPropertyCardData[] = [
+  {
+    id: 'recommended-rent-1',
+    image: 'https://images.unsplash.com/photo-1494526585095-c41746248156?w=1200',
+    title: 'Woodland Apartments',
+    address: 'Quận Bình Thạnh, TP.HCM',
+    categoryLabel: 'Apartment',
+    price: 15_000_000,
+    beds: 2,
+    bathrooms: 2,
+    area: 74,
+    areaUnit: 'm²',
+    isFavorite: false,
+  },
+  {
+    id: 'recommended-rent-2',
+    image: 'https://images.unsplash.com/photo-1576941089067-2de3c901e126?w=1200',
+    title: 'Oakleaf Cottage',
+    address: 'Quận 3, TP.HCM',
+    categoryLabel: 'House',
+    price: 9_000_000,
+    beds: 1,
+    bathrooms: 1,
+    area: 46,
+    areaUnit: 'm²',
+    isFavorite: true,
+  },
+  {
+    id: 'recommended-rent-3',
+    image: 'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=1200',
+    title: 'BlissView Villa',
+    address: 'Quận 2, TP.HCM',
+    categoryLabel: 'Villa',
+    price: 28_000_000,
+    beds: 3,
+    bathrooms: 3,
+    area: 130,
+    areaUnit: 'm²',
+    isFavorite: false,
+  },
+]
+
+function getListingAddress(listing: {
+  street_address?: string
+  full_address?: string
+  location?: string
+}): string {
+  return (
+    listing.street_address || listing.full_address || listing.location || 'Đang cập nhật địa chỉ'
+  )
+}
 
 export function RentPage() {
   const router = useRouter()
-  const [searchMode, setSearchMode] = useState<'list' | 'map'>('list')
   const [pendingId, setPendingId] = useState<string | null>(null)
+  const [isMapView, setIsMapView] = useState(false)
   const { mutate: toggleBookmark } = useToggleBookmark()
   const {
     listings,
@@ -37,16 +90,20 @@ export function RentPage() {
   } = useListingSearch({
     listingType: 'RENT',
   })
-
-  // Map search — fetch markers from API when in map mode
   const {
-    markers: mapMarkers,
-    totalCount: mapTotalCount,
-    isLoading: mapIsLoading,
+    markers,
+    totalCount,
+    isLoading: isMapLoading,
     onRegionChange,
   } = useMapSearch({
     listingType: 'RENT',
-    enabled: searchMode === 'map',
+    enabled: isMapView,
+    filters: {
+      min_price: criteria.minPrice,
+      max_price: criteria.maxPrice,
+      search_text: criteria.location,
+      category: criteria.propertyCategory,
+    },
   })
 
   // Map API listings to UI card data
@@ -55,7 +112,12 @@ export function RentPage() {
       id: listing.listing_id,
       image: listing.thumbnail || 'https://via.placeholder.com/800',
       title: listing.name,
-      address: listing.location,
+      address: getListingAddress(listing),
+      categoryLabel: resolveListingCategoryLabel({
+        title: listing.name,
+        propertyTypeCode: criteria.propertyType,
+        propertyCategoryCode: criteria.propertyCategory,
+      }),
       price: listing.price,
       beds: listing.bedrooms || 0,
       bathrooms: listing.bathrooms || 0,
@@ -67,7 +129,7 @@ export function RentPage() {
       attributes: listing.attributes || [],
       description: '',
     }))
-  }, [listings])
+  }, [criteria.propertyCategory, criteria.propertyType, listings])
 
   const handleSearchChange = (text: string) => {
     updateCriteria({ location: text })
@@ -104,15 +166,6 @@ export function RentPage() {
     }
   }
 
-  const toggleSearchMode = () => {
-    setSearchMode((prev) => (prev === 'list' ? 'map' : 'list'))
-  }
-
-  const handleOpenMaps = () => {
-    console.log('Open maps pressed')
-    // TODO: Navigate to map view
-  }
-
   const renderHeader = (
     <View className='px-4 pt-2'>
       <ConfirmDialog
@@ -130,12 +183,44 @@ export function RentPage() {
       {/* Error State */}
       {error && (
         <View className='py-10 items-center px-4'>
-          <Text className="font-['PlusJakartaSans_500Medium'] text-red-500 text-center mb-2">
+          <Text className='font-jakarta-medium text-red-500 text-center mb-2'>
             Đã xảy ra lỗi khi tải dữ liệu.
           </Text>
           <Text className='text-gray-400 text-center text-xs mb-4'>{error.message}</Text>
         </View>
       )}
+
+      <View className='mb-6'>
+        <View className='mb-3 flex-row items-center justify-between'>
+          <Text className='font-jakarta-bold text-lg text-main-black'>Gợi ý cho bạn</Text>
+        </View>
+
+        <FlatList
+          horizontal
+          data={MOCK_RECOMMENDED_PROPERTIES}
+          keyExtractor={(item) => item.id}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingRight: 8 }}
+          ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
+          renderItem={({ item }) => (
+            <View style={{ width: 250 }}>
+              <RealVistaRecommendedPropertyCard
+                property={item}
+                onClick={() => handlePropertyPress(item.id)}
+                variant='rent'
+              />
+            </View>
+          )}
+        />
+      </View>
+
+      {propertyCardData.length > 0 ? (
+        <View>
+          <View className='mb-3 flex-row items-center justify-between'>
+            <Text className='font-jakarta-bold text-lg text-main-black'>Bất động sản phù hợp</Text>
+          </View>
+        </View>
+      ) : null}
     </View>
   )
 
@@ -146,15 +231,13 @@ export function RentPage() {
           <ActivityIndicator size='small' color='#7065F0' />
         </View>
       )}
-      {/* Open Maps Button */}
-      {!isLoading && <OpenMapsButton onPress={handleOpenMaps} className='mt-6' />}
     </View>
   )
 
   const renderEmpty = () =>
     !isLoading && !error ? (
       <View className='py-10 items-center px-4'>
-        <Text className="font-['PlusJakartaSans_500Medium'] text-gray-500 text-base">
+        <Text className='font-jakarta-medium text-gray-500 text-base'>
           Không tìm thấy bất động sản nào.
         </Text>
       </View>
@@ -162,7 +245,7 @@ export function RentPage() {
 
   return (
     <SafeAreaView className='flex-1 bg-white' edges={[]}>
-      <Box className='px-4 pt-3 pb-2'>
+      <Box className='px-4 pt-1 pb-2'>
         {/* Search Bar + Toggle Button Row */}
         <View className='flex-row items-center gap-3'>
           <View className='flex-1'>
@@ -175,61 +258,54 @@ export function RentPage() {
               maxPriceLimit={100_000_000}
             />
           </View>
-
-          {/* Search Mode Toggle Button */}
           <TouchableOpacity
-            onPress={toggleSearchMode}
+            onPress={() => setIsMapView((prev) => !prev)}
+            className='h-10 w-10 items-center justify-center rounded-lg border border-purple-92 bg-white'
             activeOpacity={0.7}
-            className='h-10 w-10 items-center justify-center rounded-lg border-[1.5px] border-purple-92 bg-white'
           >
             <IconLucide
-              name={searchMode === 'list' ? 'Map' : 'LayoutGrid'}
-              color='#100A55'
-              size={20}
+              name={isMapView ? 'List' : 'Map'}
+              color={isMapView ? '#100A55' : '#7065F0'}
+              size={18}
             />
           </TouchableOpacity>
         </View>
       </Box>
-
-      {searchMode === 'list' ? (
-        /* List View with API data */
-        isLoading && propertyCardData.length === 0 ? (
-          <View className='flex-1 justify-center items-center'>
-            <ActivityIndicator size='large' color='#7065F0' />
-          </View>
-        ) : (
-          <FlatList
-            data={propertyCardData}
-            renderItem={({ item }) => (
-              <View className='px-4 mb-6'>
-                <RealVistaPropertyCard
-                  property={item}
-                  onClick={() => handlePropertyPress(item.id)}
-                  onToggleFavorite={() => handleFavoritePress(item.id)}
-                  variant='rent'
-                />
-              </View>
-            )}
-            keyExtractor={(item) => item.id}
-            ListHeaderComponent={renderHeader}
-            ListFooterComponent={renderFooter}
-            ListEmptyComponent={renderEmpty}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ flexGrow: 1 }}
-            onEndReached={nextPage}
-            onEndReachedThreshold={0.5}
-          />
-        )
-      ) : (
-        /* Map View */
+      {/* List View with API data only */}
+      {isMapView ? (
         <RealVistaMapSearchView
-          properties={mapMarkers}
-          totalCount={mapTotalCount}
-          isLoading={mapIsLoading}
+          properties={markers}
+          totalCount={totalCount}
+          isLoading={isMapLoading}
           onRegionChange={onRegionChange}
           onPropertyPress={handlePropertyPress}
-          propertyCountLabel={`${mapTotalCount} bất động sản cho thuê`}
           variant='rent'
+        />
+      ) : isLoading && propertyCardData.length === 0 ? (
+        <View className='flex-1 justify-center items-center'>
+          <ActivityIndicator size='large' color='#7065F0' />
+        </View>
+      ) : (
+        <FlatList
+          data={propertyCardData}
+          renderItem={({ item }) => (
+            <View className='px-4 mb-6'>
+              <RealVistaPropertyHorizontalCard
+                property={item}
+                onClick={() => handlePropertyPress(item.id)}
+                onToggleFavorite={() => handleFavoritePress(item.id)}
+                variant='rent'
+              />
+            </View>
+          )}
+          keyExtractor={(item) => item.id}
+          ListHeaderComponent={renderHeader}
+          ListFooterComponent={renderFooter}
+          ListEmptyComponent={renderEmpty}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+          onEndReached={nextPage}
+          onEndReachedThreshold={0.5}
         />
       )}
     </SafeAreaView>
