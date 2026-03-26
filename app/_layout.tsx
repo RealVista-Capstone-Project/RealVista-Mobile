@@ -28,9 +28,9 @@ const _DEFAULT_PAGE = '/(tabs)/explore'
 
 export default function RootLayout() {
   const colorScheme = useColorScheme()
+  const segments = useSegments()
   const router = useRouter()
   const rootNavigationState = useRootNavigationState()
-  const segments = useSegments()
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const token = useAuthStore((state) => state.token)
   const logout = useAuthStore((state) => state.logout)

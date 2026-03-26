@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native'
 import { useRouter } from 'expo-router'
+import { useEffect, useState } from 'react'
+import { ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native'
 
 import { type SimilarListing } from '@/entities/listing'
 import { useToggleBookmark } from '@/features/bookmark'
@@ -8,6 +8,7 @@ import { ContactFormModal } from '@/features/chat'
 import { useListingDetail } from '@/features/get-listing-detail'
 import { useListingPriceHistory } from '@/features/get-listing-price-history'
 import { useSimilarListings } from '@/features/get-similar-listings'
+import { behaviorTracker } from '@/shared/lib/analytics'
 import { LineChart, type ChartDataPoint } from '@/shared/ui/bna/line-chart'
 import { Box } from '@/shared/ui/box'
 import { Divider } from '@/shared/ui/divider'
@@ -66,6 +67,12 @@ export function ListingDetailPage() {
   const [isFavorite, setIsFavorite] = useState(false)
 
   const handleToggleFavorite = (id: string) => {
+    behaviorTracker.trackBookmark(id, 'add', {
+      listing_type: listing?.listing_type,
+      property_type: listing?.propertyType?.property_type_name,
+      price: listing?.price,
+      source_page: 'detail',
+    })
     toggleBookmark(id, {
       onSuccess: (data) => {
         setIsFavorite(data.bookmarked)
@@ -79,12 +86,29 @@ export function ListingDetailPage() {
   }
 
   const handlePropertyClick = (id: string) => {
-    console.log('Property clicked:', id)
+    const similar = similarListings.find((l) => l.listing_id === id)
+    behaviorTracker.trackClick(id, {
+      listing_type: similar?.listing_type,
+      price: similar?.price,
+      source_page: 'similar',
+    })
   }
 
   const handleBackToHome = () => {
     router.push('/buy-page')
   }
+
+  useEffect(() => {
+    if (listing) {
+      behaviorTracker.trackView(listing.listing_id, {
+        listing_type: listing.listing_type,
+        property_type: listing.propertyType?.property_type_name,
+        price: listing.price,
+        source_page: 'detail',
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listing?.listing_id])
 
   // Transform similar listings to card format
   const similarListingsCards: RealVistaPropertyCardData[] =

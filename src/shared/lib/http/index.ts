@@ -10,15 +10,16 @@ const getBaseUrl = (): string => {
   }
 
   if (__DEV__) {
+    // Android emulator must access host machine backend via 10.0.2.2.
+    if (Platform.OS === 'android') {
+      return 'http://10.0.2.2:8080/api/v1'
+    }
+
     const debuggerHost = Constants.expoConfig?.hostUri
     const ip = debuggerHost?.split(':')[0]
 
     if (ip) {
       return `http://${ip}:8080/api/v1`
-    }
-
-    if (Platform.OS === 'android') {
-      return 'http://10.0.2.2:8080/api/v1'
     }
 
     return 'http://localhost:8080/api/v1'

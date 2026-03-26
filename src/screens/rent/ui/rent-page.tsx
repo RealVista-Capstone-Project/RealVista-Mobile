@@ -1,9 +1,11 @@
 import { useListingSearch } from '@/features/search/use-listing-search'
+import { useMapSearch } from '@/features/map-search/api'
+import { behaviorTracker } from '@/shared/lib/analytics'
+import { RecommendedListings } from '@/widgets/recommended-listings'
 import { Box } from '@/shared/ui/box'
 import { resolveListingCategoryLabel } from '@/shared/lib/resolve-listing-category-label'
 import {
   RealVistaPropertyHorizontalCard,
-  RealVistaRecommendedPropertyCard,
   type RealVistaPropertyCardData,
 } from '@/shared/ui/realvista-property-listing-card'
 import {
@@ -16,52 +18,9 @@ import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useToggleBookmark } from '@/features/bookmark'
-import { useMapSearch } from '@/features/map-search/api'
 import IconLucide from '@/shared/ui/icon-lucide/icon'
 import { RealVistaMapSearchView } from '@/shared/ui/realvista-map-search-view'
 import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
-
-const MOCK_RECOMMENDED_PROPERTIES: RealVistaPropertyCardData[] = [
-  {
-    id: 'recommended-rent-1',
-    image: 'https://images.unsplash.com/photo-1494526585095-c41746248156?w=1200',
-    title: 'Woodland Apartments',
-    address: 'Quận Bình Thạnh, TP.HCM',
-    categoryLabel: 'Apartment',
-    price: 15_000_000,
-    beds: 2,
-    bathrooms: 2,
-    area: 74,
-    areaUnit: 'm²',
-    isFavorite: false,
-  },
-  {
-    id: 'recommended-rent-2',
-    image: 'https://images.unsplash.com/photo-1576941089067-2de3c901e126?w=1200',
-    title: 'Oakleaf Cottage',
-    address: 'Quận 3, TP.HCM',
-    categoryLabel: 'House',
-    price: 9_000_000,
-    beds: 1,
-    bathrooms: 1,
-    area: 46,
-    areaUnit: 'm²',
-    isFavorite: true,
-  },
-  {
-    id: 'recommended-rent-3',
-    image: 'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=1200',
-    title: 'BlissView Villa',
-    address: 'Quận 2, TP.HCM',
-    categoryLabel: 'Villa',
-    price: 28_000_000,
-    beds: 3,
-    bathrooms: 3,
-    area: 130,
-    areaUnit: 'm²',
-    isFavorite: false,
-  },
-]
 
 function getListingAddress(listing: {
   street_address?: string
@@ -149,7 +108,13 @@ export function RentPage() {
     })
   }
 
-  const handlePropertyPress = (propertyId: string) => {
+  const handlePropertyPress = (propertyId: string, price?: number, position?: number) => {
+    behaviorTracker.trackClick(propertyId, {
+      listing_type: 'RENT',
+      price,
+      position,
+      source_page: 'rent',
+    })
     router.push(`/listing/${propertyId}`)
   }
 
@@ -157,7 +122,13 @@ export function RentPage() {
     toggleBookmark(propertyId)
   }
 
-  const handleFavoritePress = (propertyId: string) => {
+  const handleFavoritePress = (propertyId: string, price?: number, position?: number) => {
+    behaviorTracker.trackBookmark(propertyId, 'add', {
+      listing_type: 'RENT',
+      price,
+      position,
+      source_page: 'rent',
+    })
     const property = propertyCardData.find((p) => p.id === propertyId)
     if (property?.isFavorite) {
       setPendingId(propertyId)
@@ -190,30 +161,6 @@ export function RentPage() {
         </View>
       )}
 
-      <View className='mb-6'>
-        <View className='mb-3 flex-row items-center justify-between'>
-          <Text className='font-jakarta-bold text-lg text-main-black'>Gợi ý cho bạn</Text>
-        </View>
-
-        <FlatList
-          horizontal
-          data={MOCK_RECOMMENDED_PROPERTIES}
-          keyExtractor={(item) => item.id}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingRight: 8 }}
-          ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
-          renderItem={({ item }) => (
-            <View style={{ width: 250 }}>
-              <RealVistaRecommendedPropertyCard
-                property={item}
-                onClick={() => handlePropertyPress(item.id)}
-                variant='rent'
-              />
-            </View>
-          )}
-        />
-      </View>
-
       {propertyCardData.length > 0 ? (
         <View>
           <View className='mb-3 flex-row items-center justify-between'>
@@ -221,6 +168,7 @@ export function RentPage() {
           </View>
         </View>
       ) : null}
+      <RecommendedListings />
     </View>
   )
 
@@ -288,12 +236,12 @@ export function RentPage() {
       ) : (
         <FlatList
           data={propertyCardData}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <View className='px-4 mb-6'>
               <RealVistaPropertyHorizontalCard
                 property={item}
-                onClick={() => handlePropertyPress(item.id)}
-                onToggleFavorite={() => handleFavoritePress(item.id)}
+                onClick={() => handlePropertyPress(item.id, item.price, index)}
+                onToggleFavorite={() => handleFavoritePress(item.id, item.price, index)}
                 variant='rent'
               />
             </View>
