@@ -43,13 +43,17 @@ export const notificationQueries = {
     queryOptions({
       queryKey: notificationKeys.unreadCount(),
       queryFn: async () => {
-        const res = await notificationApi.getUnreadCount()
-        return res.data.count
+        try {
+          const res = await notificationApi.getUnreadCount()
+          return res.data.count
+        } catch {
+          return 0
+        }
       },
       staleTime: 30 * 1000,
       gcTime: 5 * 60 * 1000,
       refetchInterval: 60 * 1000, // Refresh every minute
-      retry: 2,
+      retry: false,
     }),
 } as const
 

@@ -54,9 +54,7 @@ export function RealVistaPriceRangeSlider({
 
   return (
     <View className='mb-8'>
-      <Text className="font-['PlusJakartaSans_700Bold'] mb-4 text-[18px] text-[#000929]">
-        {title}
-      </Text>
+      <Text className='font-jakarta-bold mb-4 text-[18px] text-[#000929]'>{title}</Text>
       <View>
         {/* Price Histogram */}
         <View className='flex-row items-end h-14 mb-1 gap-[2px] px-9'>
@@ -102,10 +100,10 @@ export function RealVistaPriceRangeSlider({
         </View>
         {/* Price Labels */}
         <View className='flex-row justify-between px-2'>
-          <Text className="font-['PlusJakartaSans_700Bold'] text-[18px] text-[#000929]">
+          <Text className='font-jakarta-bold text-[18px] text-[#000929]'>
             {formatVND(internalLow)}
           </Text>
-          <Text className="font-['PlusJakartaSans_700Bold'] text-[18px] text-[#000929]">
+          <Text className='font-jakarta-bold text-[18px] text-[#000929]'>
             {formatVND(internalHigh)}
           </Text>
         </View>
