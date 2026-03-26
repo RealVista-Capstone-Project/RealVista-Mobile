@@ -9,8 +9,8 @@ import { useEffect, type ReactNode } from 'react'
 import { useAuthStore } from '@/entities/user'
 import { behaviorTracker, destroyEventQueue } from '@/shared/lib/analytics'
 
-const POSTHOG_KEY = 'phc_ong5Ek667U8GZn1bAftpWfP2WYPiefXtidQJepGI1dicvzczcxvzxcvtest'
-const POSTHOG_HOST = 'https://us.i.posthog.com'
+const POSTHOG_KEY = process.env.EXPO_PUBLIC_POSTHOG_KEY ?? ''
+const POSTHOG_HOST = process.env.EXPO_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com'
 
 /**
  * Inner component that initializes the behavior tracker
@@ -22,6 +22,7 @@ function PostHogInitializer({ children }: { children: ReactNode }) {
 
   // Initialize behavior tracker with PostHog instance
   useEffect(() => {
+    console.log('[PostHog] instance from usePostHog:', posthog ? 'ready' : 'null')
     if (posthog) {
       behaviorTracker.init(posthog)
     }
@@ -36,7 +37,9 @@ function PostHogInitializer({ children }: { children: ReactNode }) {
     if (!posthog) return
 
     if (isAuthenticated && user) {
-      posthog.identify(user.id, {
+      // Use email as distinctId to match web FE identity (consistency across platforms)
+      posthog.identify(user.email, {
+        id: user.id,
         email: user.email,
         name: user.fullName,
       })
@@ -54,7 +57,8 @@ export function PostHogProvider({ children }: { children: ReactNode }) {
       apiKey={POSTHOG_KEY}
       options={{
         host: POSTHOG_HOST,
-        enableSessionReplay: false,
+        flushAt: 1,
+        flushInterval: 5000,
       }}
     >
       <PostHogInitializer>{children}</PostHogInitializer>

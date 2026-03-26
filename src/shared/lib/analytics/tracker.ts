@@ -15,13 +15,16 @@ export const behaviorTracker = {
   init(posthog: PostHog): void {
     posthogInstance = posthog
     initEventQueue()
+    console.log('[BehaviorTracker] Initialized with PostHog instance')
   },
 
   trackView(listingId: string, metadata?: BehaviorEventMetadata): void {
+    console.log('[BehaviorTracker] trackView', listingId, metadata)
     posthogInstance?.capture(BEHAVIOR_EVENTS.LISTING_VIEW, {
       listing_id: listingId,
       ...metadata,
     })
+    posthogInstance?.flush()
 
     enqueueEvent({
       event_type: BEHAVIOR_EVENT_TO_API[BEHAVIOR_EVENTS.LISTING_VIEW],
@@ -31,10 +34,15 @@ export const behaviorTracker = {
   },
 
   trackClick(listingId: string, metadata?: BehaviorEventMetadata): void {
+    console.log('[BehaviorTracker] trackClick', listingId, metadata)
+    if (!posthogInstance) {
+      console.warn('[BehaviorTracker] PostHog not initialized — capture skipped')
+    }
     posthogInstance?.capture(BEHAVIOR_EVENTS.LISTING_CLICK, {
       listing_id: listingId,
       ...metadata,
     })
+    posthogInstance?.flush()
 
     enqueueEvent({
       event_type: BEHAVIOR_EVENT_TO_API[BEHAVIOR_EVENTS.LISTING_CLICK],
@@ -48,11 +56,13 @@ export const behaviorTracker = {
     action: 'add' | 'remove',
     metadata?: BehaviorEventMetadata
   ): void {
+    console.log('[BehaviorTracker] trackBookmark', listingId, action, metadata)
     posthogInstance?.capture(BEHAVIOR_EVENTS.LISTING_BOOKMARK, {
       listing_id: listingId,
       action,
       ...metadata,
     })
+    posthogInstance?.flush()
 
     // Only send 'add' to BE — removing a bookmark is not a recommendation signal
     if (action === 'add') {

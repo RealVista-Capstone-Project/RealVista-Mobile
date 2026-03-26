@@ -16,13 +16,14 @@ import { ActivityIndicator, Image, ScrollView, TouchableOpacity, View } from 're
 
 interface RecommendationCardProps {
   item: RecommendedListingDTO
-  onPress: (item: RecommendedListingDTO) => void
+  position: number
+  onPress: (item: RecommendedListingDTO, position: number) => void
 }
 
-function RecommendationCard({ item, onPress }: RecommendationCardProps) {
+function RecommendationCard({ item, position, onPress }: RecommendationCardProps) {
   return (
     <TouchableOpacity
-      onPress={() => onPress(item)}
+      onPress={() => onPress(item, position)}
       activeOpacity={0.9}
       style={{
         width: 260,
@@ -139,11 +140,12 @@ function RecommendationCard({ item, onPress }: RecommendationCardProps) {
 export function RecommendedListings() {
   const { recommendations, behaviorSummary, isLoading, refresh } = useRecommendations(6)
 
-  const handleListingPress = (item: RecommendedListingDTO) => {
+  const handleListingPress = (item: RecommendedListingDTO, position: number) => {
     // Track click
     behaviorTracker.trackClick(item.listing_id, {
       listing_type: item.listing_type as 'RENT' | 'SALE',
       price: item.price,
+      position,
       source_page: 'home',
     })
 
@@ -201,22 +203,6 @@ export function RecommendedListings() {
         </TouchableOpacity>
       </View>
 
-      {/* Behavior Summary */}
-      {behaviorSummary && (
-        <Text
-          style={{
-            fontFamily: 'PlusJakartaSans_500Medium',
-            fontSize: 14,
-            lineHeight: 20,
-            color: '#6C727F',
-            paddingHorizontal: 24,
-            marginBottom: 12,
-          }}
-        >
-          {behaviorSummary}
-        </Text>
-      )}
-
       {/* Content */}
       {isLoading ? (
         <Box className='items-center justify-center py-8'>
@@ -228,8 +214,13 @@ export function RecommendedListings() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ gap: 16, paddingHorizontal: 24 }}
         >
-          {recommendations.map((item) => (
-            <RecommendationCard key={item.listing_id} item={item} onPress={handleListingPress} />
+          {recommendations.map((item, index) => (
+            <RecommendationCard
+              key={item.listing_id}
+              item={item}
+              position={index}
+              onPress={handleListingPress}
+            />
           ))}
         </ScrollView>
       )}

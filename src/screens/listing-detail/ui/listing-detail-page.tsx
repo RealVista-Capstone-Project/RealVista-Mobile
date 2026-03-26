@@ -59,15 +59,19 @@ export function ListingDetailPage() {
   const { listings: similarListings } = useSimilarListings(5)
 
   const handleToggleFavorite = (id: string) => {
-    console.log('Toggle favorite:', id)
     behaviorTracker.trackBookmark(id, 'add', {
+      listing_type: listing?.listing_type,
+      property_type: listing?.propertyType?.property_type_name,
+      price: listing?.price,
       source_page: 'detail',
     })
   }
 
   const handlePropertyClick = (id: string) => {
-    console.log('Property clicked:', id)
+    const similar = similarListings.find((l) => l.listing_id === id)
     behaviorTracker.trackClick(id, {
+      listing_type: similar?.listing_type,
+      price: similar?.price,
       source_page: 'similar',
     })
   }
