@@ -4,56 +4,82 @@ import React from 'react'
 import { Box } from '@/shared/ui/box'
 import { HapticTab } from '@/shared/ui/haptic-tab'
 import { IconSymbol } from '@/shared/ui/icon-symbol'
-import { Text } from '@/shared/ui/text'
+import { MobileHeader } from '@/widgets/mobile-header'
 
 export default function TabLayout() {
   return (
     <Tabs
+      initialRouteName='explore'
       screenOptions={{
         headerShown: true,
+        header: () => <MobileHeader />,
         tabBarButton: HapticTab,
+        tabBarShowLabel: false,
         tabBarStyle: {
-          backgroundColor: '#1a1a1a',
+          backgroundColor: '#ffffff',
           borderTopWidth: 0,
+          height: 70,
           elevation: 0,
           shadowOpacity: 0,
         },
-        tabBarActiveTintColor: '#6366f1',
-        tabBarInactiveTintColor: '#9ca3af',
+        tabBarIconStyle: {
+          marginTop: 10,
+        },
+        tabBarActiveTintColor: '#7065F0',
+        tabBarInactiveTintColor: '#9EA3AE',
       }}
     >
       <Tabs.Screen
-        name='index'
+        name='explore'
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color, focused }) => (
+          title: 'Khám phá',
+          tabBarIcon: ({ color }) => (
             <Box className='items-center justify-center'>
-              <IconSymbol size={28} name='house.fill' color={color} />
-              <Text
-                size='xs'
-                className={focused ? 'text-indigo-500' : 'text-gray-400'}
-                style={{ marginTop: 4 }}
-              >
-                Home
-              </Text>
+              <IconSymbol size={25} name='explore' color={color} />
             </Box>
           ),
         }}
       />
       <Tabs.Screen
-        name='explore'
+        name='manage-posts'
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color, focused }) => (
+          title: 'Bài đăng',
+          tabBarIcon: ({ color }) => (
             <Box className='items-center justify-center'>
-              <IconSymbol size={28} name='paperplane.fill' color={color} />
-              <Text
-                size='xs'
-                className={focused ? 'text-indigo-500' : 'text-gray-400'}
-                style={{ marginTop: 4 }}
-              >
-                Explore
-              </Text>
+              <IconSymbol size={25} name='dashboard' color={color} />
+            </Box>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name='chat'
+        options={{
+          title: 'Trò chuyện',
+          tabBarIcon: ({ color }) => (
+            <Box className='items-center justify-center'>
+              <IconSymbol size={25} name='message' color={color} />
+            </Box>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name='favorite'
+        options={{
+          title: 'Yêu thích',
+          tabBarIcon: ({ color }) => (
+            <Box className='items-center justify-center'>
+              <IconSymbol size={25} name='heart' color={color} />
+            </Box>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name='profile'
+        options={{
+          title: 'Hồ sơ',
+          tabBarIcon: ({ color }) => (
+            <Box className='items-center justify-center'>
+              <IconSymbol size={25} name='person' color={color} />
             </Box>
           ),
         }}

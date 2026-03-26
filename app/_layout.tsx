@@ -13,8 +13,7 @@ import { useAuthStore } from '@/entities/user'
 import { AppProviders } from '@/shared/config/providers'
 import { useColorScheme } from '@/shared/lib/hooks/use-color-scheme'
 import { GluestackUIProvider } from '@/shared/ui/gluestack-ui-provider'
-import { SidebarDrawer } from '@/widgets/sidebar-drawer'
-import { TopNav } from '@/widgets/top-nav'
+import { MobileHeader } from '@/widgets/mobile-header'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import '../global.css'
 
@@ -25,7 +24,7 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync()
 
 const _AUTH_GROUP = '(auth)'
-const _DEFAULT_PAGE = '/buy-page'
+const _DEFAULT_PAGE = '/(tabs)/explore'
 
 export default function RootLayout() {
   const colorScheme = useColorScheme()
@@ -75,7 +74,7 @@ export default function RootLayout() {
     if (isNavigationReady && loaded) {
       validateToken()
     }
-  }, [isNavigationReady, loaded])
+  }, [isNavigationReady, loaded, isAuthenticated, logout])
 
   // Route guard - redirect based on auth state
   useEffect(() => {
@@ -114,37 +113,24 @@ export default function RootLayout() {
         <GluestackUIProvider mode='dark'>
           <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
             <SafeAreaView className='flex-1 bg-gray-50' edges={['top', 'left', 'right']}>
-              <SidebarDrawer />
               <Stack
                 screenOptions={{
                   headerShown: false,
                 }}
               >
-                <Stack.Screen
-                  name='(tabs)'
-                  options={{
-                    headerShown: true,
-                    header: () => null, // Custom header per screen
-                  }}
-                />
+                <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
                 <Stack.Screen name='(auth)/login' options={{ headerShown: false }} />
                 <Stack.Screen name='modal' options={{ presentation: 'modal', title: 'Modal' }} />
                 <Stack.Screen
                   name='listing'
                   options={{
                     headerShown: true,
-                    header: () => <TopNav />,
+                    header: () => <MobileHeader />,
                   }}
                 />
                 <Stack.Screen name='buy-page' options={{ headerShown: false }} />
                 <Stack.Screen name='rent-page' options={{ headerShown: false }} />
-                <Stack.Screen
-                  name='saved'
-                  options={{
-                    headerShown: true,
-                    header: () => <TopNav />,
-                  }}
-                />
+                <Stack.Screen name='saved' options={{ headerShown: false }} />
               </Stack>
               <StatusBar style='auto' />
             </SafeAreaView>
