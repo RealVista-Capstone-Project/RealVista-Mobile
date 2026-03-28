@@ -3,4 +3,5 @@
  */
 
 export * from './model/types'
-export { recommendationApi, recommendationKeys } from './api'
+export { recommendationApi, recommendationKeys, type RecommendationListingTypeParam } from './api'
+export { mapRecommendedListingToPropertyCard } from './lib/map-recommended-to-property-card'
