@@ -170,6 +170,8 @@ export interface Listing {
   attributes: Attribute[]
   amenities?: Amenity[]
   cost_breakdown?: CostBreakdown
+  /** Present when the current user is authenticated (bookmark status). */
+  is_favorite?: boolean
 }
 // ============================================
 // Search Types
