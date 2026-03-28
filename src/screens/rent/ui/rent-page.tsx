@@ -13,11 +13,11 @@ import {
   type FilterValues,
 } from '@/shared/ui/realvista-property-listing-search-bar'
 import { useRouter } from 'expo-router'
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { useToggleBookmark } from '@/features/bookmark'
+import { useFavoriteUiSyncStore, useToggleBookmark } from '@/features/bookmark'
 import IconLucide from '@/shared/ui/icon-lucide/icon'
 import { RealVistaMapSearchView } from '@/shared/ui/realvista-map-search-view'
 import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
@@ -36,6 +36,8 @@ export function RentPage() {
   const router = useRouter()
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [isMapView, setIsMapView] = useState(false)
+  const [localFavoriteById, setLocalFavoriteById] = useState<Record<string, boolean>>({})
+  const bookmarkSync = useFavoriteUiSyncStore((s) => s.bookmarkedByListingId)
   const { mutate: toggleBookmark } = useToggleBookmark()
   const {
     listings,
@@ -65,30 +67,60 @@ export function RentPage() {
     },
   })
 
+  useEffect(() => {
+    const ids = new Set(listings.map((l) => l.listing_id))
+    setLocalFavoriteById((prev) => {
+      const next = { ...prev }
+      let changed = false
+      for (const id of Object.keys(next)) {
+        if (!ids.has(id)) {
+          delete next[id]
+          changed = true
+        }
+      }
+      return changed ? next : prev
+    })
+  }, [listings])
+
   // Map API listings to UI card data
   const propertyCardData: RealVistaPropertyCardData[] = useMemo(() => {
-    return listings.map((listing) => ({
-      id: listing.listing_id,
-      image: listing.thumbnail || 'https://via.placeholder.com/800',
-      title: listing.name,
-      address: getListingAddress(listing),
-      categoryLabel: resolveListingCategoryLabel({
+    return listings.map((listing) => {
+      const id = listing.listing_id
+      const o = localFavoriteById[id]
+      const g = bookmarkSync[id]
+      const isFavorite = o !== undefined ? o : g !== undefined ? g : listing.is_favorite || false
+      return {
+        id: listing.listing_id,
+        image: listing.thumbnail || 'https://via.placeholder.com/800',
         title: listing.name,
-        propertyTypeCode: criteria.propertyType,
-        propertyCategoryCode: criteria.propertyCategory,
-      }),
-      price: listing.price,
-      beds: listing.bedrooms || 0,
-      bathrooms: listing.bathrooms || 0,
-      area: listing.area,
-      areaUnit: 'm²',
-      isPopular: listing.boosted || false,
-      isFavorite: listing.is_favorite || false,
-      status: listing.status,
-      attributes: listing.attributes || [],
-      description: '',
-    }))
-  }, [criteria.propertyCategory, criteria.propertyType, listings])
+        address: getListingAddress(listing),
+        categoryLabel: resolveListingCategoryLabel({
+          title: listing.name,
+          propertyTypeCode: criteria.propertyType,
+          propertyCategoryCode: criteria.propertyCategory,
+        }),
+        price: listing.price,
+        beds: listing.bedrooms || 0,
+        bathrooms: listing.bathrooms || 0,
+        area: listing.area,
+        areaUnit: 'm²',
+        isPopular: listing.boosted || false,
+        isFavorite,
+        status: listing.status,
+        attributes: listing.attributes || [],
+        description: '',
+      }
+    })
+  }, [bookmarkSync, criteria.propertyCategory, criteria.propertyType, listings, localFavoriteById])
+
+  const mapMarkersWithFavorites = useMemo(() => {
+    return markers.map((m) => {
+      const o = localFavoriteById[m.id]
+      const g = bookmarkSync[m.id]
+      const isFavorite = o !== undefined ? o : g !== undefined ? g : (m.isFavorite ?? false)
+      return { ...m, isFavorite }
+    })
+  }, [bookmarkSync, markers, localFavoriteById])
 
   const handleSearchChange = (text: string) => {
     updateCriteria({ location: text })
@@ -119,38 +151,64 @@ export function RentPage() {
   }
 
   const doToggleFavorite = (propertyId: string) => {
-    toggleBookmark(propertyId)
+    const fromList = listings.find((l) => l.listing_id === propertyId)
+    const fromMap = markers.find((m) => m.id === propertyId)
+    const baseline =
+      localFavoriteById[propertyId] !== undefined
+        ? localFavoriteById[propertyId]
+        : bookmarkSync[propertyId] !== undefined
+          ? bookmarkSync[propertyId]
+          : fromList != null
+            ? fromList.is_favorite
+            : fromMap != null
+              ? (fromMap.isFavorite ?? false)
+              : false
+    const current = baseline
+
+    setLocalFavoriteById((prev) => ({ ...prev, [propertyId]: !current }))
+
+    toggleBookmark(propertyId, {
+      onSuccess: (data) => {
+        setLocalFavoriteById((prev) => ({ ...prev, [propertyId]: data.bookmarked }))
+      },
+      onError: () => {
+        setLocalFavoriteById((prev) => {
+          const next = { ...prev }
+          delete next[propertyId]
+          return next
+        })
+      },
+    })
+  }
+
+  const isPropertyFavorite = (propertyId: string) => {
+    if (localFavoriteById[propertyId] !== undefined) {
+      return localFavoriteById[propertyId]
+    }
+    if (bookmarkSync[propertyId] !== undefined) {
+      return bookmarkSync[propertyId]
+    }
+    const source = isMapView ? mapMarkersWithFavorites : propertyCardData
+    const row = source.find((p) => p.id === propertyId)
+    return row?.isFavorite ?? false
   }
 
   const handleFavoritePress = (propertyId: string, price?: number, position?: number) => {
-    behaviorTracker.trackBookmark(propertyId, 'add', {
-      listing_type: 'RENT',
-      price,
-      position,
-      source_page: 'rent',
-    })
-    const property = propertyCardData.find((p) => p.id === propertyId)
-    if (property?.isFavorite) {
+    if (isPropertyFavorite(propertyId)) {
       setPendingId(propertyId)
     } else {
+      behaviorTracker.trackBookmark(propertyId, 'add', {
+        listing_type: 'RENT',
+        price,
+        position,
+        source_page: isMapView ? 'map' : 'rent',
+      })
       doToggleFavorite(propertyId)
     }
   }
 
   const renderHeader = (
     <View className='px-4 pt-2'>
-      <ConfirmDialog
-        visible={pendingId !== null}
-        title='Xóa khỏi yêu thích'
-        message='Bạn có muốn xóa tin đăng này khỏi danh sách yêu thích không?'
-        confirmLabel='Xóa'
-        cancelLabel='Hủy'
-        onConfirm={() => {
-          if (pendingId) doToggleFavorite(pendingId)
-          setPendingId(null)
-        }}
-        onCancel={() => setPendingId(null)}
-      />
       {/* Error State */}
       {error && (
         <View className='py-10 items-center px-4'>
@@ -161,14 +219,15 @@ export function RentPage() {
         </View>
       )}
 
+      <RecommendedListings variant='rent' listingType='RENT' />
+
       {propertyCardData.length > 0 ? (
         <View>
-          <View className='mb-3 flex-row items-center justify-between'>
-            <Text className='font-jakarta-bold text-lg text-main-black'>Bất động sản phù hợp</Text>
+          <View className='mt-3 mb-3 flex-row items-center justify-between'>
+            <Text className='font-jakarta-bold text-xl text-main-black'>Bất động sản phù hợp</Text>
           </View>
         </View>
       ) : null}
-      <RecommendedListings />
     </View>
   )
 
@@ -193,6 +252,18 @@ export function RentPage() {
 
   return (
     <SafeAreaView className='flex-1 bg-white' edges={[]}>
+      <ConfirmDialog
+        visible={pendingId !== null}
+        title='Xóa khỏi yêu thích'
+        message='Bạn có muốn xóa tin đăng này khỏi danh sách yêu thích không?'
+        confirmLabel='Xóa'
+        cancelLabel='Hủy'
+        onConfirm={() => {
+          if (pendingId) doToggleFavorite(pendingId)
+          setPendingId(null)
+        }}
+        onCancel={() => setPendingId(null)}
+      />
       <Box className='px-4 pt-1 pb-2'>
         {/* Search Bar + Toggle Button Row */}
         <View className='flex-row items-center gap-3'>
@@ -222,11 +293,12 @@ export function RentPage() {
       {/* List View with API data only */}
       {isMapView ? (
         <RealVistaMapSearchView
-          properties={markers}
+          properties={mapMarkersWithFavorites}
           totalCount={totalCount}
           isLoading={isMapLoading}
           onRegionChange={onRegionChange}
           onPropertyPress={handlePropertyPress}
+          onToggleFavorite={(id) => handleFavoritePress(id)}
           variant='rent'
         />
       ) : isLoading && propertyCardData.length === 0 ? (

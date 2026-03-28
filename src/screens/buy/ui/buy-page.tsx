@@ -1,7 +1,6 @@
 import { useListingSearch } from '@/features/search/use-listing-search'
 import { Box } from '@/shared/ui/box'
 import { resolveListingCategoryLabel } from '@/shared/lib/resolve-listing-category-label'
-import { behaviorTracker } from '@/shared/lib/analytics'
 import {
   RealVistaPropertyHorizontalCard,
   type RealVistaPropertyCardData,
@@ -10,17 +9,18 @@ import {
   RealVistaPropertySearchBar,
   type FilterValues,
 } from '@/shared/ui/realvista-property-listing-search-bar'
-import { RecommendedListings } from '@/widgets/recommended-listings'
 import { useRouter } from 'expo-router'
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { useToggleBookmark } from '@/features/bookmark'
+import { useFavoriteUiSyncStore, useToggleBookmark } from '@/features/bookmark'
 import { useMapSearch } from '@/features/map-search/api'
+import { behaviorTracker } from '@/shared/lib/analytics'
 import IconLucide from '@/shared/ui/icon-lucide/icon'
 import { RealVistaMapSearchView } from '@/shared/ui/realvista-map-search-view'
 import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
+import { RecommendedListings } from '@/widgets/recommended-listings'
 
 function getListingAddress(listing: {
   street_address?: string
@@ -36,6 +36,9 @@ export function BuyPage() {
   const router = useRouter()
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [isMapView, setIsMapView] = useState(false)
+  /** Optimistic / confirmed favorite state when list cache lags (e.g. infinite scroll). */
+  const [localFavoriteById, setLocalFavoriteById] = useState<Record<string, boolean>>({})
+  const bookmarkSync = useFavoriteUiSyncStore((s) => s.bookmarkedByListingId)
   const { mutate: toggleBookmark } = useToggleBookmark()
   const {
     listings,
@@ -65,43 +68,63 @@ export function BuyPage() {
     },
   })
 
+  useEffect(() => {
+    const ids = new Set(listings.map((l) => l.listing_id))
+    setLocalFavoriteById((prev) => {
+      const next = { ...prev }
+      let changed = false
+      for (const id of Object.keys(next)) {
+        if (!ids.has(id)) {
+          delete next[id]
+          changed = true
+        }
+      }
+      return changed ? next : prev
+    })
+  }, [listings])
+
   // Map API listings to UI card data
   const propertyCardData: RealVistaPropertyCardData[] = useMemo(() => {
-    return listings.map((listing) => ({
-      id: listing.listing_id,
-      image: listing.thumbnail || 'https://via.placeholder.com/800',
-      title: listing.name,
-      address: getListingAddress(listing),
-      categoryLabel: resolveListingCategoryLabel({
+    return listings.map((listing) => {
+      const id = listing.listing_id
+      const o = localFavoriteById[id]
+      const g = bookmarkSync[id]
+      const isFavorite = o !== undefined ? o : g !== undefined ? g : listing.is_favorite || false
+      return {
+        id: listing.listing_id,
+        image: listing.thumbnail || 'https://via.placeholder.com/800',
         title: listing.name,
-        propertyTypeCode: criteria.propertyType,
-        propertyCategoryCode: criteria.propertyCategory,
-      }),
-      price: listing.price,
-      beds: listing.bedrooms || 0,
-      bathrooms: listing.bathrooms || 0,
-      area: listing.area,
-      areaUnit: 'm²',
-      isPopular: listing.boosted || false,
-      isFavorite: listing.is_favorite || false,
-      status: listing.status,
-      attributes: listing.attributes || [],
-    }))
-  }, [criteria.propertyCategory, criteria.propertyType, listings])
+        address: getListingAddress(listing),
+        categoryLabel: resolveListingCategoryLabel({
+          title: listing.name,
+          propertyTypeCode: criteria.propertyType,
+          propertyCategoryCode: criteria.propertyCategory,
+        }),
+        price: listing.price,
+        beds: listing.bedrooms || 0,
+        bathrooms: listing.bathrooms || 0,
+        area: listing.area,
+        areaUnit: 'm²',
+        isPopular: listing.boosted || false,
+        isFavorite,
+        status: listing.status,
+        attributes: listing.attributes || [],
+      }
+    })
+  }, [bookmarkSync, criteria.propertyCategory, criteria.propertyType, listings, localFavoriteById])
+
+  const mapMarkersWithFavorites = useMemo(() => {
+    return markers.map((m) => {
+      const o = localFavoriteById[m.id]
+      const g = bookmarkSync[m.id]
+      const isFavorite = o !== undefined ? o : g !== undefined ? g : (m.isFavorite ?? false)
+      return { ...m, isFavorite }
+    })
+  }, [bookmarkSync, markers, localFavoriteById])
 
   const handleSearchChange = (text: string) => {
     // Additive: update only location, keep active filters intact
     updateCriteria({ location: text })
-  }
-
-  const handlePropertyPress = (propertyId: string, price?: number, position?: number) => {
-    behaviorTracker.trackClick(propertyId, {
-      listing_type: 'SALE',
-      price,
-      position,
-      source_page: 'buy',
-    })
-    router.push(`/listing/${propertyId}`)
   }
 
   const handleFiltersChange = (filters: FilterValues) => {
@@ -119,39 +142,67 @@ export function BuyPage() {
     })
   }
 
-  const doToggleFavorite = (propertyId: string) => {
-    toggleBookmark(propertyId)
+  const handlePropertyPress = (propertyId: string) => {
+    router.push(`/listing/${propertyId}`)
   }
 
-  const handleFavoritePress = (propertyId: string, price: number, position: number) => {
-    behaviorTracker.trackBookmark(propertyId, 'add', {
-      listing_type: 'SALE',
-      price,
-      position,
-      source_page: 'buy',
+  const doToggleFavorite = (propertyId: string) => {
+    const fromList = listings.find((l) => l.listing_id === propertyId)
+    const fromMap = markers.find((m) => m.id === propertyId)
+    const baseline =
+      localFavoriteById[propertyId] !== undefined
+        ? localFavoriteById[propertyId]
+        : bookmarkSync[propertyId] !== undefined
+          ? bookmarkSync[propertyId]
+          : fromList != null
+            ? fromList.is_favorite
+            : fromMap != null
+              ? (fromMap.isFavorite ?? false)
+              : false
+    const current = baseline
+
+    setLocalFavoriteById((prev) => ({ ...prev, [propertyId]: !current }))
+
+    toggleBookmark(propertyId, {
+      onSuccess: (data) => {
+        setLocalFavoriteById((prev) => ({ ...prev, [propertyId]: data.bookmarked }))
+      },
+      onError: () => {
+        setLocalFavoriteById((prev) => {
+          const next = { ...prev }
+          delete next[propertyId]
+          return next
+        })
+      },
     })
-    const property = propertyCardData.find((p) => p.id === propertyId)
-    if (property?.isFavorite) {
+  }
+
+  const isPropertyFavorite = (propertyId: string) => {
+    if (localFavoriteById[propertyId] !== undefined) {
+      return localFavoriteById[propertyId]
+    }
+    if (bookmarkSync[propertyId] !== undefined) {
+      return bookmarkSync[propertyId]
+    }
+    const source = isMapView ? mapMarkersWithFavorites : propertyCardData
+    const row = source.find((p) => p.id === propertyId)
+    return row?.isFavorite ?? false
+  }
+
+  const handleFavoritePress = (propertyId: string) => {
+    if (isPropertyFavorite(propertyId)) {
       setPendingId(propertyId)
     } else {
+      behaviorTracker.trackBookmark(propertyId, 'add', {
+        listing_type: 'SALE',
+        source_page: isMapView ? 'map' : 'buy',
+      })
       doToggleFavorite(propertyId)
     }
   }
 
   const renderHeader = (
     <View className='px-4 pt-2'>
-      <ConfirmDialog
-        visible={pendingId !== null}
-        title='Xóa khỏi yêu thích'
-        message='Bạn có muốn xóa tin đăng này khỏi danh sách yêu thích không?'
-        confirmLabel='Xóa'
-        cancelLabel='Hủy'
-        onConfirm={() => {
-          if (pendingId) doToggleFavorite(pendingId)
-          setPendingId(null)
-        }}
-        onCancel={() => setPendingId(null)}
-      />
       {/* Error State */}
       {error && (
         <View className='py-10 items-center px-4'>
@@ -162,6 +213,8 @@ export function BuyPage() {
         </View>
       )}
 
+      <RecommendedListings variant='buy' listingType='SALE' />
+
       {propertyCardData.length > 0 ? (
         <View>
           <View className='mt-3 mb-3 flex-row items-center justify-between'>
@@ -169,7 +222,6 @@ export function BuyPage() {
           </View>
         </View>
       ) : null}
-      <RecommendedListings />
     </View>
   )
 
@@ -195,6 +247,18 @@ export function BuyPage() {
 
   return (
     <SafeAreaView className='flex-1 bg-white' edges={[]}>
+      <ConfirmDialog
+        visible={pendingId !== null}
+        title='Xóa khỏi yêu thích'
+        message='Bạn có muốn xóa tin đăng này khỏi danh sách yêu thích không?'
+        confirmLabel='Xóa'
+        cancelLabel='Hủy'
+        onConfirm={() => {
+          if (pendingId) doToggleFavorite(pendingId)
+          setPendingId(null)
+        }}
+        onCancel={() => setPendingId(null)}
+      />
       <Box className='px-4 pt-1 pb-2'>
         {/* Search Bar + Toggle Button Row */}
         <View className='flex-row items-center gap-3'>
@@ -224,11 +288,12 @@ export function BuyPage() {
       {/* List View with API data only */}
       {isMapView ? (
         <RealVistaMapSearchView
-          properties={markers}
+          properties={mapMarkersWithFavorites}
           totalCount={totalCount}
           isLoading={isMapLoading}
           onRegionChange={onRegionChange}
           onPropertyPress={handlePropertyPress}
+          onToggleFavorite={handleFavoritePress}
           variant='buy'
         />
       ) : isLoading && propertyCardData.length === 0 ? (
@@ -238,12 +303,12 @@ export function BuyPage() {
       ) : (
         <FlatList
           data={propertyCardData}
-          renderItem={({ item, index }) => (
+          renderItem={({ item }) => (
             <View className='px-4 mb-6'>
               <RealVistaPropertyHorizontalCard
                 property={item}
-                onClick={() => handlePropertyPress(item.id, item.price, index)}
-                onToggleFavorite={() => handleFavoritePress(item.id, item.price, index)}
+                onClick={() => handlePropertyPress(item.id)}
+                onToggleFavorite={() => handleFavoritePress(item.id)}
                 variant='buy'
               />
             </View>

@@ -1,5 +1,6 @@
-import { BuyPage } from '@/screens/buy/ui/buy-page'
+import { Redirect } from 'expo-router'
 
-export default function BuyPageScreen() {
-  return <BuyPage />
+/** Legacy stack route: always land in Khám phá (mua) so tabs + header stay mounted. */
+export default function BuyPageRedirect() {
+  return <Redirect href='/(tabs)/explore' />
 }
