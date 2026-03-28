@@ -21,7 +21,7 @@ export const useGoogleLogin = () => {
         }
 
         Alert.alert('Success', 'Google Login successful')
-        router.replace('/(tabs)')
+        router.replace('/(tabs)/explore')
       } else {
         Alert.alert('Error', res.message || 'Google Login failed')
       }

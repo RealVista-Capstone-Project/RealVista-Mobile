@@ -5,7 +5,6 @@ import {
   PROPERTY_TYPES,
   type PropertyAttribute,
 } from '@/shared/config/property-types'
-import { useRouter } from 'expo-router'
 import React, { useMemo, useState } from 'react'
 import { ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { Drawer, DrawerBackdrop, DrawerBody, DrawerContent, DrawerFooter } from '../drawer'
@@ -45,8 +44,6 @@ const SORT_OPTIONS = [
 const MIN_PRICE = 0
 // MAX_PRICE is dynamic per screen — see maxPriceLimit prop
 const DEFAULT_MAX_PRICE = 10_000_000_000 // 10 tỷ (covers cả SALE lẫn RENT)
-const MIN_AREA = 0
-const MAX_AREA = 500
 
 export function RealVistaPropertyFilterModal({
   isOpen,
@@ -57,7 +54,6 @@ export function RealVistaPropertyFilterModal({
   maxPriceLimit = DEFAULT_MAX_PRICE,
 }: RealVistaPropertyFilterModalProps) {
   const [localFilters, setLocalFilters] = useState<FilterValues>(filters)
-  const router = useRouter()
 
   // Reset local filters to match props when modal opens
   React.useEffect(() => {
@@ -177,12 +173,6 @@ export function RealVistaPropertyFilterModal({
     }))
   }, [])
 
-  // Handle chart bar press
-  const handleChartBarPress = (range: { min: number; max: number }) => {
-    updateMinPrice(range.min)
-    updateMaxPrice(range.max)
-  }
-
   // Helper to render dynamic fields
   const renderDynamicField = (attrCode: PropertyAttribute) => {
     const label = ATTRIBUTE_LABELS[attrCode]
@@ -296,9 +286,7 @@ export function RealVistaPropertyFilterModal({
             <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
               <IconSymbol name='xmark' size={24} color='#6C727F' />
             </TouchableOpacity>
-            <Text className="font-['PlusJakartaSans_700Bold'] text-xl text-main-secondary">
-              Bộ lọc
-            </Text>
+            <Text className='font-jakarta-bold text-xl text-main-secondary'>Bộ lọc</Text>
             <View style={{ width: 28 }} />
           </View>
           <View className='bg-grey-200' style={{ height: 1 }} />
@@ -313,7 +301,7 @@ export function RealVistaPropertyFilterModal({
           >
             {/* 1. Property Category */}
             <View className='mb-6'>
-              <Text className="font-['PlusJakartaSans_700Bold'] mb-3 text-base text-main-black">
+              <Text className='font-jakarta-bold mb-3 text-base text-main-black'>
                 Danh mục Bất động sản
               </Text>
               <View className='flex-row flex-wrap gap-2'>
@@ -353,7 +341,7 @@ export function RealVistaPropertyFilterModal({
             {/* 2. Property Type (Dependent on Category) */}
             {localFilters.propertyCategory && (
               <View className='mb-6'>
-                <Text className="font-['PlusJakartaSans_700Bold'] mb-3 text-base text-main-black">
+                <Text className='font-jakarta-bold mb-3 text-base text-main-black'>
                   Loại hình cụ thể
                 </Text>
                 <View className='flex-row flex-wrap gap-2'>
@@ -395,9 +383,7 @@ export function RealVistaPropertyFilterModal({
             <View className='bg-grey-200 mb-6' style={{ height: 1 }} />
 
             {/* 3. Price Range (with Chart) */}
-            <Text className="font-['PlusJakartaSans_700Bold'] mb-2 text-base text-main-black">
-              Khoảng giá
-            </Text>
+            <Text className='font-jakarta-bold mb-2 text-base text-main-black'>Khoảng giá</Text>
 
             {/* Price Distribution Chart removed as per user request */}
 
@@ -417,7 +403,7 @@ export function RealVistaPropertyFilterModal({
             {/* 4. Dynamic Attributes */}
             {activeAttributes.length > 0 && (
               <View className='mb-6'>
-                <Text className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-main-black">
+                <Text className='font-jakarta-bold mb-4 text-base text-main-black'>
                   Đặc điểm & Tiện nghi
                 </Text>
 
@@ -441,7 +427,7 @@ export function RealVistaPropertyFilterModal({
             {showLeaseTerm && (
               <View className='mt-4'>
                 <View className='bg-grey-200 mb-6' style={{ height: 1 }} />
-                <Text className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-main-black">
+                <Text className='font-jakarta-bold mb-4 text-base text-main-black'>
                   Thời hạn thuê
                 </Text>
                 <View className='gap-3'>
@@ -462,7 +448,7 @@ export function RealVistaPropertyFilterModal({
                           <View className='h-3 w-3 rounded-full bg-brand-primary' />
                         )}
                       </View>
-                      <Text className="font-['PlusJakartaSans_500Medium'] text-base text-main-black">
+                      <Text className='font-jakarta-medium text-base text-main-black'>
                         {period.label}
                       </Text>
                     </TouchableOpacity>
@@ -474,9 +460,7 @@ export function RealVistaPropertyFilterModal({
             {/* 6. Sort By */}
             <View className='mt-4'>
               <View className='bg-grey-200 mb-6' style={{ height: 1 }} />
-              <Text className="font-['PlusJakartaSans_700Bold'] mb-4 text-base text-main-black">
-                Sắp xếp theo
-              </Text>
+              <Text className='font-jakarta-bold mb-4 text-base text-main-black'>Sắp xếp theo</Text>
               <View className='gap-3'>
                 {SORT_OPTIONS.map((option) => (
                   <TouchableOpacity
@@ -497,7 +481,7 @@ export function RealVistaPropertyFilterModal({
                         <View className='h-3 w-3 rounded-full bg-brand-primary' />
                       )}
                     </View>
-                    <Text className="font-['PlusJakartaSans_500Medium'] text-base text-main-black">
+                    <Text className='font-jakarta-medium text-base text-main-black'>
                       {option.label}
                     </Text>
                   </TouchableOpacity>
@@ -523,15 +507,13 @@ export function RealVistaPropertyFilterModal({
             onPress={handleReset}
             className='bg-purple-96 flex-1 items-center justify-center rounded-lg py-4'
           >
-            <Text className="font-['PlusJakartaSans_700Bold'] text-base text-brand-primary">
-              Đặt lại
-            </Text>
+            <Text className='font-jakarta-bold text-base text-brand-primary'>Đặt lại</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleApply}
             className='bg-brand-primary flex-1 items-center justify-center rounded-lg py-4'
           >
-            <Text className="font-['PlusJakartaSans_700Bold'] text-base text-white">Áp dụng</Text>
+            <Text className='font-jakarta-bold text-base text-white'>Áp dụng</Text>
           </TouchableOpacity>
         </DrawerFooter>
       </DrawerContent>

@@ -107,7 +107,7 @@ export const RadialBarChart = ({ data, config = {}, style }: Props) => {
     } else {
       animationProgress.value = 1
     }
-  }, [data, animated, duration])
+  }, [data, animated, duration, animationProgress])
 
   if (!data.length) return null
 

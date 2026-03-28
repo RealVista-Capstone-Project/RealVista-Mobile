@@ -1,7 +1,9 @@
-import { useEffect } from 'react'
-import { ActivityIndicator, ScrollView } from 'react-native'
+import { type Href, useRouter } from 'expo-router'
+import { useEffect, useState } from 'react'
+import { ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native'
 
 import { type SimilarListing } from '@/entities/listing'
+import { useToggleBookmark } from '@/features/bookmark'
 import { ContactFormModal } from '@/features/chat'
 import { useListingDetail } from '@/features/get-listing-detail'
 import { useListingPriceHistory } from '@/features/get-listing-price-history'
@@ -50,13 +52,22 @@ function transformSimilarListing(listing: SimilarListing): RealVistaPropertyCard
     areaUnit: listing.display_area,
     isPopular: listing.similarity_score === 100,
     isFavorite: false,
+    attributes: listing.attributes || [],
   }
 }
 
 export function ListingDetailPage() {
+  const router = useRouter()
   const { data: listing, isLoading, error } = useListingDetail()
   const { data: priceHistoryData } = useListingPriceHistory()
   const { listings: similarListings } = useSimilarListings(5)
+  const { mutate: toggleBookmark } = useToggleBookmark()
+
+  const [isFavorite, setIsFavorite] = useState(false)
+
+  useEffect(() => {
+    setIsFavorite(listing?.is_favorite ?? false)
+  }, [listing])
 
   const handleToggleFavorite = (id: string) => {
     behaviorTracker.trackBookmark(id, 'add', {
@@ -65,6 +76,15 @@ export function ListingDetailPage() {
       price: listing?.price,
       source_page: 'detail',
     })
+    toggleBookmark(id, {
+      onSuccess: (data) => {
+        setIsFavorite(!!data.bookmarked)
+      },
+    })
+  }
+
+  const handleToggleSimilarFavorite = (id: string) => {
+    toggleBookmark(id)
   }
 
   const handlePropertyClick = (id: string) => {
@@ -76,7 +96,14 @@ export function ListingDetailPage() {
     })
   }
 
-  // Track listing view when detail page loads
+  const handleBackToHome = () => {
+    const href: Href =
+      listing?.listing_type === 'RENT'
+        ? { pathname: '/(tabs)/explore', params: { mode: 'rent' } }
+        : '/(tabs)/explore'
+    router.push(href)
+  }
+
   useEffect(() => {
     if (listing) {
       behaviorTracker.trackView(listing.listing_id, {
@@ -108,10 +135,10 @@ export function ListingDetailPage() {
       <Box className='flex-1 items-center justify-center bg-white p-6'>
         <Box className='items-center gap-4'>
           <Box className='text-center'>
-            <Box className='text-lg font-bold text-main-black mb-2'>Không thể tải thông tin</Box>
-            <Box className='text-gray-500'>
+            <Text className='text-lg font-bold text-main-black mb-2'>Không thể tải thông tin</Text>
+            <Text className='text-gray-500'>
               {error instanceof Error ? error.message : 'Đã có lỗi xảy ra'}
-            </Box>
+            </Text>
           </Box>
         </Box>
       </Box>
@@ -123,7 +150,7 @@ export function ListingDetailPage() {
     return (
       <Box className='flex-1 items-center justify-center bg-white p-6'>
         <Box className='text-center'>
-          <Box className='text-lg font-bold text-main-black mb-2'>Không tìm thấy tin đăng</Box>
+          <Text className='text-lg font-bold text-main-black mb-2'>Không tìm thấy tin đăng</Text>
         </Box>
       </Box>
     )
@@ -221,7 +248,11 @@ export function ListingDetailPage() {
       <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
         <Box className='px-6'>
           <PropertyInfo name={listing.name} address={listing.property?.street_address || 'N/A'} />
-          <PropertyActions listing={listing} />
+          <PropertyActions
+            listing={listing}
+            isFavorite={isFavorite}
+            onToggleFavorite={() => handleToggleFavorite(listing.listing_id)}
+          />
           <PropertyImageCarousel images={mediaUrls} />
 
           <PropertySpecifications attributes={listing.attributes || []} status={listing.status} />
@@ -286,9 +317,34 @@ export function ListingDetailPage() {
         </Box>
         <PropertySimilarListings
           listings={similarListingsCards}
-          onToggleFavorite={handleToggleFavorite}
+          onToggleFavorite={handleToggleSimilarFavorite}
           onPropertyClick={handlePropertyClick}
         />
+
+        {/* Back to Home Button */}
+        <Box className='px-6 py-8'>
+          <TouchableOpacity
+            onPress={handleBackToHome}
+            activeOpacity={0.7}
+            className='bg-brand-primary rounded-lg py-3 px-4 items-center'
+            style={{
+              backgroundColor: '#7065F0',
+              borderRadius: 8,
+              paddingVertical: 12,
+            }}
+          >
+            <Text
+              style={{
+                color: 'white',
+                fontSize: 16,
+                fontWeight: '600',
+                fontFamily: 'PlusJakartaSans_600SemiBold',
+              }}
+            >
+              ← Về trang chủ
+            </Text>
+          </TouchableOpacity>
+        </Box>
       </ScrollView>
 
       <ContactFormModal />

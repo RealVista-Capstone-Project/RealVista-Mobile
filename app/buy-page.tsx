@@ -1,14 +1,6 @@
-import { BuyPage } from '@/screens/buy/ui/buy-page'
-import { SidebarDrawer } from '@/widgets/sidebar-drawer'
-import { TopNav } from '@/widgets/top-nav'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { Redirect } from 'expo-router'
 
-export default function BuyPageScreen() {
-  return (
-    <SafeAreaView className='flex-1 bg-white' edges={['bottom']}>
-      <TopNav />
-      <BuyPage />
-      <SidebarDrawer />
-    </SafeAreaView>
-  )
+/** Legacy stack route: always land in Khám phá (mua) so tabs + header stay mounted. */
+export default function BuyPageRedirect() {
+  return <Redirect href='/(tabs)/explore' />
 }

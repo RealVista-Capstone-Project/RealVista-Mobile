@@ -3,3 +3,4 @@
  */
 
 export { useRecommendations } from './api/use-recommendations'
+export { useRecommendationStatus } from './api/use-recommendation-status'

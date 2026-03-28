@@ -18,7 +18,7 @@ export function TopNav({ title, showBack }: { title?: string; showBack?: boolean
   }
 
   return (
-    <View className='flex-row items-center justify-between px-4 py-3 bg-white border-b border-gray-200'>
+    <View className='flex-row items-center justify-between px-4 py-2 bg-white border-b border-gray-200'>
       {/* Left Side - Hamburger or Back */}
       {showBack ? (
         <TouchableOpacity onPress={handleBackPress} className='p-2'>

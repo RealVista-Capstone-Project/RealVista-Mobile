@@ -3,7 +3,7 @@ import { useKeyboardHeight } from '@/shared/hooks/useKeyboardHeight'
 import { BORDER_RADIUS } from '@/shared/theme/globals'
 import { Text } from '@/shared/ui/bna/text'
 import { View } from '@/shared/ui/bna/view'
-import React, { useEffect } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { Dimensions, Modal, ScrollView, TouchableWithoutFeedback, ViewStyle } from 'react-native'
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler'
 import Animated, {
@@ -157,13 +157,16 @@ export function BottomSheet({
         }
       })
     }
-  }, [isVisible, defaultHeight])
+  }, [isVisible, defaultHeight, currentSnapIndex, opacity, translateY])
 
   // Function to animate the sheet to a specific destination
-  const scrollTo = (destination: number) => {
-    'worklet'
-    translateY.value = withSpring(destination, { damping: 50, stiffness: 400 })
-  }
+  const scrollTo = useCallback(
+    (destination: number) => {
+      'worklet'
+      translateY.value = withSpring(destination, { damping: 50, stiffness: 400 })
+    },
+    [translateY]
+  )
 
   // --- START: NEW KEYBOARD HANDLING LOGIC ---
   useEffect(() => {
@@ -184,7 +187,15 @@ export function BottomSheet({
       }
       scrollTo(destination)
     }
-  }, [keyboardHeight, isKeyboardVisible, isVisible])
+  }, [
+    keyboardHeight,
+    isKeyboardVisible,
+    isVisible,
+    currentSnapIndex,
+    keyboardHeightSV,
+    scrollTo,
+    snapPointsHeights,
+  ])
   // --- END: NEW KEYBOARD HANDLING LOGIC ---
 
   const findClosestSnapPoint = (currentY: number) => {

@@ -2,7 +2,6 @@ import type { ConversationListItem } from '@/entities/chat'
 import { useAuthStore } from '@/entities/user'
 import { useChatWebSocket, useConversations } from '@/features/chat'
 import { IMAGES } from '@/shared/assets/images'
-import { TopNav } from '@/widgets/top-nav'
 import { Href, Redirect, useRouter } from 'expo-router'
 import { ActivityIndicator, FlatList, Image, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -133,14 +132,13 @@ export default function MessagesScreen() {
 
   return (
     <SafeAreaView className='flex-1 bg-white' edges={['bottom']}>
-      <TopNav />
       <View className='flex-1'>
         {isLoading ? (
           <View className='flex-1 items-center justify-center'>
             <ActivityIndicator size='large' color='#7065f0' />
           </View>
         ) : conversations.length === 0 ? (
-          <EmptyState onGoBack={() => router.push('/(tabs)')} />
+          <EmptyState onGoBack={() => router.push('/(tabs)/explore' as Href)} />
         ) : (
           <FlatList
             data={conversations}
