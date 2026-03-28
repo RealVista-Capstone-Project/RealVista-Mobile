@@ -7,6 +7,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { AppState, type AppStateStatus } from 'react-native'
 
+import { useAuthStore } from '@/entities/user'
+import { getHttpBaseUrl } from '@/shared/lib/http'
 import type { BehaviorEventDTO } from './types'
 
 const MAX_QUEUE_SIZE = 5
@@ -16,10 +18,6 @@ let queue: BehaviorEventDTO[] = []
 let timer: ReturnType<typeof setInterval> | null = null
 let appStateSubscription: ReturnType<typeof AppState.addEventListener> | null = null
 let initialized = false
-
-function getApiBaseUrl(): string {
-  return process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8080/api/v1'
-}
 
 async function getAuthToken(): Promise<string | null> {
   return AsyncStorage.getItem('token')
@@ -34,16 +32,26 @@ async function sendEvents(events: BehaviorEventDTO[]): Promise<void> {
     return
   }
 
+  const userId = useAuthStore.getState().userId
+  const effectiveUserId = userId ?? 'mobile-client'
+
   try {
-    const response = await fetch(`${getApiBaseUrl()}/recommendations/behavior`, {
+    const response = await fetch(`${getHttpBaseUrl()}/recommendations/behavior`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ user_id: 'mobile-client', events }),
+      body: JSON.stringify({ user_id: effectiveUserId, events }),
     })
-    console.log('[EventQueue] Flushed', events.length, 'events — HTTP', response.status)
+    console.log(
+      '[EventQueue] Flushed',
+      events.length,
+      'events for user_id=',
+      effectiveUserId,
+      '— HTTP',
+      response.status
+    )
   } catch (err) {
     console.warn('[EventQueue] Failed to send behavior events', err)
   }
