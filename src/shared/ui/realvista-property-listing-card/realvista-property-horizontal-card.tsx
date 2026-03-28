@@ -1,8 +1,13 @@
 import { formatVND } from '@/shared/lib/format-currency'
+import {
+  isListingRented,
+  isListingSold,
+  isListingSoldOrRented,
+} from '@/shared/lib/listing-unavailable'
 import IconLucide from '@/shared/ui/icon-lucide/icon'
 import { Text } from '@/shared/ui/text'
 import React from 'react'
-import { Image, TouchableOpacity, View } from 'react-native'
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { Path, Svg } from 'react-native-svg'
 
 import type { RealVistaPropertyCardData } from './realvista-property-listing-card'
@@ -22,19 +27,49 @@ export function RealVistaPropertyHorizontalCard({
   variant = 'rent',
   className = '',
 }: RealVistaPropertyHorizontalCardProps) {
-  return (
+  const isUnavailable = isListingSoldOrRented(property.status)
+  const isSold = isListingSold(property.status)
+  const isRented = isListingRented(property.status)
+
+  const goDetail = () => {
+    if (isUnavailable) return
+    onClick?.(property.id)
+  }
+
+  const heartButton = (
     <TouchableOpacity
-      activeOpacity={0.9}
-      onPress={() => onClick?.(property.id)}
-      className={`rounded-2xl border border-purple-92 bg-white p-3 ${className}`}
+      activeOpacity={0.8}
+      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+      onPress={() => onToggleFavorite?.(property.id)}
+    >
+      <FavoriteHeartIcon filled={!!property.isFavorite} size={16} />
+    </TouchableOpacity>
+  )
+
+  const heartOnOverlay = (
+    <TouchableOpacity
+      activeOpacity={0.8}
+      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+      onPress={() => onToggleFavorite?.(property.id)}
+      className='h-9 w-9 items-center justify-center rounded-full border border-purple-92 bg-white shadow-sm'
+    >
+      <FavoriteHeartIcon filled={!!property.isFavorite} size={16} />
+    </TouchableOpacity>
+  )
+
+  return (
+    <View
+      className={`rounded-2xl border border-purple-92 bg-white p-3 relative overflow-hidden ${className}`}
     >
       <View className='flex-row'>
-        <View className='relative'>
-          <Image
-            source={{ uri: property.image }}
-            resizeMode='cover'
-            style={{ width: 110, height: 100, borderRadius: 10 }}
-          />
+        <View style={styles.imageWrap}>
+          {!isUnavailable ? (
+            <TouchableOpacity activeOpacity={0.9} onPress={goDetail}>
+              <Image source={{ uri: property.image }} resizeMode='cover' style={styles.image} />
+            </TouchableOpacity>
+          ) : (
+            <Image source={{ uri: property.image }} resizeMode='cover' style={styles.image} />
+          )}
         </View>
 
         <View className='ml-3 flex-1 justify-between'>
@@ -45,36 +80,132 @@ export function RealVistaPropertyHorizontalCard({
                   {property.categoryLabel || 'Property'}
                 </Text>
               </View>
-              <TouchableOpacity activeOpacity={0.8} onPress={() => onToggleFavorite?.(property.id)}>
-                <FavoriteHeartIcon filled={!!property.isFavorite} size={16} />
+              {!isUnavailable ? heartButton : null}
+            </View>
+
+            {!isUnavailable ? (
+              <TouchableOpacity activeOpacity={0.7} onPress={goDetail}>
+                <Text numberOfLines={1} className='font-jakarta-bold text-xl text-main-black'>
+                  {property.title}
+                </Text>
+
+                <View className='mt-1 flex-row items-center'>
+                  <IconLucide name='MapPin' size={14} color='#6C727F' />
+                  <Text
+                    numberOfLines={1}
+                    className='ml-1 font-jakarta-medium text-base text-grey-500'
+                  >
+                    {property.address || 'Đang cập nhật địa chỉ'}
+                  </Text>
+                </View>
               </TouchableOpacity>
-            </View>
+            ) : (
+              <View>
+                <Text numberOfLines={1} className='font-jakarta-bold text-xl text-main-black'>
+                  {property.title}
+                </Text>
 
-            <Text numberOfLines={1} className='font-jakarta-bold text-xl text-main-black'>
-              {property.title}
-            </Text>
-
-            <View className='mt-1 flex-row items-center'>
-              <IconLucide name='MapPin' size={14} color='#6C727F' />
-              <Text numberOfLines={1} className='ml-1 font-jakarta-medium text-base text-grey-500'>
-                {property.address || 'Đang cập nhật địa chỉ'}
-              </Text>
-            </View>
-          </View>
-
-          <View className='mt-2 flex-row items-end'>
-            <Text className='font-jakarta-bold text-2xl text-main-black'>
-              {formatVND(property.price)}
-            </Text>
-            {variant === 'rent' && (
-              <Text className='ml-1 font-jakarta-medium text-base text-grey-500'>/tháng</Text>
+                <View className='mt-1 flex-row items-center'>
+                  <IconLucide name='MapPin' size={14} color='#6C727F' />
+                  <Text
+                    numberOfLines={1}
+                    className='ml-1 font-jakarta-medium text-base text-grey-500'
+                  >
+                    {property.address || 'Đang cập nhật địa chỉ'}
+                  </Text>
+                </View>
+              </View>
             )}
           </View>
+
+          {!isUnavailable ? (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={goDetail}
+              className='mt-2 flex-row items-end'
+            >
+              <Text className='font-jakarta-bold text-2xl text-main-black'>
+                {formatVND(property.price)}
+              </Text>
+              {variant === 'rent' && (
+                <Text className='ml-1 font-jakarta-medium text-base text-grey-500'>/tháng</Text>
+              )}
+            </TouchableOpacity>
+          ) : (
+            <View className='mt-2 flex-row items-end'>
+              <Text className='font-jakarta-bold text-2xl text-main-black'>
+                {formatVND(property.price)}
+              </Text>
+              {variant === 'rent' && (
+                <Text className='ml-1 font-jakarta-medium text-base text-grey-500'>/tháng</Text>
+              )}
+            </View>
+          )}
         </View>
       </View>
-    </TouchableOpacity>
+
+      {isUnavailable ? (
+        <>
+          <View pointerEvents='none' style={[StyleSheet.absoluteFillObject, styles.overlay]} />
+          {isSold ? (
+            <View pointerEvents='none' style={[styles.tagBase, styles.tagTopLeft]}>
+              <Text className='font-jakarta-bold text-xs text-white'>SOLD</Text>
+            </View>
+          ) : null}
+          {isRented ? (
+            <View pointerEvents='none' style={[styles.tagBase, styles.tagBottomRight]}>
+              <Text className='font-jakarta-bold text-xs text-white'>RENTED</Text>
+            </View>
+          ) : null}
+          <View style={styles.heartOverlay} pointerEvents='box-none'>
+            {heartOnOverlay}
+          </View>
+        </>
+      ) : null}
+    </View>
   )
 }
+
+const styles = StyleSheet.create({
+  imageWrap: {
+    width: 110,
+    height: 100,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  image: {
+    width: 110,
+    height: 100,
+    borderRadius: 10,
+  },
+  overlay: {
+    backgroundColor: 'rgba(255, 255, 255, 0.82)',
+    borderRadius: 16,
+    zIndex: 2,
+  },
+  tagBase: {
+    position: 'absolute',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    backgroundColor: '#100A55',
+    zIndex: 3,
+  },
+  tagTopLeft: {
+    top: 12,
+    left: 12,
+  },
+  tagBottomRight: {
+    bottom: 12,
+    right: 12,
+  },
+  heartOverlay: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 4,
+  },
+})
 
 function FavoriteHeartIcon({ filled, size = 16 }: { filled: boolean; size?: number }) {
   const color = filled ? '#EF4444' : '#7065F0'
