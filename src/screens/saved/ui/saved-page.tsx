@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native'
+import React, { useMemo, useState } from 'react'
+import { ActivityIndicator, FlatList, ScrollView, TouchableOpacity, View } from 'react-native'
 import { useRouter } from 'expo-router'
 import {
   ArrowDownUp,
@@ -11,13 +11,18 @@ import {
   GitCompareArrows,
 } from 'lucide-react-native'
 
-import type { BookmarkListingCard, GetBookmarksParams } from '@/entities/bookmark'
+import type { BookmarkListingCard } from '@/entities/bookmark'
 import type { Attribute } from '@/entities/listing/model/types'
-import { useBookmarks, useToggleBookmark } from '@/features/bookmark'
+import {
+  useBookmarksPaginated,
+  type UseBookmarksPaginatedFilters,
+  useToggleBookmark,
+} from '@/features/bookmark'
 import { Box } from '@/shared/ui/box'
+import { resolveListingCategoryLabel } from '@/shared/lib/resolve-listing-category-label'
 import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
 import {
-  RealVistaPropertyCard,
+  RealVistaPropertyHorizontalCard,
   type RealVistaPropertyCardData,
 } from '@/shared/ui/realvista-property-listing-card'
 import { Text } from '@/shared/ui/text'
@@ -93,11 +98,13 @@ function transformBookmarkToCard(bookmark: BookmarkListingCard): RealVistaProper
     id: bookmark.listing_id,
     image: bookmark.primary_image_url ?? '',
     title: bookmark.title,
-    address: bookmark.full_address ?? bookmark.street_address,
+    address: bookmark.street_address || bookmark.full_address || 'Đang cập nhật địa chỉ',
+    categoryLabel: resolveListingCategoryLabel({ title: bookmark.title }),
     price: bookmark.price,
     beds: bedrooms,
     bathrooms: bathrooms,
     area: area,
+    areaUnit: 'm²',
     isFavorite: true,
     status: bookmark.status,
     attributes: mapBookmarkAttributesToCardAttributes(bookmark.attributes || []),
@@ -115,14 +122,18 @@ export function SavedPage() {
 
   const propertyTypes = category !== 'ALL' ? CATEGORY_TYPE_CODES[category] : undefined
 
-  const params: GetBookmarksParams = {
-    propertyTypes,
-    listingType: listingType ?? undefined,
-    sortDirection,
-    size: 20,
-  }
+  const bookmarkFilters = useMemo(
+    (): UseBookmarksPaginatedFilters => ({
+      propertyTypes,
+      listingType: listingType ?? undefined,
+      sortDirection,
+      size: 20,
+    }),
+    [propertyTypes, listingType, sortDirection]
+  )
 
-  const { bookmarks, isLoading, error, refetch } = useBookmarks(params)
+  const { bookmarks, isLoading, isFetchingNextPage, error, refetch, nextPage, removeBookmark } =
+    useBookmarksPaginated(bookmarkFilters)
   const { mutate: toggleBookmark } = useToggleBookmark()
 
   const handleToggleFavorite = (id: string) => {
@@ -135,7 +146,6 @@ export function SavedPage() {
 
   const items = bookmarks.map((b) => ({
     card: transformBookmarkToCard(b),
-    status: b.status,
     listingType: b.listing_type,
   }))
 
@@ -148,7 +158,12 @@ export function SavedPage() {
         confirmLabel='Xóa'
         cancelLabel='Hủy'
         onConfirm={() => {
-          if (pendingId) toggleBookmark(pendingId)
+          const id = pendingId
+          if (id) {
+            toggleBookmark(id, {
+              onSuccess: () => removeBookmark(id),
+            })
+          }
           setPendingId(null)
         }}
         onCancel={() => setPendingId(null)}
@@ -255,27 +270,43 @@ export function SavedPage() {
             </Text>
           </TouchableOpacity>
         </Box>
-      ) : items.length === 0 ? (
-        <Box className='flex-1 items-center justify-center p-6'>
-          <Text className='text-gray-500 text-center'>Chưa có tin đăng yêu thích nào.</Text>
-        </Box>
       ) : (
-        <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
-          <Box className='px-4 py-4 gap-6'>
-            {items.map(({ card, status, listingType }) => {
-              const isUnavailable = status === 'SOLD' || status === 'RENTED'
-              return (
-                <RealVistaPropertyCard
-                  key={card.id}
+        <FlatList
+          className='flex-1'
+          data={items}
+          keyExtractor={(row) => row.card.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={
+            items.length === 0 ? { flexGrow: 1 } : { paddingHorizontal: 16, paddingVertical: 16 }
+          }
+          ListEmptyComponent={
+            <Box className='flex-1 items-center justify-center p-6 min-h-[200px]'>
+              <Text className='text-gray-500 text-center'>Chưa có tin đăng yêu thích nào.</Text>
+            </Box>
+          }
+          renderItem={({ item: row }) => {
+            const { card, listingType: itemListingType } = row
+            return (
+              <View className='mb-6'>
+                <RealVistaPropertyHorizontalCard
                   property={card}
-                  variant={listingType === 'RENT' ? 'rent' : 'buy'}
+                  variant={itemListingType === 'RENT' ? 'rent' : 'buy'}
                   onToggleFavorite={() => handleToggleFavorite(card.id)}
-                  onClick={isUnavailable ? undefined : (id) => router.push(`/listing/${id}`)}
+                  onClick={(id) => router.push(`/listing/${id}`)}
                 />
-              )
-            })}
-          </Box>
-        </ScrollView>
+              </View>
+            )
+          }}
+          onEndReached={nextPage}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            isFetchingNextPage ? (
+              <View className='py-4 items-center'>
+                <ActivityIndicator size='small' color='#7065F0' />
+              </View>
+            ) : null
+          }
+        />
       )}
     </View>
   )
