@@ -18,7 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import '../global.css'
 
 export const unstable_settings = {
-  anchor: 'buy-page',
+  anchor: '(tabs)/explore',
 }
 
 SplashScreen.preventAutoHideAsync()

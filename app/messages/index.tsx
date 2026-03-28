@@ -138,7 +138,7 @@ export default function MessagesScreen() {
             <ActivityIndicator size='large' color='#7065f0' />
           </View>
         ) : conversations.length === 0 ? (
-          <EmptyState onGoBack={() => router.push('/(tabs)')} />
+          <EmptyState onGoBack={() => router.push('/(tabs)/explore' as Href)} />
         ) : (
           <FlatList
             data={conversations}

@@ -37,11 +37,11 @@ export function SidebarDrawer() {
     setIsOpen(false)
 
     if (itemId === 'Buy') {
-      router.replace('/buy-page')
+      router.replace('/(tabs)/explore')
     } else if (itemId === 'Rent') {
-      router.replace('/rent-page')
+      router.replace({ pathname: '/(tabs)/explore', params: { mode: 'rent' } })
     } else if (itemId === 'Favorited') {
-      router.replace('/saved')
+      router.replace('/(tabs)/favorite')
     } else if (itemId === 'About') {
       router.replace('/about')
     } else if (itemId === 'Messages') {
