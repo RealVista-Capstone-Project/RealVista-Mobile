@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router'
+import { type Href, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native'
 
@@ -63,8 +63,11 @@ export function ListingDetailPage() {
   const { listings: similarListings } = useSimilarListings(5)
   const { mutate: toggleBookmark } = useToggleBookmark()
 
-  // Local isFavorite state — toggled optimistically on each press
   const [isFavorite, setIsFavorite] = useState(false)
+
+  useEffect(() => {
+    setIsFavorite(listing?.is_favorite ?? false)
+  }, [listing])
 
   const handleToggleFavorite = (id: string) => {
     behaviorTracker.trackBookmark(id, 'add', {
@@ -75,10 +78,9 @@ export function ListingDetailPage() {
     })
     toggleBookmark(id, {
       onSuccess: (data) => {
-        setIsFavorite(data.bookmarked)
+        setIsFavorite(!!data.bookmarked)
       },
     })
-    setIsFavorite((prev) => !prev)
   }
 
   const handleToggleSimilarFavorite = (id: string) => {
@@ -95,7 +97,11 @@ export function ListingDetailPage() {
   }
 
   const handleBackToHome = () => {
-    router.push('/buy-page')
+    const href: Href =
+      listing?.listing_type === 'RENT'
+        ? { pathname: '/(tabs)/explore', params: { mode: 'rent' } }
+        : '/(tabs)/explore'
+    router.push(href)
   }
 
   useEffect(() => {
@@ -129,10 +135,10 @@ export function ListingDetailPage() {
       <Box className='flex-1 items-center justify-center bg-white p-6'>
         <Box className='items-center gap-4'>
           <Box className='text-center'>
-            <Box className='text-lg font-bold text-main-black mb-2'>Không thể tải thông tin</Box>
-            <Box className='text-gray-500'>
+            <Text className='text-lg font-bold text-main-black mb-2'>Không thể tải thông tin</Text>
+            <Text className='text-gray-500'>
               {error instanceof Error ? error.message : 'Đã có lỗi xảy ra'}
-            </Box>
+            </Text>
           </Box>
         </Box>
       </Box>
@@ -144,7 +150,7 @@ export function ListingDetailPage() {
     return (
       <Box className='flex-1 items-center justify-center bg-white p-6'>
         <Box className='text-center'>
-          <Box className='text-lg font-bold text-main-black mb-2'>Không tìm thấy tin đăng</Box>
+          <Text className='text-lg font-bold text-main-black mb-2'>Không tìm thấy tin đăng</Text>
         </Box>
       </Box>
     )
