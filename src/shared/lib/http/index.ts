@@ -4,7 +4,8 @@ import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios'
 import Constants from 'expo-constants'
 import { Platform } from 'react-native'
 
-const getBaseUrl = (): string => {
+/** Same base URL as axios client — use for fetch (e.g. behavior ingest) so Android/emulator matches. */
+export const getHttpBaseUrl = (): string => {
   if (process.env.EXPO_PUBLIC_API_URL) {
     return process.env.EXPO_PUBLIC_API_URL
   }
@@ -31,7 +32,7 @@ class HttpClient {
   private client: AxiosInstance
   private baseURL: string
 
-  constructor(baseURL: string = getBaseUrl()) {
+  constructor(baseURL: string = getHttpBaseUrl()) {
     this.baseURL = baseURL
     this.client = axios.create({
       baseURL: this.baseURL,
