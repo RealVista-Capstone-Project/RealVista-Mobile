@@ -122,6 +122,7 @@ interface RealVistaMapSearchViewProps {
   isLoading?: boolean
   onRegionChange?: (region: Region) => void
   onPropertyPress?: (propertyId: string) => void
+  onToggleFavorite?: (propertyId: string) => void
   variant?: 'rent' | 'buy'
 }
 
@@ -132,6 +133,7 @@ export function RealVistaMapSearchView({
   isLoading = false,
   onRegionChange,
   onPropertyPress,
+  onToggleFavorite,
   variant = 'rent',
 }: RealVistaMapSearchViewProps) {
   const mapRef = useRef<InstanceType<NonNullable<typeof MapView>>>(null)
@@ -202,12 +204,13 @@ export function RealVistaMapSearchView({
             isFavorite: item.isFavorite,
           }}
           onClick={onPropertyPress}
+          onToggleFavorite={onToggleFavorite}
           variant={variant}
           layout='horizontal'
         />
       </View>
     ),
-    [onPropertyPress, variant]
+    [onPropertyPress, onToggleFavorite, variant]
   )
 
   return (

@@ -40,6 +40,26 @@ export const notificationQueries = {
       refetchOnWindowFocus: false, // Mobile doesn't need this
       refetchOnReconnect: true, // Important for mobile
     }),
+
+  /**
+   * Get unread notification count
+   */
+  unreadCount: () =>
+    queryOptions({
+      queryKey: notificationKeys.unreadCount(),
+      queryFn: async () => {
+        try {
+          const res = await notificationApi.getUnreadCount()
+          return res.data.count
+        } catch {
+          return 0
+        }
+      },
+      staleTime: 30 * 1000,
+      gcTime: 5 * 60 * 1000,
+      refetchInterval: 60 * 1000, // Refresh every minute
+      retry: false,
+    }),
 } as const
 
 /**

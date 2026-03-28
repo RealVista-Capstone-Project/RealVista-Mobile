@@ -1,7 +1,8 @@
 import { useListingSearch } from '@/features/search/use-listing-search'
-import { OpenMapsButton } from '@/shared/ui/open-maps-button'
+import { Box } from '@/shared/ui/box'
+import { resolveListingCategoryLabel } from '@/shared/lib/resolve-listing-category-label'
 import {
-  RealVistaPropertyCard,
+  RealVistaPropertyHorizontalCard,
   type RealVistaPropertyCardData,
 } from '@/shared/ui/realvista-property-listing-card'
 import {
@@ -9,12 +10,36 @@ import {
   type FilterValues,
 } from '@/shared/ui/realvista-property-listing-search-bar'
 import { useRouter } from 'expo-router'
-import React, { useMemo } from 'react'
-import { ActivityIndicator, FlatList, Text, View } from 'react-native'
+import React, { useEffect, useMemo, useState } from 'react'
+import { ActivityIndicator, FlatList, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
+
+import { useFavoriteUiSyncStore, useToggleBookmark } from '@/features/bookmark'
+import { useMapSearch } from '@/features/map-search/api'
+import { behaviorTracker } from '@/shared/lib/analytics'
+import IconLucide from '@/shared/ui/icon-lucide/icon'
+import { RealVistaMapSearchView } from '@/shared/ui/realvista-map-search-view'
+import { ConfirmDialog } from '@/shared/ui/confirm-dialog'
+import { RecommendedListings } from '@/widgets/recommended-listings'
+
+function getListingAddress(listing: {
+  street_address?: string
+  full_address?: string
+  location?: string
+}): string {
+  return (
+    listing.street_address || listing.full_address || listing.location || 'Đang cập nhật địa chỉ'
+  )
+}
 
 export function BuyPage() {
   const router = useRouter()
+  const [pendingId, setPendingId] = useState<string | null>(null)
+  const [isMapView, setIsMapView] = useState(false)
+  /** Optimistic / confirmed favorite state when list cache lags (e.g. infinite scroll). */
+  const [localFavoriteById, setLocalFavoriteById] = useState<Record<string, boolean>>({})
+  const bookmarkSync = useFavoriteUiSyncStore((s) => s.bookmarkedByListingId)
+  const { mutate: toggleBookmark } = useToggleBookmark()
   const {
     listings,
     isLoading,
@@ -27,22 +52,75 @@ export function BuyPage() {
   } = useListingSearch({
     listingType: 'SALE',
   })
+  const {
+    markers,
+    totalCount,
+    isLoading: isMapLoading,
+    onRegionChange,
+  } = useMapSearch({
+    listingType: 'SALE',
+    enabled: isMapView,
+    filters: {
+      min_price: criteria.minPrice,
+      max_price: criteria.maxPrice,
+      search_text: criteria.location,
+      category: criteria.propertyCategory,
+    },
+  })
+
+  useEffect(() => {
+    const ids = new Set(listings.map((l) => l.listing_id))
+    setLocalFavoriteById((prev) => {
+      const next = { ...prev }
+      let changed = false
+      for (const id of Object.keys(next)) {
+        if (!ids.has(id)) {
+          delete next[id]
+          changed = true
+        }
+      }
+      return changed ? next : prev
+    })
+  }, [listings])
 
   // Map API listings to UI card data
   const propertyCardData: RealVistaPropertyCardData[] = useMemo(() => {
-    return listings.map((listing) => ({
-      id: listing.listing_id,
-      image: listing.thumbnail || 'https://via.placeholder.com/800',
-      title: listing.name,
-      address: listing.location,
-      price: listing.price,
-      beds: listing.bedrooms || 0,
-      bathrooms: listing.bathrooms || 0,
-      area: listing.area,
-      areaUnit: 'm²',
-      isPopular: listing.boosted || false,
-    }))
-  }, [listings])
+    return listings.map((listing) => {
+      const id = listing.listing_id
+      const o = localFavoriteById[id]
+      const g = bookmarkSync[id]
+      const isFavorite = o !== undefined ? o : g !== undefined ? g : listing.is_favorite || false
+      return {
+        id: listing.listing_id,
+        image: listing.thumbnail || 'https://via.placeholder.com/800',
+        title: listing.name,
+        address: getListingAddress(listing),
+        categoryLabel: resolveListingCategoryLabel({
+          title: listing.name,
+          propertyTypeCode: criteria.propertyType,
+          propertyCategoryCode: criteria.propertyCategory,
+        }),
+        price: listing.price,
+        beds: listing.bedrooms || 0,
+        bathrooms: listing.bathrooms || 0,
+        area: listing.area,
+        areaUnit: 'm²',
+        isPopular: listing.boosted || false,
+        isFavorite,
+        status: listing.status,
+        attributes: listing.attributes || [],
+      }
+    })
+  }, [bookmarkSync, criteria.propertyCategory, criteria.propertyType, listings, localFavoriteById])
+
+  const mapMarkersWithFavorites = useMemo(() => {
+    return markers.map((m) => {
+      const o = localFavoriteById[m.id]
+      const g = bookmarkSync[m.id]
+      const isFavorite = o !== undefined ? o : g !== undefined ? g : (m.isFavorite ?? false)
+      return { ...m, isFavorite }
+    })
+  }, [bookmarkSync, markers, localFavoriteById])
 
   const handleSearchChange = (text: string) => {
     // Additive: update only location, keep active filters intact
@@ -68,32 +146,82 @@ export function BuyPage() {
     router.push(`/listing/${propertyId}`)
   }
 
-  const handleOpenMaps = () => {
-    // Navigate to map view (implementation pending)
-    // console.log('Open maps pressed')
+  const doToggleFavorite = (propertyId: string) => {
+    const fromList = listings.find((l) => l.listing_id === propertyId)
+    const fromMap = markers.find((m) => m.id === propertyId)
+    const baseline =
+      localFavoriteById[propertyId] !== undefined
+        ? localFavoriteById[propertyId]
+        : bookmarkSync[propertyId] !== undefined
+          ? bookmarkSync[propertyId]
+          : fromList != null
+            ? fromList.is_favorite
+            : fromMap != null
+              ? (fromMap.isFavorite ?? false)
+              : false
+    const current = baseline
+
+    setLocalFavoriteById((prev) => ({ ...prev, [propertyId]: !current }))
+
+    toggleBookmark(propertyId, {
+      onSuccess: (data) => {
+        setLocalFavoriteById((prev) => ({ ...prev, [propertyId]: data.bookmarked }))
+      },
+      onError: () => {
+        setLocalFavoriteById((prev) => {
+          const next = { ...prev }
+          delete next[propertyId]
+          return next
+        })
+      },
+    })
+  }
+
+  const isPropertyFavorite = (propertyId: string) => {
+    if (localFavoriteById[propertyId] !== undefined) {
+      return localFavoriteById[propertyId]
+    }
+    if (bookmarkSync[propertyId] !== undefined) {
+      return bookmarkSync[propertyId]
+    }
+    const source = isMapView ? mapMarkersWithFavorites : propertyCardData
+    const row = source.find((p) => p.id === propertyId)
+    return row?.isFavorite ?? false
+  }
+
+  const handleFavoritePress = (propertyId: string) => {
+    if (isPropertyFavorite(propertyId)) {
+      setPendingId(propertyId)
+    } else {
+      behaviorTracker.trackBookmark(propertyId, 'add', {
+        listing_type: 'SALE',
+        source_page: isMapView ? 'map' : 'buy',
+      })
+      doToggleFavorite(propertyId)
+    }
   }
 
   const renderHeader = (
-    <View className='px-4 py-6'>
-      {/* Search Bar */}
-      <RealVistaPropertySearchBar
-        value={criteria.location}
-        onChangeText={handleSearchChange}
-        onFiltersChange={handleFiltersChange}
-        placeholder='Tìm kiếm theo địa điểm'
-        className='mb-6'
-        showLeaseTerm={false}
-        maxPriceLimit={10_000_000_000} // 10 tỷ — phù hợp với BĐS mua bán
-      />
+    <View className='px-4 pt-2'>
       {/* Error State */}
       {error && (
         <View className='py-10 items-center px-4'>
-          <Text className="font-['PlusJakartaSans_500Medium'] text-red-500 text-center mb-2">
+          <Text className='font-jakarta-medium text-red-500 text-center mb-2'>
             Đã xảy ra lỗi khi tải dữ liệu.
           </Text>
           <Text className='text-gray-400 text-center text-xs mb-4'>{error.message}</Text>
         </View>
       )}
+
+      <RecommendedListings variant='buy' listingType='SALE' />
+
+      {propertyCardData.length > 0 ? (
+        <View>
+          <View className='mt-3 mb-3 flex-row items-center justify-between'>
+            <Text className='font-jakarta-bold text-xl text-main-black'>Bất động sản phù hợp</Text>
+          </View>
+        </View>
+      ) : null}
     </View>
   )
 
@@ -105,23 +233,70 @@ export function BuyPage() {
           <ActivityIndicator size='small' color='#7065F0' />
         </View>
       )}
-      {/* Open Maps Button - only show if we have results or empty state to keep layout consistent */}
-      {!isLoading && <OpenMapsButton onPress={handleOpenMaps} className='mt-6' />}
     </View>
   )
 
   const renderEmpty = () =>
     !isLoading && !error ? (
       <View className='py-10 items-center px-4'>
-        <Text className="font-['PlusJakartaSans_500Medium'] text-gray-500 text-base">
+        <Text className='font-jakarta-medium text-gray-500 text-base'>
           Không tìm thấy bất động sản nào.
         </Text>
       </View>
     ) : null
 
   return (
-    <SafeAreaView className='flex-1 bg-white' edges={['top']}>
-      {isLoading && propertyCardData.length === 0 ? (
+    <SafeAreaView className='flex-1 bg-white' edges={[]}>
+      <ConfirmDialog
+        visible={pendingId !== null}
+        title='Xóa khỏi yêu thích'
+        message='Bạn có muốn xóa tin đăng này khỏi danh sách yêu thích không?'
+        confirmLabel='Xóa'
+        cancelLabel='Hủy'
+        onConfirm={() => {
+          if (pendingId) doToggleFavorite(pendingId)
+          setPendingId(null)
+        }}
+        onCancel={() => setPendingId(null)}
+      />
+      <Box className='px-4 pt-1 pb-2'>
+        {/* Search Bar + Toggle Button Row */}
+        <View className='flex-row items-center gap-3'>
+          <View className='flex-1'>
+            <RealVistaPropertySearchBar
+              value={criteria.location}
+              onChangeText={handleSearchChange}
+              onFiltersChange={handleFiltersChange}
+              placeholder='Tìm kiếm theo địa điểm'
+              showLeaseTerm={false}
+              maxPriceLimit={10_000_000_000}
+            />
+          </View>
+          <TouchableOpacity
+            onPress={() => setIsMapView((prev) => !prev)}
+            className='h-10 w-10 items-center justify-center rounded-lg border border-purple-92 bg-white'
+            activeOpacity={0.7}
+          >
+            <IconLucide
+              name={isMapView ? 'List' : 'Map'}
+              color={isMapView ? '#100A55' : '#7065F0'}
+              size={18}
+            />
+          </TouchableOpacity>
+        </View>
+      </Box>
+      {/* List View with API data only */}
+      {isMapView ? (
+        <RealVistaMapSearchView
+          properties={mapMarkersWithFavorites}
+          totalCount={totalCount}
+          isLoading={isMapLoading}
+          onRegionChange={onRegionChange}
+          onPropertyPress={handlePropertyPress}
+          onToggleFavorite={handleFavoritePress}
+          variant='buy'
+        />
+      ) : isLoading && propertyCardData.length === 0 ? (
         <View className='flex-1 justify-center items-center'>
           <ActivityIndicator size='large' color='#7065F0' />
         </View>
@@ -130,10 +305,10 @@ export function BuyPage() {
           data={propertyCardData}
           renderItem={({ item }) => (
             <View className='px-4 mb-6'>
-              <RealVistaPropertyCard
+              <RealVistaPropertyHorizontalCard
                 property={item}
                 onClick={() => handlePropertyPress(item.id)}
-                onToggleFavorite={() => {}}
+                onToggleFavorite={() => handleFavoritePress(item.id)}
                 variant='buy'
               />
             </View>

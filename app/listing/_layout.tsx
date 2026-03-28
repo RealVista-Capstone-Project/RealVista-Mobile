@@ -1,4 +1,4 @@
-import { Tabs, useRouter } from 'expo-router'
+import { Tabs } from 'expo-router'
 import { ListingLayoutContainer } from '@/screens/listing'
 
 /**
@@ -12,8 +12,6 @@ import { ListingLayoutContainer } from '@/screens/listing'
  * are delegated to ListingLayoutContainer
  */
 export default function ListingLayout() {
-  const router = useRouter()
-
   return (
     <ListingLayoutContainer>
       <Tabs

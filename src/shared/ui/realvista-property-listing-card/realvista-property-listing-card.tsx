@@ -1,22 +1,54 @@
+import { Attribute } from '@/entities/listing/model/types'
 import { formatVND } from '@/shared/lib/format-currency'
 import { Text } from '@/shared/ui/text'
 import React from 'react'
 import { Image, TouchableOpacity, View } from 'react-native'
 import { ClipPath, Defs, G, Path, Rect, Svg } from 'react-native-svg'
 
+// Helper function to get icon based on attribute icon name (matching FE AttributeIcon mapping)
+function getIconByName(iconName: string | null, size: number = 20) {
+  if (!iconName) return null
+
+  const normalized = iconName.toLowerCase().replace(/[-_\s]/g, '')
+
+  // Map icon names to icon components
+  switch (normalized) {
+    case 'bed':
+    case 'beds':
+    case 'bedroom':
+    case 'bedrooms':
+      return <BedIcon size={size} />
+    case 'bath':
+    case 'baths':
+    case 'bathroom':
+    case 'bathrooms':
+      return <BathIcon size={size} />
+    case 'area':
+    case 'maximize':
+    case 'usablearea':
+    case 'landarea':
+      return <AreaIcon size={size} />
+    default:
+      return null
+  }
+}
+
 export interface RealVistaPropertyCardData {
   id: string
   image: string
   title: string
   address: string
+  categoryLabel?: string
   price: number
   currency?: string
-  beds: number
-  bathrooms: number
-  area: number
+  beds?: number
+  bathrooms?: number
+  area?: number
   areaUnit?: string
   isPopular?: boolean
   isFavorite?: boolean
+  status?: string
+  attributes?: Attribute[]
 }
 
 interface RealVistaPropertyCardProps {
@@ -81,8 +113,64 @@ export function RealVistaPropertyCard({
           resizeMode='cover'
         />
 
-        {/* Popular Badge (Vertical only) */}
-        {!ishorizontal && property.isPopular && (
+        {/* Sold / Rented overlay — white wash over image only */}
+        {(property.status === 'SOLD' || property.status === 'RENTED') && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(255,255,255,0.55)',
+              borderTopLeftRadius: 8,
+              borderTopRightRadius: 8,
+              zIndex: 5,
+            }}
+          />
+        )}
+
+        {/* Sold / Rented ribbon badge — mirrors POPULAR badge style */}
+        {(property.status === 'SOLD' || property.status === 'RENTED') && (
+          <View style={{ position: 'absolute', bottom: -15, left: -8, zIndex: 10 }}>
+            <View
+              style={{
+                position: 'relative',
+                height: 32,
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                borderTopLeftRadius: 8,
+                borderTopRightRadius: 8,
+                borderBottomRightRadius: 8,
+                backgroundColor: '#ef4444',
+                justifyContent: 'center',
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontWeight: 'bold',
+                  textTransform: 'uppercase',
+                  lineHeight: 16,
+                  letterSpacing: 0.5,
+                  color: 'white',
+                }}
+              >
+                {property.status === 'SOLD' ? 'Đã bán' : 'Đã cho thuê'}
+              </Text>
+
+              {/* Decorative cutout at bottom-left corner */}
+              <View style={{ position: 'absolute', left: 0, top: '200%', height: 8, width: 8 }}>
+                <Svg width={8} height={8} viewBox='0 0 8 8' fill='none' preserveAspectRatio='none'>
+                  <Path d='M8 8L0 0H8V8Z' fill='#b91c1c' />
+                </Svg>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Popular Badge */}
+        {property.isPopular && property.status !== 'SOLD' && property.status !== 'RENTED' && (
           <View style={{ position: 'absolute', bottom: -15, left: -8, zIndex: 10 }}>
             {/* ... badge content ... */}
             <View
@@ -151,7 +239,7 @@ export function RealVistaPropertyCard({
         >
           <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
             <Text
-              className="font-['PlusJakartaSans_700Bold'] text-brand-primary"
+              className='font-jakarta-bold text-brand-primary'
               style={{
                 fontFamily: 'PlusJakartaSans_700Bold',
                 fontSize: ishorizontal ? 18 : 24,
@@ -164,7 +252,7 @@ export function RealVistaPropertyCard({
             </Text>
             {variant === 'rent' && (
               <Text
-                className="font-['PlusJakartaSans_500Medium'] text-grey-500"
+                className='font-jakarta-medium text-grey-500'
                 style={{
                   fontFamily: 'PlusJakartaSans_500Medium',
                   fontSize: ishorizontal ? 13 : 16,
@@ -199,7 +287,7 @@ export function RealVistaPropertyCard({
         {/* Title & Address */}
         <View style={{ marginBottom: ishorizontal ? 8 : 16 }}>
           <Text
-            className="font-['PlusJakartaSans_700Bold'] text-main-black"
+            className='font-jakarta-bold text-main-black'
             style={{
               fontFamily: 'PlusJakartaSans_700Bold',
               fontSize: ishorizontal ? 16 : 24,
@@ -214,7 +302,7 @@ export function RealVistaPropertyCard({
           </Text>
 
           <Text
-            className="font-['PlusJakartaSans_500Medium'] text-grey-500"
+            className='font-jakarta-medium text-grey-500'
             style={{
               fontFamily: 'PlusJakartaSans_500Medium',
               fontSize: ishorizontal ? 13 : 16,
@@ -254,56 +342,101 @@ export function RealVistaPropertyCard({
             gap: 16,
           }}
         >
-          {/* Beds */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <BedIcon size={ishorizontal ? 16 : 20} />
-            <Text
-              className="font-['PlusJakartaSans_500Medium'] text-grey-500"
-              style={{
-                fontFamily: 'PlusJakartaSans_500Medium',
-                fontSize: 14,
-                lineHeight: 19.6,
-                color: '#6C727F',
-              }}
-            >
-              {property.beds}
-              {!ishorizontal && ' PN'}
-            </Text>
-          </View>
+          {/* Dynamic Attributes (if available) */}
+          {property.attributes && property.attributes.length > 0 ? (
+            property.attributes
+              .filter((attr) => {
+                if (attr.value_boolean !== null && attr.value_boolean !== undefined)
+                  return attr.value_boolean === true
+                if (attr.value_number !== null && attr.value_number !== undefined) return true
+                if (attr.value_text !== null && attr.value_text !== undefined) return true
+                return false
+              })
+              .slice(0, 3)
+              .map((attr) => (
+                <View
+                  key={attr.attribute_id}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  {/* Use icon from attribute, fallback to code-based icon */}
+                  {attr.icon
+                    ? getIconByName(attr.icon, ishorizontal ? 16 : 20)
+                    : getIconByName(attr.attribute_code, ishorizontal ? 16 : 20)}
+                  <Text
+                    className='font-jakarta-medium text-grey-500'
+                    style={{
+                      fontFamily: 'PlusJakartaSans_500Medium',
+                      fontSize: 14,
+                      lineHeight: 19.6,
+                      color: '#6C727F',
+                    }}
+                  >
+                    {attr.value_boolean === true
+                      ? attr.attribute_name
+                      : attr.value_text !== null && attr.value_text !== undefined
+                        ? attr.value_text
+                        : [attr.value_number, attr.attribute_name].filter(Boolean).join(' ')}
+                  </Text>
+                </View>
+              ))
+          ) : (
+            <>
+              {/* Beds */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <BedIcon size={ishorizontal ? 16 : 20} />
+                <Text
+                  className='font-jakarta-medium text-grey-500'
+                  style={{
+                    fontFamily: 'PlusJakartaSans_500Medium',
+                    fontSize: 14,
+                    lineHeight: 19.6,
+                    color: '#6C727F',
+                  }}
+                >
+                  {property.beds || 0}
+                  {!ishorizontal && ' PN'}
+                </Text>
+              </View>
 
-          {/* Bathrooms */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <BathIcon size={ishorizontal ? 16 : 20} />
-            <Text
-              className="font-['PlusJakartaSans_500Medium'] text-grey-500"
-              style={{
-                fontFamily: 'PlusJakartaSans_500Medium',
-                fontSize: 14,
-                lineHeight: 19.6,
-                color: '#6C727F',
-              }}
-            >
-              {property.bathrooms}
-              {!ishorizontal && ' WC'}
-            </Text>
-          </View>
+              {/* Bathrooms */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <BathIcon size={ishorizontal ? 16 : 20} />
+                <Text
+                  className='font-jakarta-medium text-grey-500'
+                  style={{
+                    fontFamily: 'PlusJakartaSans_500Medium',
+                    fontSize: 14,
+                    lineHeight: 19.6,
+                    color: '#6C727F',
+                  }}
+                >
+                  {property.bathrooms || 0}
+                  {!ishorizontal && ' WC'}
+                </Text>
+              </View>
 
-          {/* Area */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <AreaIcon size={ishorizontal ? 16 : 20} />
-            <Text
-              className="font-['PlusJakartaSans_500Medium'] text-grey-500"
-              style={{
-                fontFamily: 'PlusJakartaSans_500Medium',
-                fontSize: 14,
-                lineHeight: 19.6,
-                color: '#6C727F',
-              }}
-            >
-              {property.area}
-              {property.areaUnit || 'm²'}
-            </Text>
-          </View>
+              {/* Area */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <AreaIcon size={ishorizontal ? 16 : 20} />
+                <Text
+                  className='font-jakarta-medium text-grey-500'
+                  style={{
+                    fontFamily: 'PlusJakartaSans_500Medium',
+                    fontSize: 14,
+                    lineHeight: 19.6,
+                    color: '#6C727F',
+                  }}
+                >
+                  {property.area || 0}
+                  {property.areaUnit || 'm²'}
+                </Text>
+              </View>
+            </>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -316,8 +449,8 @@ function HeartIcon({ filled = false, size = 20 }: { filled?: boolean; size?: num
     <Svg width={size} height={size} viewBox='0 0 20 20' fill='none'>
       <Path
         d='M10 17.5C10 17.5 2.5 13.75 2.5 7.91667C2.5 6.75544 2.96094 5.64181 3.78141 4.82134C4.60188 4.00087 5.71551 3.53993 6.87674 3.53993C8.28571 3.53993 9.44118 4.21569 10 5.24157C10.5588 4.21569 11.7143 3.53993 13.1233 3.53993C14.2845 3.53993 15.3981 4.00087 16.2186 4.82134C17.0391 5.64181 17.5 6.75544 17.5 7.91667C17.5 13.75 10 17.5 10 17.5Z'
-        fill={filled ? '#7065F0' : 'none'}
-        stroke='#7065F0'
+        fill={filled ? 'red' : 'none'}
+        stroke={filled ? 'red' : '#7065F0'}
         strokeWidth={2.3}
         strokeLinecap='round'
         strokeLinejoin='round'

@@ -1,14 +1,6 @@
-import { RentPage } from '@/screens/rent/ui/rent-page'
-import { SidebarDrawer } from '@/widgets/sidebar-drawer'
-import { TopNav } from '@/widgets/top-nav'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { Redirect } from 'expo-router'
 
-export default function RentPageScreen() {
-  return (
-    <SafeAreaView className='flex-1 bg-white' edges={['bottom']}>
-      <TopNav />
-      <RentPage />
-      <SidebarDrawer />
-    </SafeAreaView>
-  )
+/** Legacy stack route: always land in Khám phá (thuê) so tabs + header stay mounted. */
+export default function RentPageRedirect() {
+  return <Redirect href={{ pathname: '/(tabs)/explore', params: { mode: 'rent' } }} />
 }

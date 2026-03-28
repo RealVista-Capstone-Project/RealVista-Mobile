@@ -170,6 +170,8 @@ export interface Listing {
   attributes: Attribute[]
   amenities?: Amenity[]
   cost_breakdown?: CostBreakdown
+  /** Present when the current user is authenticated (bookmark status). */
+  is_favorite?: boolean
 }
 // ============================================
 // Search Types
@@ -202,13 +204,22 @@ export interface ListingSearchResponse {
   status: ListingStatus
   price: number
   area: number
-  location: string
+  // Legacy field (older API shape)
+  location?: string
+  // Current BE search response fields
+  street_address?: string
+  ward_name?: string
+  district_name?: string
+  city_name?: string
+  full_address?: string
   bedrooms?: number
   bathrooms?: number
   thumbnail: string
   published_at: string
   boosted: boolean
   user_type: string
+  is_favorite: boolean
+  attributes: Attribute[]
 }
 
 export interface PageResponse<T> {

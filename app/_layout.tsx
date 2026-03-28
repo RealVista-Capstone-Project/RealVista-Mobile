@@ -10,28 +10,35 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { useAuthStore } from '@/entities/user'
 import { AppProviders } from '@/shared/config/providers'
 import { useColorScheme } from '@/shared/lib/hooks/use-color-scheme'
 import { GluestackUIProvider } from '@/shared/ui/gluestack-ui-provider'
-import { SidebarDrawer } from '@/widgets/sidebar-drawer'
-import { TopNav } from '@/widgets/top-nav'
+import { MobileHeader } from '@/widgets/mobile-header'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import '../global.css'
 
 const _AUTH_GROUP = '(auth)'
 const _HOME_GROUP = '(tabs)'
 
 export const unstable_settings = {
-  anchor: '(tabs)',
+  anchor: '(tabs)/explore',
 }
 
 SplashScreen.preventAutoHideAsync()
 
+const _AUTH_GROUP = '(auth)'
+const _DEFAULT_PAGE = '/(tabs)/explore'
+
 export default function RootLayout() {
   const colorScheme = useColorScheme()
+  const segments = useSegments()
   const router = useRouter()
   const rootNavigationState = useRootNavigationState()
   const segments = useSegments()
-  const { isAuthenticated } = useAuthStore()
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const token = useAuthStore((state) => state.token)
+  const logout = useAuthStore((state) => state.logout)
   const [isNavigationReady, setNavigationReady] = useState(false)
   const [loaded] = useFonts({
     PlusJakartaSans_500Medium: require('../assets/fonts/PlusJakartaSans-Medium.ttf'),
@@ -50,24 +57,45 @@ export default function RootLayout() {
     }
   }, [loaded, rootNavigationState?.key])
 
-  // TODO: Remove this block before merging - for reviewer UI testing only
+  // Validate token on app start
+  useEffect(() => {
+    const validateToken = async () => {
+      const storedToken = await AsyncStorage.getItem('token')
+
+      // If user claims to be authenticated but no token in storage, logout
+      if (isAuthenticated && !storedToken) {
+        console.log('[Auth] No token found in storage, logging out')
+        logout()
+      }
+
+      // If token in storage but user not authenticated in state, also clear
+      if (!isAuthenticated && storedToken) {
+        console.log('[Auth] Token found but not authenticated, clearing storage')
+        await AsyncStorage.removeItem('token')
+        await AsyncStorage.removeItem('refresh_token')
+      }
+    }
+
+    if (isNavigationReady && loaded) {
+      validateToken()
+    }
+  }, [isNavigationReady, loaded, isAuthenticated, logout])
+
+  // Route guard - redirect based on auth state
   useEffect(() => {
     if (!isNavigationReady || !loaded) return
-    // Using the listing_id from the API response for development
-    router.replace('/listing/71cea53a-bff0-b29b-3a9e-9e041c3d0524' as Href)
-  }, [isNavigationReady, router, loaded])
 
-  // useEffect(() => {
-  //   if (!isNavigationReady || !loaded) return
+    const inAuthGroup = segments[0] === _AUTH_GROUP
 
-  //   const inAuthGroup = segments[0] === _AUTH_GROUP
-
-  //   if (!isAuthenticated && !inAuthGroup) {
-  //     router.replace(`/${_AUTH_GROUP}/login` as Href)
-  //   } else if (isAuthenticated && inAuthGroup) {
-  //     router.replace(`/${_HOME_GROUP}` as Href)
-  //   }
-  // }, [isAuthenticated, segments, isNavigationReady, router, loaded])
+    // If not authenticated (or no token), redirect to login
+    if ((!isAuthenticated || !token) && !inAuthGroup) {
+      router.replace(`/${_AUTH_GROUP}/login` as Href)
+    }
+    // If authenticated with token, redirect away from auth pages
+    else if (isAuthenticated && token && inAuthGroup) {
+      router.replace(_DEFAULT_PAGE as Href)
+    }
+  }, [isAuthenticated, token, segments, isNavigationReady, router, loaded])
 
   useEffect(() => {
     // Request Permission on App Start (or wait for user action)
@@ -90,26 +118,19 @@ export default function RootLayout() {
         <GluestackUIProvider mode='dark'>
           <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
             <SafeAreaView className='flex-1 bg-gray-50' edges={['top', 'left', 'right']}>
-              <SidebarDrawer />
               <Stack
                 screenOptions={{
                   headerShown: false,
                 }}
               >
-                <Stack.Screen
-                  name='(tabs)'
-                  options={{
-                    headerShown: true,
-                    header: () => null, // Custom header per screen
-                  }}
-                />
+                <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
                 <Stack.Screen name='(auth)/login' options={{ headerShown: false }} />
                 <Stack.Screen name='modal' options={{ presentation: 'modal', title: 'Modal' }} />
                 <Stack.Screen
                   name='listing'
                   options={{
                     headerShown: true,
-                    header: () => <TopNav />,
+                    header: () => <MobileHeader />,
                   }}
                 />
                 <Stack.Screen
@@ -119,6 +140,9 @@ export default function RootLayout() {
                     header: () => <TopNav showBack />,
                   }}
                 />
+                <Stack.Screen name='buy-page' options={{ headerShown: false }} />
+                <Stack.Screen name='rent-page' options={{ headerShown: false }} />
+                <Stack.Screen name='saved' options={{ headerShown: false }} />
               </Stack>
               <StatusBar style='auto' />
             </SafeAreaView>

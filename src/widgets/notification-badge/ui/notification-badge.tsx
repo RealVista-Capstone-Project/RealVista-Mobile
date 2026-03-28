@@ -1,7 +1,3 @@
-import { Box } from '@/shared/ui/box'
-import { Text } from '@/shared/ui/text'
-import { useUnreadCount } from '@/features/notifications'
-
 /**
  * Notification Badge Widget
  * Displays unread notification count on tab bar or other UI elements

@@ -16,10 +16,7 @@ export function OpenMapsButton({ onPress, className = '' }: OpenMapsButtonProps)
       className={`flex-row items-center justify-center gap-2 rounded-lg bg-[#100A55] px-6 py-3 ${className}`}
     >
       <MapsIcon />
-      <Text
-        className="font-['PlusJakartaSans_700Bold'] text-base text-white"
-        style={{ fontFamily: 'PlusJakartaSans_700Bold', fontSize: 16 }}
-      >
+      <Text className='font-jakarta-bold text-base text-white' style={{ fontSize: 16 }}>
         Mở Google Maps
       </Text>
     </TouchableOpacity>

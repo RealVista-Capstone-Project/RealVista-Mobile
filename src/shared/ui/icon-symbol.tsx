@@ -32,6 +32,7 @@ const MAPPING: Record<string, ComponentProps<typeof MaterialIcons>['name']> = {
   'info.circle.fill': 'info',
   plus: 'add',
   message: 'chat-bubble',
+  person: 'person',
 }
 
 type IconSymbolName = keyof typeof MAPPING

@@ -88,16 +88,12 @@ const isDateRange = (value: Date | DateRange | undefined): value is DateRange =>
 export function DatePicker(props: DatePickerProps) {
   const {
     label,
-    error,
     placeholder = 'Select date',
     disabled = false,
     style,
     minimumDate,
     maximumDate,
     timeFormat = '24',
-    variant = 'filled',
-    labelStyle,
-    errorStyle,
   } = props
 
   const mode = props.mode || 'date'
@@ -126,7 +122,6 @@ export function DatePicker(props: DatePickerProps) {
   )
 
   // Theme colors - using Figma brand colors
-  const cardColor = useColor('card')
   const borderColor = useColor('purple92') // #E0DEF7
   const primaryColor = useColor('mainPrimary') // #7065F0
   const primaryForegroundColor = useColor('mainWhite') // #FFFFFF
@@ -134,11 +129,6 @@ export function DatePicker(props: DatePickerProps) {
   const textMutedColor = useColor('grey500') // #6C727F
   const mutedForegroundColor = useColor('grey400') // #9EA3AE
   const textColor = useColor('mainBlack') // #000929
-  const errorColor = useColor('red')
-
-  // Additional brand colors
-  const purple94 = useColor('purple94') // #E8E6F9 - for selected states
-  const purple98 = useColor('purple98') // #F7F7FD - for backgrounds
 
   const formatDisplayValue = useCallback(() => {
     if (mode === 'range') {
