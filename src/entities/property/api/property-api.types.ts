@@ -74,6 +74,6 @@ export interface Property3dOperation {
 
 export interface CreateProperty3dOperationRequest {
   model: string
-  displayName?: string
-  images: { mediaAssetId: string; azimuth: number }[]
+  display_name?: string
+  images: { media_asset_id: string; azimuth: number }[]
 }

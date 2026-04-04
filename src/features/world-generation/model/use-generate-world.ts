@@ -170,8 +170,11 @@ export function useGenerateWorld() {
       try {
         await propertyApi.initiate3dOperation(params.propertyId, {
           model: params.model ?? 'Marble 0.1-mini',
-          displayName: params.displayName,
-          images: params.images,
+          display_name: params.displayName,
+          images: params.images.map((img) => ({
+            media_asset_id: img.mediaAssetId,
+            azimuth: img.azimuth,
+          })),
         })
 
         // Switch to polling
