@@ -106,7 +106,6 @@ export function WorldViewerScreen() {
     return buildSparkHTML(currentSpzUrl)
   }, [currentSpzUrl])
 
-  const thumbnailUrl = threeDMedia?.thumbnail_url
   const mediaUrl = threeDMedia?.media_url
 
   const handleShare = async () => {
