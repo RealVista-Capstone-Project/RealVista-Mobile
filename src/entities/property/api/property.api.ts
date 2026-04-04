@@ -1,7 +1,6 @@
 import http from '@/shared/lib/http'
 import type {
   CreateProperty3dOperationRequest,
-  PageResponse,
   Property3dOperation,
   PropertySummaryResponse,
 } from './property-api.types'
@@ -13,7 +12,7 @@ export const propertyApi = {
     query.append('page', (params.page ?? 0).toString())
     query.append('size', (params.size ?? 20).toString())
 
-    return http.get<PageResponse<PropertySummaryResponse>>(`/properties/me?${query.toString()}`)
+    return http.get<PropertySummaryResponse[]>(`/properties/me?${query.toString()}`)
   },
 
   get3dOperations: (propertyId: string) => {

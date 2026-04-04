@@ -108,7 +108,7 @@ export function ManagePropertiesScreen() {
     size: 50,
   })
 
-  const properties = data?.data?.content ?? []
+  const properties = Array.isArray(data?.data) ? data?.data : []
 
   if (isLoading) {
     return (
