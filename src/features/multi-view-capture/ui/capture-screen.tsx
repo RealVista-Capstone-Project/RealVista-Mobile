@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import React, { useCallback, useRef, useState } from 'react'
-import { Alert, Modal, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import {
   Camera,
   type CameraRuntimeError,
@@ -183,7 +183,7 @@ export function MultiViewCaptureScreen() {
         )}
 
         {/* Action buttons */}
-        <View style={styles.controls}>
+        <View style={styles.controlsWrapper}>
           {/* Thumbnail Preview */}
           {images.length > 0 && (
             <Pressable style={styles.thumbnailContainer} onPress={() => setIsReviewVisible(true)}>
@@ -198,21 +198,28 @@ export function MultiViewCaptureScreen() {
             </Pressable>
           )}
 
-          <Pressable style={styles.controlButton} onPress={handleReset}>
-            <Text style={styles.controlButtonText}>Reset</Text>
-          </Pressable>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.controlsScroll}
+            contentContainerStyle={styles.controlsScrollContent}
+          >
+            <Pressable style={styles.controlButton} onPress={handleReset}>
+              <Text style={styles.controlButtonText}>Reset</Text>
+            </Pressable>
 
-          <Pressable style={styles.calibrateButton} onPress={handleCalibrate}>
-            <Text style={styles.controlButtonText}>Set Center</Text>
-          </Pressable>
+            <Pressable style={styles.calibrateButton} onPress={handleCalibrate}>
+              <Text style={styles.controlButtonText}>Center</Text>
+            </Pressable>
 
-          <Pressable style={styles.controlButton} onPress={() => setShowGrid((v) => !v)}>
-            <Text style={styles.controlButtonText}>{showGrid ? 'Hide' : 'Sphere'}</Text>
-          </Pressable>
+            <Pressable style={styles.controlButton} onPress={() => setShowGrid((v) => !v)}>
+              <Text style={styles.controlButtonText}>{showGrid ? 'Hide' : 'Grid'}</Text>
+            </Pressable>
 
-          <Pressable style={styles.doneButton} onPress={handleDone}>
-            <Text style={styles.doneButtonText}>Done</Text>
-          </Pressable>
+            <Pressable style={styles.doneButton} onPress={handleDone}>
+              <Text style={styles.doneButtonText}>Done</Text>
+            </Pressable>
+          </ScrollView>
         </View>
       </View>
 
@@ -299,23 +306,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  controls: {
+  controlsWrapper: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    width: '100%',
+  },
+  controlsScroll: {
+    flex: 1,
+  },
+  controlsScrollContent: {
+    paddingLeft: 84, // Space for the absolute thumbnail
+    paddingRight: 24,
+    gap: 12,
+    alignItems: 'center',
   },
   controlButton: {
     backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 24,
-    minWidth: 80,
+    minWidth: 70,
     alignItems: 'center',
   },
   calibrateButton: {
     backgroundColor: 'rgba(59,130,246,0.5)',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 24,
     minWidth: 80,
@@ -328,7 +343,7 @@ const styles = StyleSheet.create({
   },
   doneButton: {
     backgroundColor: '#10B981',
-    paddingHorizontal: 28,
+    paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 24,
     minWidth: 80,
