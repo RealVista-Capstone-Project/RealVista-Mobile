@@ -131,6 +131,27 @@ export default function RootLayout() {
                 <Stack.Screen name='buy-page' options={{ headerShown: false }} />
                 <Stack.Screen name='rent-page' options={{ headerShown: false }} />
                 <Stack.Screen name='saved' options={{ headerShown: false }} />
+                <Stack.Screen
+                  name='capture'
+                  options={{
+                    headerShown: false,
+                    animation: 'slide_from_bottom',
+                  }}
+                />
+                <Stack.Screen
+                  name='world-generation'
+                  options={{
+                    headerShown: false,
+                    animation: 'slide_from_bottom',
+                  }}
+                />
+                <Stack.Screen
+                  name='world-viewer'
+                  options={{
+                    headerShown: false,
+                    animation: 'fade',
+                  }}
+                />
               </Stack>
               <StatusBar style='auto' />
             </SafeAreaView>
