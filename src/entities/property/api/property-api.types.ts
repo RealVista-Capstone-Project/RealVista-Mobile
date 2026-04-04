@@ -77,3 +77,22 @@ export interface CreateProperty3dOperationRequest {
   display_name?: string
   images: { media_asset_id: string; azimuth: number }[]
 }
+
+// --- Property Detail (for 3D viewer) ---
+
+export interface PropertyDetailMedia {
+  media_id: string
+  media_type: string
+  media_url: string
+  thumbnail_url: string | null
+  is_primary: boolean
+  display_order: number
+  metadata: Record<string, unknown> | null
+}
+
+export interface PropertyDetailResponse {
+  property_id: string
+  street_address: string
+  status: string
+  media: PropertyDetailMedia[] | null
+}
