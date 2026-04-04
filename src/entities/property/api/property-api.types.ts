@@ -46,7 +46,9 @@ export interface PropertySummaryResponse {
   description: string | null
   property_type_info: PropertyTypeInfo | null
   location_info: LocationInfo | null
-  media: PropertyMediaItem[] | null
+  media?: PropertyMediaItem[] | null
+  has_3d: boolean
+  thumbnail_url: string | null
 }
 
 export interface PageResponse<T> {
