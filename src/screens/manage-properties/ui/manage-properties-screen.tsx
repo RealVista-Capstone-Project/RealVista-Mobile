@@ -23,9 +23,8 @@ import {
 function PropertyCard({ property }: { property: PropertySummaryResponse }) {
   const router = useRouter()
   const { data: operations } = useProperty3dOperations(property.property_id)
-
-  const thumbnail = property.media?.find((m) => m.is_primary)?.media_url ?? null
-  const has3D = property.media?.some((m) => m.media_type === 'THREE_D') ?? false
+  const thumbnail = property.thumbnail_url
+  const has3D = property.has_3d
   const pendingOp = operations?.find((op: Property3dOperation) => op.status === 'PENDING')
   const address = property.street_address || 'No address'
   const locationLabel = [property.location_info?.district_name, property.location_info?.city_name]
@@ -81,10 +80,19 @@ function PropertyCard({ property }: { property: PropertySummaryResponse }) {
         {/* 3D Action Area */}
         <View style={styles.card3DArea}>
           {has3D ? (
-            <Pressable style={styles.view3DButton} onPress={handleView3D}>
-              <Globe size={16} color='#10B981' />
-              <Text style={styles.view3DText}>View 3D Tour</Text>
-            </Pressable>
+            <View style={styles.card3DRow}>
+              <Pressable
+                style={[styles.view3DButton, styles.card3DRowButton]}
+                onPress={handleView3D}
+              >
+                <Globe size={16} color='#10B981' />
+                <Text style={styles.view3DText}>Xem 3D</Text>
+              </Pressable>
+              <Pressable style={[styles.add3DButton, styles.card3DRowButton]} onPress={handleAdd3D}>
+                <Camera size={16} color='#FFFFFF' />
+                <Text style={styles.add3DText}>Thêm 3D Tour</Text>
+              </Pressable>
+            </View>
           ) : pendingOp ? (
             <View style={styles.pendingBadge}>
               <ActivityIndicator size='small' color='#F59E0B' />
@@ -282,6 +290,13 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
     paddingTop: 12,
+  },
+  card3DRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  card3DRowButton: {
+    flex: 1,
   },
   add3DButton: {
     flexDirection: 'row',
