@@ -8,6 +8,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native'
 
@@ -28,6 +29,7 @@ export function WorldGenerationScreen() {
 
   const [model, setModel] = useState<MarbleModel>('Marble 0.1-mini')
   const [started, setStarted] = useState(false)
+  const [roomName, setRoomName] = useState('')
 
   const upload = useUploadImages()
   const generation = useGenerateWorld()
@@ -54,14 +56,14 @@ export function WorldGenerationScreen() {
   })
 
   const handleStart = useCallback(async () => {
-    if (images.length === 0 || !propertyId) return
+    if (images.length === 0 || !propertyId || !roomName.trim()) return
 
     setStarted(true)
 
     // Initialize store
     startStoreGeneration({
       id: '',
-      displayName: 'Property 3D World',
+      displayName: roomName.trim(),
       status: 'uploading',
       model,
       createdAt: new Date().toISOString(),
@@ -75,10 +77,11 @@ export function WorldGenerationScreen() {
     await generation.startGeneration({
       propertyId: propertyId as string,
       images: uploaded,
-      displayName: 'Property 3D World',
+      displayName: roomName.trim(),
+      roomName: roomName.trim(),
       model,
     })
-  }, [images, model, startStoreGeneration, upload, generation, propertyId])
+  }, [images, model, roomName, startStoreGeneration, upload, generation, propertyId])
 
   const handleViewWorld = useCallback(() => {
     if (currentGeneration?.id) {
@@ -118,6 +121,20 @@ export function WorldGenerationScreen() {
 
       {/* Center content */}
       <View style={styles.content}>
+        {!started && (
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Room Name</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="e.g. Living Room, Bathroom"
+              placeholderTextColor="#6B7280"
+              value={roomName}
+              onChangeText={setRoomName}
+              editable={!isWorking}
+            />
+          </View>
+        )}
+
         {/* Animated globe */}
         <Animated.View
           style={[
@@ -175,9 +192,9 @@ export function WorldGenerationScreen() {
         <View style={styles.actions}>
           {!started && (
             <Pressable
-              style={[styles.startButton, images.length === 0 && styles.startButtonDisabled]}
+              style={[styles.startButton, (images.length === 0 || !roomName.trim()) && styles.startButtonDisabled]}
               onPress={handleStart}
-              disabled={images.length === 0 || !propertyId}
+              disabled={images.length === 0 || !propertyId || !roomName.trim()}
             >
               <Text style={styles.startButtonText}>Generate 3D World</Text>
             </Pressable>
@@ -243,6 +260,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
+  },
+  inputContainer: {
+    width: '100%',
+    marginBottom: 32,
+  },
+  inputLabel: {
+    color: '#9CA3AF',
+    fontSize: 14,
+    fontFamily: 'PlusJakartaSans_600SemiBold',
+    marginBottom: 8,
+  },
+  textInput: {
+    width: '100%',
+    backgroundColor: '#1F2937',
+    borderWidth: 1,
+    borderColor: '#374151',
+    borderRadius: 12,
+    color: '#ffffff',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    fontFamily: 'PlusJakartaSans_500Medium',
   },
   globeContainer: {
     width: 120,

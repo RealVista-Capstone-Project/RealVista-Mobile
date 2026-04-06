@@ -159,6 +159,7 @@ export function useGenerateWorld() {
       images: { mediaAssetId: string; azimuth: number }[]
       displayName?: string
       model?: MarbleModel
+      roomName?: string
     }) => {
       setState({
         phase: 'requesting',
@@ -171,6 +172,7 @@ export function useGenerateWorld() {
         await propertyApi.initiate3dOperation(params.propertyId, {
           model: params.model ?? 'Marble 0.1-mini',
           display_name: params.displayName,
+          room_name: params.roomName,
           images: params.images.map((img) => ({
             media_asset_id: img.mediaAssetId,
             azimuth: img.azimuth,
