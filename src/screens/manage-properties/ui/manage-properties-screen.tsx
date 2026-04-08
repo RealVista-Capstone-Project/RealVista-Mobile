@@ -1,15 +1,7 @@
 import { useRouter } from 'expo-router'
 import { Box, Camera, Globe } from 'lucide-react-native'
 import React, { useCallback } from 'react'
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { ActivityIndicator, FlatList, Pressable, RefreshControl, Text, View } from 'react-native'
 
 import { Image } from 'expo-image'
 
@@ -24,8 +16,16 @@ function PropertyCard({ property }: { property: PropertySummaryResponse }) {
   const router = useRouter()
   const { data: operations } = useProperty3dOperations(property.property_id)
   const thumbnail = property.thumbnail_url
-  const has3D = property.has_3d
-  const pendingOp = operations?.find((op: Property3dOperation) => op.status === 'PENDING')
+
+  // Derive 3D state from both the summary flag AND live operations data.
+  // The summary's has_3d can lag behind, so we also check if any operation
+  // has SUCCEEDED or if there are any operations at all.
+  const hasSucceededOp = operations?.some((op: Property3dOperation) => op.status === 'SUCCEEDED')
+  const has3D = property.has_3d || hasSucceededOp || false
+  const pendingOp = operations?.find(
+    (op: Property3dOperation) => op.status === 'PENDING' || op.status === 'GENERATING'
+  )
+  const hasAnyOp = (operations?.length ?? 0) > 0
   const address = property.street_address || 'No address'
   const locationLabel = [property.location_info?.district_name, property.location_info?.city_name]
     .filter(Boolean)
@@ -36,72 +36,163 @@ function PropertyCard({ property }: { property: PropertySummaryResponse }) {
   }, [router, property.property_id])
 
   const handleView3D = useCallback(() => {
-    router.push({ pathname: '/world-viewer', params: { propertyId: property.property_id } })
+    router.push({ pathname: '/manage-3d/[id]', params: { id: property.property_id } })
   }, [router, property.property_id])
 
+  const isAvailable = property.status === 'AVAILABLE'
+
   return (
-    <View style={styles.card}>
+    <View className='bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100'>
       {/* Thumbnail */}
-      <View style={styles.cardImageContainer}>
+      <View className='h-44 relative'>
         {thumbnail ? (
-          <Image source={{ uri: thumbnail }} style={styles.cardImage} contentFit='cover' />
+          <Image
+            source={{ uri: thumbnail }}
+            style={{ width: '100%', height: '100%' }}
+            contentFit='cover'
+          />
         ) : (
-          <View style={[styles.cardImage, styles.cardImagePlaceholder]}>
+          <View className='w-full h-full bg-gray-50 items-center justify-center'>
             <Box size={32} color='#4B5563' />
           </View>
         )}
 
         {/* Status badge */}
         <View
-          style={[
-            styles.statusBadge,
-            property.status === 'AVAILABLE' ? styles.statusAvailable : styles.statusDraft,
-          ]}
+          className={`absolute top-3 left-3 px-3 py-1.5 rounded-xl border border-white/20 ${
+            isAvailable ? 'bg-emerald-500/95' : 'bg-slate-500/95'
+          }`}
         >
-          <Text style={styles.statusBadgeText}>{property.status}</Text>
+          <Text
+            className='text-white text-xs uppercase tracking-widest'
+            style={{ fontFamily: 'PlusJakartaSans_800ExtraBold' }}
+          >
+            {property.status}
+          </Text>
         </View>
       </View>
 
       {/* Info */}
-      <View style={styles.cardBody}>
-        <Text style={styles.cardTitle} numberOfLines={1}>
+      <View className='p-4'>
+        <Text
+          className='text-base text-slate-900 mb-1'
+          numberOfLines={1}
+          style={{ fontFamily: 'PlusJakartaSans_700Bold' }}
+        >
           {address}
         </Text>
+
         {locationLabel ? (
-          <Text style={styles.cardSubtitle} numberOfLines={1}>
+          <Text
+            className='text-sm text-slate-500 mb-1'
+            numberOfLines={1}
+            style={{ fontFamily: 'PlusJakartaSans_500Medium' }}
+          >
             {locationLabel}
           </Text>
         ) : null}
 
         {property.land_size_m2 != null && (
-          <Text style={styles.cardMeta}>{property.land_size_m2} m²</Text>
+          <Text
+            className='text-xs text-slate-400 mb-4'
+            style={{ fontFamily: 'PlusJakartaSans_700Bold' }}
+          >
+            {property.land_size_m2} m²
+          </Text>
         )}
 
         {/* 3D Action Area */}
-        <View style={styles.card3DArea}>
+        <View className='border-t border-gray-100 pt-4'>
           {has3D ? (
-            <View style={styles.card3DRow}>
+            <View className='flex-row gap-2.5'>
               <Pressable
-                style={[styles.view3DButton, styles.card3DRowButton]}
+                className='flex-1 flex-row items-center justify-center bg-purple-50 border border-purple-200/50 py-3 rounded-2xl gap-2'
                 onPress={handleView3D}
               >
-                <Globe size={16} color='#10B981' />
-                <Text style={styles.view3DText}>Xem 3D</Text>
+                <Globe size={15} color='#7065F0' />
+                <Text
+                  className='text-sm text-main-primary'
+                  style={{ fontFamily: 'PlusJakartaSans_800ExtraBold' }}
+                >
+                  Quản lý 3D
+                </Text>
               </Pressable>
-              <Pressable style={[styles.add3DButton, styles.card3DRowButton]} onPress={handleAdd3D}>
-                <Camera size={16} color='#FFFFFF' />
-                <Text style={styles.add3DText}>Thêm 3D Tour</Text>
+              <Pressable
+                className='flex-1 flex-row items-center justify-center bg-main-primary py-3 rounded-2xl gap-2'
+                onPress={handleAdd3D}
+              >
+                <Camera size={15} color='#FFFFFF' />
+                <Text
+                  className='text-sm text-white'
+                  style={{ fontFamily: 'PlusJakartaSans_800ExtraBold' }}
+                >
+                  Cập nhật
+                </Text>
               </Pressable>
             </View>
           ) : pendingOp ? (
-            <View style={styles.pendingBadge}>
-              <ActivityIndicator size='small' color='#F59E0B' />
-              <Text style={styles.pendingText}>3D Generating...</Text>
+            <View className='flex-row items-center gap-2.5'>
+              <View className='flex-1 flex-row items-center justify-center bg-amber-50 border border-amber-200/50 py-3 rounded-2xl gap-2'>
+                <ActivityIndicator size='small' color='#F59E0B' />
+                <Text
+                  className='text-sm text-amber-500'
+                  style={{ fontFamily: 'PlusJakartaSans_800ExtraBold' }}
+                >
+                  Đang xử lý 3D...
+                </Text>
+              </View>
+              <Pressable
+                className='bg-main-primary px-4 py-3 rounded-2xl items-center justify-center'
+                onPress={handleView3D}
+              >
+                <Text
+                  className='text-sm text-white'
+                  style={{ fontFamily: 'PlusJakartaSans_800ExtraBold' }}
+                >
+                  Quản lý
+                </Text>
+              </Pressable>
+            </View>
+          ) : hasAnyOp ? (
+            // Has operations but none succeeded yet (e.g. all failed) — still show manage button
+            <View className='flex-row gap-2.5'>
+              <Pressable
+                className='flex-1 flex-row items-center justify-center bg-purple-50 border border-purple-200/50 py-3 rounded-2xl gap-2'
+                onPress={handleView3D}
+              >
+                <Globe size={15} color='#7065F0' />
+                <Text
+                  className='text-sm text-main-primary'
+                  style={{ fontFamily: 'PlusJakartaSans_800ExtraBold' }}
+                >
+                  Quản lý 3D
+                </Text>
+              </Pressable>
+              <Pressable
+                className='flex-1 flex-row items-center justify-center bg-main-primary py-3 rounded-2xl gap-2'
+                onPress={handleAdd3D}
+              >
+                <Camera size={15} color='#FFFFFF' />
+                <Text
+                  className='text-sm text-white'
+                  style={{ fontFamily: 'PlusJakartaSans_800ExtraBold' }}
+                >
+                  Cập nhật
+                </Text>
+              </Pressable>
             </View>
           ) : (
-            <Pressable style={styles.add3DButton} onPress={handleAdd3D}>
+            <Pressable
+              className='flex-row items-center justify-center bg-main-primary py-3 rounded-2xl gap-2'
+              onPress={handleAdd3D}
+            >
               <Camera size={16} color='#FFFFFF' />
-              <Text style={styles.add3DText}>Add 3D Tour</Text>
+              <Text
+                className='text-sm text-white'
+                style={{ fontFamily: 'PlusJakartaSans_800ExtraBold' }}
+              >
+                Tạo 3D Tour mới
+              </Text>
             </Pressable>
           )}
         </View>
@@ -116,23 +207,38 @@ export function ManagePropertiesScreen() {
     size: 50,
   })
 
-  const properties = Array.isArray(data?.data) ? data?.data : []
+  const properties = Array.isArray(data?.data?.content) ? data?.data?.content : []
 
   if (isLoading) {
     return (
-      <View style={styles.center}>
+      <View className='flex-1 items-center justify-center bg-gray-50 px-8'>
         <ActivityIndicator size='large' color='#7065F0' />
-        <Text style={styles.loadingText}>Loading properties...</Text>
+        <Text
+          className='mt-3 text-sm text-gray-500'
+          style={{ fontFamily: 'PlusJakartaSans_500Medium' }}
+        >
+          Đang tải bất động sản...
+        </Text>
       </View>
     )
   }
 
   if (isError) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>Failed to load properties</Text>
-        <Pressable style={styles.retryButton} onPress={() => refetch()}>
-          <Text style={styles.retryText}>Retry</Text>
+      <View className='flex-1 items-center justify-center bg-gray-50 px-8'>
+        <Text
+          className='text-base text-red-500 mb-4'
+          style={{ fontFamily: 'PlusJakartaSans_600SemiBold' }}
+        >
+          Không thể tải danh sách
+        </Text>
+        <Pressable className='bg-main-primary px-6 py-3 rounded-xl' onPress={() => refetch()}>
+          <Text
+            className='text-white text-sm'
+            style={{ fontFamily: 'PlusJakartaSans_600SemiBold' }}
+          >
+            Thử lại
+          </Text>
         </Pressable>
       </View>
     )
@@ -140,208 +246,37 @@ export function ManagePropertiesScreen() {
 
   if (properties.length === 0) {
     return (
-      <View style={styles.center}>
+      <View className='flex-1 items-center justify-center bg-gray-50 px-8'>
         <Box size={48} color='#9CA3AF' />
-        <Text style={styles.emptyTitle}>No Properties</Text>
-        <Text style={styles.emptyText}>
-          You don&apos;t have any properties yet. Create one on the web dashboard first.
+        <Text
+          className='text-lg text-gray-800 mt-4 mb-2'
+          style={{ fontFamily: 'PlusJakartaSans_700Bold' }}
+        >
+          Chưa có bất động sản
+        </Text>
+        <Text
+          className='text-sm text-gray-500 text-center leading-5'
+          style={{ fontFamily: 'PlusJakartaSans_400Regular' }}
+        >
+          Tạo bất động sản trên trang web trước để quản lý ở đây.
         </Text>
       </View>
     )
   }
 
   return (
-    <View style={styles.container}>
+    <View className='flex-1 bg-gray-50'>
       <FlatList
         data={properties}
         keyExtractor={(item) => item.property_id}
         renderItem={({ item }) => <PropertyCard property={item} />}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor='#7065F0' />
         }
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        ItemSeparatorComponent={() => <View className='h-3' />}
+        showsVerticalScrollIndicator={false}
       />
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    paddingHorizontal: 32,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: '#6B7280',
-    fontFamily: 'PlusJakartaSans_500Medium',
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#EF4444',
-    fontFamily: 'PlusJakartaSans_600SemiBold',
-    marginBottom: 16,
-  },
-  retryButton: {
-    backgroundColor: '#7065F0',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 10,
-  },
-  retryText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontFamily: 'PlusJakartaSans_600SemiBold',
-  },
-  emptyTitle: {
-    fontSize: 18,
-    color: '#111827',
-    fontFamily: 'PlusJakartaSans_700Bold',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#6B7280',
-    fontFamily: 'PlusJakartaSans_400Regular',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  listContent: {
-    padding: 16,
-  },
-  separator: {
-    height: 12,
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  cardImageContainer: {
-    position: 'relative',
-    height: 160,
-  },
-  cardImage: {
-    width: '100%',
-    height: '100%',
-  },
-  cardImagePlaceholder: {
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  statusBadge: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  statusAvailable: {
-    backgroundColor: 'rgba(16, 185, 129, 0.9)',
-  },
-  statusDraft: {
-    backgroundColor: 'rgba(107, 114, 128, 0.9)',
-  },
-  statusBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontFamily: 'PlusJakartaSans_600SemiBold',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  cardBody: {
-    padding: 16,
-  },
-  cardTitle: {
-    fontSize: 16,
-    color: '#111827',
-    fontFamily: 'PlusJakartaSans_600SemiBold',
-    marginBottom: 4,
-  },
-  cardSubtitle: {
-    fontSize: 13,
-    color: '#6B7280',
-    fontFamily: 'PlusJakartaSans_400Regular',
-    marginBottom: 4,
-  },
-  cardMeta: {
-    fontSize: 13,
-    color: '#9CA3AF',
-    fontFamily: 'PlusJakartaSans_500Medium',
-    marginBottom: 12,
-  },
-  card3DArea: {
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-    paddingTop: 12,
-  },
-  card3DRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  card3DRowButton: {
-    flex: 1,
-  },
-  add3DButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#7065F0',
-    paddingVertical: 10,
-    borderRadius: 10,
-    gap: 8,
-  },
-  add3DText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontFamily: 'PlusJakartaSans_600SemiBold',
-  },
-  view3DButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    paddingVertical: 10,
-    borderRadius: 10,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: '#10B981',
-  },
-  view3DText: {
-    color: '#10B981',
-    fontSize: 14,
-    fontFamily: 'PlusJakartaSans_600SemiBold',
-  },
-  pendingBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    paddingVertical: 10,
-    borderRadius: 10,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: '#F59E0B',
-  },
-  pendingText: {
-    color: '#F59E0B',
-    fontSize: 14,
-    fontFamily: 'PlusJakartaSans_600SemiBold',
-  },
-})
