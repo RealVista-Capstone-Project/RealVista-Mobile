@@ -8,8 +8,7 @@ export function useProperty3dOperations(propertyId: string) {
     queryFn: async () => {
       if (!propertyId) return []
       const res = await propertyApi.get3dOperations(propertyId)
-      // Backend may return data in ApiResponse wrapper or array directly
-      return Array.isArray(res.data) ? res.data : ((res.data as any) ?? [])
+      return res.data ?? []
     },
     enabled: !!propertyId,
     refetchInterval: 15_000,
