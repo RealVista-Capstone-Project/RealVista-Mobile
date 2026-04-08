@@ -4,6 +4,7 @@ import type {
   Property3dOperation,
   PropertyDetailResponse,
   PropertySummaryResponse,
+  PageResponse,
 } from './property-api.types'
 
 export const propertyApi = {
@@ -13,7 +14,7 @@ export const propertyApi = {
     query.append('page', (params.page ?? 0).toString())
     query.append('size', (params.size ?? 20).toString())
 
-    return http.get<PropertySummaryResponse[]>(`/properties/me?${query.toString()}`)
+    return http.get<PageResponse<PropertySummaryResponse>>(`/properties/me?${query.toString()}`)
   },
 
   getPropertyDetail: (propertyId: string) => {
@@ -26,5 +27,20 @@ export const propertyApi = {
 
   initiate3dOperation: (propertyId: string, request: CreateProperty3dOperationRequest) => {
     return http.post<Property3dOperation>(`/properties/${propertyId}/3d-operations`, request)
+  },
+
+  deleteMedia: (mediaId: string) => {
+    return http.delete(`/media/${mediaId}`)
+  },
+
+  delete3dOperation: (propertyId: string, operationId: string) => {
+    return http.delete(`/properties/${propertyId}/3d-operations/${operationId}`)
+  },
+
+  updateRoomName: (propertyId: string, operationId: string, roomName: string) => {
+    return http.patch<Property3dOperation>(
+      `/properties/${propertyId}/3d-operations/${operationId}`,
+      { room_name: roomName }
+    )
   },
 }

@@ -67,11 +67,13 @@ export interface PageResponse<T> {
 
 export interface Property3dOperation {
   id?: string
-  propertyId?: string
-  operationId: string
-  status: 'PENDING' | 'SUCCEEDED' | 'FAILED'
-  errorMessage?: string | null
-  createdAt?: string | null
+  property_id?: string
+  operation_id: string
+  status: 'PENDING' | 'GENERATING' | 'SUCCEEDED' | 'FAILED'
+  room_name?: string | null
+  error_message?: string | null
+  created_at?: string | null
+  updated_at?: string | null
 }
 
 export interface CreateProperty3dOperationRequest {

@@ -152,6 +152,13 @@ export default function RootLayout() {
                     animation: 'fade',
                   }}
                 />
+                <Stack.Screen
+                  name='manage-3d/[id]'
+                  options={{
+                    headerShown: false,
+                    animation: 'slide_from_right',
+                  }}
+                />
               </Stack>
               <StatusBar style='auto' />
             </SafeAreaView>
