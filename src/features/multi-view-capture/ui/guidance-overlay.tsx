@@ -49,13 +49,6 @@ export const GuidanceOverlay = React.memo(function GuidanceOverlay({
           <Text style={styles.messageText}>{message}</Text>
         </View>
       </View>
-
-      {/* Debug orientation info */}
-      <View style={styles.debugInfo}>
-        <Text style={styles.debugText}>
-          Yaw: {yaw.toFixed(0)}° Pitch: {pitch.toFixed(0)}°
-        </Text>
-      </View>
     </View>
   )
 })
@@ -94,22 +87,9 @@ const styles = StyleSheet.create({
   },
   messageText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: 'PlusJakartaSans_600SemiBold',
+    fontSize: 15,
+    fontFamily: 'PlusJakartaSans_700Bold',
     textAlign: 'center',
-  },
-  debugInfo: {
-    position: 'absolute',
-    top: 16,
-    left: 16,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  debugText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontFamily: 'PlusJakartaSans_400Regular',
+    letterSpacing: 0.3,
   },
 })

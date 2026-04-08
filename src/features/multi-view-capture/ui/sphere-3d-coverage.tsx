@@ -12,9 +12,10 @@ type Sphere3DCoverageProps = {
   currentSlot: string
 }
 
-const PITCH_VALUES = [0] // matches current 6-slot test config
+const PITCH_VALUES = [0]
 
-function SlotDot({
+// Memoised — only re-renders when isCaptured/isCurrent actually change
+const SlotDot = React.memo(function SlotDot({
   position,
   isCaptured,
   isCurrent,
@@ -23,9 +24,6 @@ function SlotDot({
   isCaptured: boolean
   isCurrent: boolean
 }) {
-  const meshRef = useRef<THREE.Mesh>(null)
-  const scale = isCurrent ? 1.4 : 1
-
   const color = useMemo(() => {
     if (isCurrent) return isCaptured ? '#059669' : '#3B82F6'
     if (isCaptured) return '#10B981'
@@ -33,7 +31,7 @@ function SlotDot({
   }, [isCaptured, isCurrent])
 
   return (
-    <mesh ref={meshRef} position={position} scale={scale}>
+    <mesh position={position} scale={isCurrent ? 1.4 : 1}>
       <sphereGeometry args={[0.08, 16, 16]} />
       <meshStandardMaterial
         color={color}
@@ -48,74 +46,64 @@ function SlotDot({
       )}
     </mesh>
   )
-}
+})
 
 function CoverageGlobe({
   capturedSlots,
   currentYaw,
-  currentPitch,
   currentSlot,
-}: Sphere3DCoverageProps) {
+}: Omit<Sphere3DCoverageProps, 'currentPitch'>) {
   const groupRef = useRef<THREE.Group>(null)
-  const targetRotation = useRef({ x: 0, y: 0 })
 
-  // Smoothly rotate the globe to match camera orientation
+  // Sync currentYaw into a ref every render so useFrame always sees the
+  // latest value WITHOUT being re-registered as a new callback each tick.
+  const yawRef = useRef(currentYaw)
+  yawRef.current = currentYaw
+
   useFrame(() => {
     if (!groupRef.current) return
 
-    // Target: rotate globe so the "current view" faces the camera
-    targetRotation.current = {
-      x: -(currentPitch * Math.PI) / 180,
-      y: -(currentYaw * Math.PI) / 180,
-    }
+    const targetY = -(yawRef.current * Math.PI) / 180
 
-    // Lerp for smooth rotation
-    groupRef.current.rotation.x += (targetRotation.current.x - groupRef.current.rotation.x) * 0.1
-    groupRef.current.rotation.y += (targetRotation.current.y - groupRef.current.rotation.y) * 0.1
+    // Shortest-path delta — eliminates the 0°/360° wrap-around wobble
+    let delta = targetY - groupRef.current.rotation.y
+    while (delta > Math.PI) delta -= 2 * Math.PI
+    while (delta < -Math.PI) delta += 2 * Math.PI
+
+    groupRef.current.rotation.y += delta * 0.12
+    // Fixed downward tilt so equator dots are always visible
+    groupRef.current.rotation.x = 0.15
   })
 
-  // Generate slot positions on unit sphere
   const slots = useMemo(() => {
-    const result: {
-      key: string
-      position: [number, number, number]
-    }[] = []
-
+    const result: { key: string; position: [number, number, number] }[] = []
     for (let yi = 0; yi < YAW_SLOTS; yi++) {
       for (let pi = 0; pi < PITCH_VALUES.length; pi++) {
         const yawRad = (yi * YAW_STEP * Math.PI) / 180
         const pitchRad = (PITCH_VALUES[pi] * Math.PI) / 180
-
-        // Spherical to cartesian
-        const x = Math.cos(pitchRad) * Math.sin(yawRad)
-        const y = Math.sin(pitchRad)
-        const z = Math.cos(pitchRad) * Math.cos(yawRad)
-
         result.push({
           key: `${yi}-${pi}`,
-          position: [x, y, z],
+          position: [
+            Math.cos(pitchRad) * Math.sin(yawRad),
+            Math.sin(pitchRad),
+            Math.cos(pitchRad) * Math.cos(yawRad),
+          ],
         })
       }
     }
-
     return result
   }, [])
 
   return (
     <group ref={groupRef}>
-      {/* Wireframe sphere shell */}
       <mesh>
         <sphereGeometry args={[0.98, 24, 24]} />
         <meshBasicMaterial color='#1F2937' wireframe transparent opacity={0.15} />
       </mesh>
-
-      {/* Equator ring */}
       <mesh rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[1, 0.005, 8, 64]} />
         <meshBasicMaterial color='#4B5563' transparent opacity={0.3} />
       </mesh>
-
-      {/* Slot dots */}
       {slots.map((slot) => (
         <SlotDot
           key={slot.key}
@@ -139,7 +127,12 @@ export const Sphere3DCoverage = React.memo(function Sphere3DCoverage(props: Sphe
         <ambientLight intensity={0.6} />
         <pointLight position={[5, 5, 5]} intensity={0.8} />
         <pointLight position={[-5, -5, -5]} intensity={0.3} />
-        <CoverageGlobe {...props} />
+        <CoverageGlobe
+          capturedSlots={props.capturedSlots}
+          currentYaw={props.currentYaw}
+          currentPitch={props.currentPitch}
+          currentSlot={props.currentSlot}
+        />
       </Canvas>
     </View>
   )

@@ -17,9 +17,9 @@ const RADIUS = (SIZE - STROKE_WIDTH) / 2
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 
 const COVERAGE_COLORS: Record<CoverageLevel, string> = {
-  low: '#EF4444',
-  good: '#F59E0B',
-  excellent: '#10B981',
+  low: '#94A3B8', // Slate (Neutral/Initial)
+  good: '#F59E0B', // Amber
+  excellent: '#10B981', // Emerald
 }
 
 const COVERAGE_LABELS: Record<CoverageLevel, string> = {
@@ -99,17 +99,20 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 16,
-    fontFamily: 'PlusJakartaSans_700Bold',
+    fontFamily: 'PlusJakartaSans_800ExtraBold',
+    letterSpacing: -0.5,
   },
   shotCount: {
     color: '#FFFFFF',
-    fontSize: 11,
-    fontFamily: 'PlusJakartaSans_500Medium',
-    marginTop: 4,
+    fontSize: 12,
+    fontFamily: 'PlusJakartaSans_700Bold',
+    marginTop: 6,
   },
   coverageLabel: {
-    fontSize: 11,
-    fontFamily: 'PlusJakartaSans_600SemiBold',
+    fontSize: 10,
+    fontFamily: 'PlusJakartaSans_800ExtraBold',
     marginTop: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 })

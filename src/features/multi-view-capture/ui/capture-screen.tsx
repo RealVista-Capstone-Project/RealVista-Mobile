@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
+import { Box, Compass, Grid3x3, RotateCcw, X, Zap, ZapOff } from 'lucide-react-native'
 import React, { useCallback, useRef, useState } from 'react'
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Alert, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import {
   Camera,
   type CameraRuntimeError,
@@ -13,8 +14,9 @@ import { Image } from 'expo-image'
 import { MIN_RECOMMENDED_COVERAGE, TOTAL_SLOTS, useCaptureStore } from '@/entities/capture'
 
 import { useAutoCapture } from '../model/use-auto-capture'
+import { ARTargetsOverlay } from './ar-targets-overlay'
+import { CompassCoverage } from './compass-coverage'
 import { GuidanceOverlay } from './guidance-overlay'
-import { NextAngleGuide } from './next-angle-guide'
 import { ProgressIndicator } from './progress-indicator'
 import { ReviewModal } from './review-modal'
 import { Sphere3DCoverage } from './sphere-3d-coverage'
@@ -30,30 +32,19 @@ export function MultiViewCaptureScreen() {
     useCaptureStore()
 
   const guidance = useAutoCapture(cameraRef)
+
+  const [torchOn, setTorchOn] = useState(false)
   const [showGrid, setShowGrid] = useState(true)
+  const [gridMode, setGridMode] = useState<'sphere' | 'compass'>('sphere')
   const [showWarningModal, setShowWarningModal] = useState(false)
   const [isReviewVisible, setIsReviewVisible] = useState(false)
 
-  // Remove auto-reset on unmount to preserve data during navigation
-  // useEffect(() => {
-  //   return () => {
-  //     console.log('[Capture] Emptying store on leave...')
-  //     reset()
-  //   }
-  // }, [reset])
-
   const finishCapture = useCallback(() => {
-    const payload = getOutputPayload()
-    console.log('[Capture] Complete:', {
-      totalImages: payload.images.length,
-      coverage: `${Math.round(progress * 100)}%`,
-    })
-    // Navigate to world generation screen, passing propertyId
     router.push({
       pathname: '/world-generation',
       params: propertyId ? { propertyId } : undefined,
     })
-  }, [getOutputPayload, progress, router, propertyId])
+  }, [router, propertyId])
 
   const handleDone = useCallback(() => {
     if (progress < MIN_RECOMMENDED_COVERAGE) {
@@ -66,27 +57,15 @@ export function MultiViewCaptureScreen() {
   const handleReset = useCallback(() => {
     Alert.alert('Reset Capture', 'This will discard all captured images. Continue?', [
       { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Reset',
-        style: 'destructive',
-        onPress: reset,
-      },
+      { text: 'Reset', style: 'destructive', onPress: reset },
     ])
   }, [reset])
 
-  const { calibrate } = guidance
-
-  const handleCalibrate = useCallback(() => {
-    calibrate()
-    reset() // Clear grid since orientation reference changed
-  }, [calibrate, reset])
-
   const onCameraError = useCallback((error: CameraRuntimeError) => {
     console.warn('[Camera] Error:', error.code, error.message)
-    // Recoverable errors are expected during session init — camera recovers automatically
   }, [])
 
-  // Permission handling
+  // ── Permission / device guards ──────────────────────────────────────────
   if (!hasPermission) {
     return (
       <View style={styles.permissionContainer}>
@@ -122,6 +101,7 @@ export function MultiViewCaptureScreen() {
     )
   }
 
+  // ── Main screen ─────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
       {/* Camera preview */}
@@ -131,17 +111,18 @@ export function MultiViewCaptureScreen() {
         device={device}
         isActive={true}
         photo={true}
+        torch={torchOn ? 'on' : 'off'}
         onError={onCameraError}
       />
 
-      {/* Camera initializing indicator */}
+      {/* Camera initializing */}
       {!guidance.isCameraReady && (
         <View style={styles.initOverlay}>
           <Text style={styles.initText}>Initializing camera...</Text>
         </View>
       )}
 
-      {/* Guidance overlay (crosshair + message) */}
+      {/* Guidance crosshair */}
       <GuidanceOverlay
         message={guidance.message}
         status={guidance.status}
@@ -149,119 +130,178 @@ export function MultiViewCaptureScreen() {
         pitch={guidance.pitch}
       />
 
-      {/* Top-right: Progress indicator */}
-      <View style={styles.progressArea}>
-        <ProgressIndicator
-          progress={progress}
-          imageCount={images.length}
-          totalSlots={TOTAL_SLOTS}
-          coverageLevel={coverageLevel}
-        />
-      </View>
+      {/* AR target reticles — projected onto the viewfinder */}
+      <ARTargetsOverlay
+        capturedSlots={capturedSlots}
+        currentYaw={guidance.yaw}
+        currentSlot={guidance.currentSlot}
+        status={guidance.status}
+      />
 
-      {/* Bottom area: controls */}
-      <View style={styles.bottomArea}>
-        {/* Next angle arrow guidance */}
-        <View style={styles.guideArea}>
-          <NextAngleGuide
-            capturedSlots={capturedSlots}
-            currentYaw={guidance.yaw}
-            currentPitch={guidance.pitch}
+      {/* ── TOP BAR ─────────────────────────────────────────────────────── */}
+      <View style={styles.topBar}>
+        {/* Close */}
+        <Pressable style={styles.topIconBtn} onPress={() => router.back()} hitSlop={12}>
+          <X size={20} color='#FFFFFF' strokeWidth={2.5} />
+        </Pressable>
+
+        {/* Title + progress */}
+        <View style={styles.topCenter}>
+          <Text style={styles.topTitle}>3D CAPTURE</Text>
+          <ProgressIndicator
+            progress={progress}
+            imageCount={images.length}
+            totalSlots={TOTAL_SLOTS}
+            coverageLevel={coverageLevel}
           />
         </View>
 
-        {/* Coverage sphere (toggleable) */}
+        {/* Flash / torch */}
+        <Pressable
+          style={[styles.topIconBtn, torchOn && styles.topIconBtnActive]}
+          onPress={() => setTorchOn((v) => !v)}
+          hitSlop={12}
+        >
+          {torchOn ? (
+            <Zap size={20} color='#F59E0B' fill='#F59E0B' strokeWidth={2} />
+          ) : (
+            <ZapOff size={20} color='rgba(255,255,255,0.6)' strokeWidth={2} />
+          )}
+        </Pressable>
+      </View>
+
+      {/* ── MIDDLE OVERLAY (coverage widget) ───────────────────────────── */}
+      <View style={styles.middleArea} pointerEvents='none'>
         {showGrid && (
           <View style={styles.gridArea}>
-            <Sphere3DCoverage
-              capturedSlots={capturedSlots}
-              currentYaw={guidance.yaw}
-              currentPitch={guidance.pitch}
-              currentSlot={guidance.currentSlot}
-            />
+            {gridMode === 'sphere' ? (
+              <Sphere3DCoverage
+                capturedSlots={capturedSlots}
+                currentYaw={guidance.yaw}
+                currentPitch={guidance.pitch}
+                currentSlot={guidance.currentSlot}
+              />
+            ) : (
+              <CompassCoverage
+                capturedSlots={capturedSlots}
+                currentYaw={guidance.yaw}
+                currentSlot={guidance.currentSlot}
+              />
+            )}
           </View>
         )}
+      </View>
 
-        {/* Action buttons */}
-        <View style={styles.controlsWrapper}>
-          {/* Thumbnail Preview */}
-          {images.length > 0 && (
-            <Pressable style={styles.thumbnailContainer} onPress={() => setIsReviewVisible(true)}>
+      {/* ── BOTTOM BAR ──────────────────────────────────────────────────── */}
+      <View style={styles.bottomBar}>
+        {/* LEFT: thumbnail + reset */}
+        <View style={styles.bottomLeft}>
+          {images.length > 0 ? (
+            <Pressable style={styles.thumbnailBtn} onPress={() => setIsReviewVisible(true)}>
               <Image
                 source={{ uri: `file://${images[images.length - 1].path}` }}
-                style={styles.thumbnail}
+                style={styles.thumbnailImg}
                 contentFit='cover'
               />
               <View style={styles.thumbnailBadge}>
                 <Text style={styles.thumbnailBadgeText}>{images.length}</Text>
               </View>
             </Pressable>
+          ) : (
+            <View style={styles.thumbnailPlaceholder} />
           )}
 
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.controlsScroll}
-            contentContainerStyle={styles.controlsScrollContent}
+          <Pressable style={styles.smallIconBtn} onPress={handleReset} hitSlop={10}>
+            <RotateCcw size={16} color='rgba(255,255,255,0.55)' strokeWidth={2.2} />
+          </Pressable>
+        </View>
+
+        {/* CENTRE: Done button */}
+        <Pressable style={styles.doneBtn} onPress={handleDone}>
+          <View style={styles.doneBtnInner} />
+        </Pressable>
+
+        {/* RIGHT: grid toggle + mode toggle */}
+        <View style={styles.bottomRight}>
+          <Pressable
+            style={[styles.smallIconBtn, showGrid && styles.smallIconBtnOn]}
+            onPress={() => setShowGrid((v) => !v)}
+            hitSlop={10}
           >
-            <Pressable style={styles.controlButton} onPress={handleReset}>
-              <Text style={styles.controlButtonText}>Reset</Text>
-            </Pressable>
+            <Grid3x3
+              size={18}
+              color={showGrid ? '#FFFFFF' : 'rgba(255,255,255,0.45)'}
+              strokeWidth={2}
+            />
+          </Pressable>
 
-            <Pressable style={styles.calibrateButton} onPress={handleCalibrate}>
-              <Text style={styles.controlButtonText}>Center</Text>
+          {showGrid && (
+            <Pressable
+              style={[styles.smallIconBtn, styles.smallIconBtnOn]}
+              onPress={() => setGridMode((m) => (m === 'sphere' ? 'compass' : 'sphere'))}
+              hitSlop={10}
+            >
+              {gridMode === 'sphere' ? (
+                <Box size={18} color='#FFFFFF' strokeWidth={2} />
+              ) : (
+                <Compass size={18} color='#FFFFFF' strokeWidth={2} />
+              )}
             </Pressable>
-
-            <Pressable style={styles.controlButton} onPress={() => setShowGrid((v) => !v)}>
-              <Text style={styles.controlButtonText}>{showGrid ? 'Hide' : 'Grid'}</Text>
-            </Pressable>
-
-            <Pressable style={styles.doneButton} onPress={handleDone}>
-              <Text style={styles.doneButtonText}>Done</Text>
-            </Pressable>
-          </ScrollView>
+          )}
         </View>
       </View>
 
+      {/* Review modal */}
       <ReviewModal
         isVisible={isReviewVisible}
         onClose={() => setIsReviewVisible(false)}
         images={images}
       />
 
-      {/* Low coverage warning modal */}
+      {/* Low-coverage warning */}
       <Modal
         visible={showWarningModal}
         transparent
         animationType='fade'
+        statusBarTranslucent
         onRequestClose={() => setShowWarningModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Low Coverage Warning</Text>
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <View style={styles.warningIconCircle}>
+                <Text style={styles.warningIconText}>!</Text>
+              </View>
+              <Text style={styles.modalTitle}>Độ phủ quá thấp</Text>
+            </View>
+
             <Text style={styles.modalText}>
-              You have captured only {Math.round(progress * 100)}% of the coverage grid (
-              {images.length} images). For best 3D reconstruction results, at least 50% coverage
-              (~30 images) is recommended.
+              Bạn mới chỉ ghi lại được {Math.round(progress * 100)}% góc nhìn ({images.length} ảnh).
+              Để tour 3D có chất lượng tốt nhất, chúng tôi khuyên bạn nên đạt độ phủ trên 50% (~30
+              ảnh).
             </Text>
-            <Text style={styles.modalText}>Do you want to continue capturing?</Text>
+            <Text style={[styles.modalText, { fontWeight: '700', color: '#FFFFFF', marginTop: 8 }]}>
+              Bạn có muốn tiếp tục chụp thêm không?
+            </Text>
 
             <View style={styles.modalActions}>
-              <Pressable
-                style={styles.modalButtonSecondary}
+              <TouchableOpacity
+                style={styles.modalBtnPrimary}
+                activeOpacity={0.8}
+                onPress={() => setShowWarningModal(false)}
+              >
+                <Text style={styles.modalBtnPrimaryText}>Tiếp tục chụp thêm</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalBtnSecondary}
+                activeOpacity={0.7}
                 onPress={() => {
                   setShowWarningModal(false)
                   finishCapture()
                 }}
               >
-                <Text style={styles.modalButtonSecondaryText}>Finish Anyway</Text>
-              </Pressable>
-              <Pressable
-                style={styles.modalButtonPrimary}
-                onPress={() => setShowWarningModal(false)}
-              >
-                <Text style={styles.modalButtonPrimaryText}>Keep Capturing</Text>
-              </Pressable>
+                <Text style={styles.modalBtnSecondaryText}>Vẫn hoàn tất</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -270,11 +310,14 @@ export function MultiViewCaptureScreen() {
   )
 }
 
+// ─── Styles ──────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
   },
+
+  // ── Init overlay
   initOverlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
@@ -286,209 +329,289 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'PlusJakartaSans_500Medium',
   },
-  progressArea: {
+
+  // ── Top bar
+  topBar: {
     position: 'absolute',
-    top: 60,
-    right: 16,
+    top: 0,
+    left: 0,
+    right: 0,
+    paddingTop: 54,
+    paddingBottom: 14,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(0,0,0,0.25)',
   },
-  bottomArea: {
+  topIconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  topIconBtnActive: {
+    backgroundColor: 'rgba(245,158,11,0.15)',
+    borderColor: 'rgba(245,158,11,0.35)',
+  },
+  topCenter: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+  },
+  topTitle: {
+    color: 'rgba(255,255,255,0.75)',
+    fontSize: 11,
+    fontFamily: 'PlusJakartaSans_800ExtraBold',
+    letterSpacing: 2,
+  },
+
+  // ── Middle coverage area
+  middleArea: {
+    position: 'absolute',
+    bottom: 120,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  gridArea: {
+    alignItems: 'center',
+  },
+
+  // ── Bottom bar
+  bottomBar: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    paddingBottom: 40,
-  },
-  guideArea: {
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  gridArea: {
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  controlsWrapper: {
+    height: 120,
+    paddingHorizontal: 32,
+    paddingBottom: 34,
     flexDirection: 'row',
     alignItems: 'center',
-    width: '100%',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(0,0,0,0.35)',
   },
-  controlsScroll: {
-    flex: 1,
-  },
-  controlsScrollContent: {
-    paddingLeft: 84, // Space for the absolute thumbnail
-    paddingRight: 24,
-    gap: 12,
+
+  // Left column
+  bottomLeft: {
+    width: 64,
     alignItems: 'center',
+    gap: 10,
   },
-  controlButton: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 24,
-    minWidth: 70,
-    alignItems: 'center',
-  },
-  calibrateButton: {
-    backgroundColor: 'rgba(59,130,246,0.5)',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 24,
-    minWidth: 80,
-    alignItems: 'center',
-  },
-  controlButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontFamily: 'PlusJakartaSans_500Medium',
-  },
-  doneButton: {
-    backgroundColor: '#10B981',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 24,
-    minWidth: 80,
-    alignItems: 'center',
-  },
-  doneButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontFamily: 'PlusJakartaSans_700Bold',
-  },
-  thumbnailContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
+  thumbnailBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: 12,
     borderWidth: 2,
     borderColor: '#FFFFFF',
     overflow: 'hidden',
-    position: 'absolute',
-    left: 20,
     backgroundColor: '#1F2937',
   },
-  thumbnail: {
+  thumbnailImg: {
     width: '100%',
     height: '100%',
   },
   thumbnailBadge: {
     position: 'absolute',
-    top: -2,
-    right: -2,
-    backgroundColor: '#10B981',
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    top: -5,
+    right: -5,
+    backgroundColor: '#7065F0',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#000000',
+    borderColor: '#000',
   },
   thumbnailBadgeText: {
     color: '#FFFFFF',
     fontSize: 9,
-    fontFamily: 'PlusJakartaSans_700Bold',
+    fontFamily: 'PlusJakartaSans_800ExtraBold',
   },
-  // Permission screens
+  thumbnailPlaceholder: {
+    width: 52,
+    height: 52,
+  },
+  smallIconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  smallIconBtnOn: {
+    backgroundColor: 'rgba(112,101,240,0.18)',
+    borderColor: 'rgba(112,101,240,0.35)',
+  },
+
+  // Centre — Done button (classic camera shutter style)
+  doneBtn: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  doneBtnInner: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#FFFFFF',
+  },
+
+  // Right column
+  bottomRight: {
+    width: 64,
+    alignItems: 'center',
+    gap: 10,
+  },
+
+  // ── Permission screens
   permissionContainer: {
     flex: 1,
-    backgroundColor: '#111827',
+    backgroundColor: '#0F172A',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
   },
   permissionTitle: {
     color: '#FFFFFF',
-    fontSize: 22,
-    fontFamily: 'PlusJakartaSans_700Bold',
+    fontSize: 24,
+    fontFamily: 'PlusJakartaSans_800ExtraBold',
     textAlign: 'center',
     marginBottom: 12,
+    letterSpacing: -0.5,
   },
   permissionText: {
-    color: '#9CA3AF',
+    color: '#94A3B8',
     fontSize: 15,
-    fontFamily: 'PlusJakartaSans_400Regular',
+    fontFamily: 'PlusJakartaSans_500Medium',
     textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 22,
+    marginBottom: 32,
+    lineHeight: 24,
   },
   permissionButton: {
-    backgroundColor: '#10B981',
-    paddingHorizontal: 32,
-    paddingVertical: 14,
-    borderRadius: 12,
-    marginBottom: 12,
-    minWidth: 200,
+    backgroundColor: '#7065F0',
+    paddingHorizontal: 40,
+    paddingVertical: 18,
+    borderRadius: 20,
+    marginBottom: 14,
+    minWidth: 240,
     alignItems: 'center',
+    shadowColor: '#7065F0',
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 6,
   },
   permissionButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: 'PlusJakartaSans_600SemiBold',
+    fontSize: 17,
+    fontFamily: 'PlusJakartaSans_800ExtraBold',
   },
   backButton: {
     backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#4B5563',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   backButtonText: {
-    color: '#9CA3AF',
+    color: '#94A3B8',
     fontSize: 16,
-    fontFamily: 'PlusJakartaSans_500Medium',
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
-  // Modal
+
+  // ── Warning modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(0,0,0,0.85)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 28,
   },
-  modalContent: {
-    backgroundColor: '#1F2937',
-    borderRadius: 16,
-    padding: 24,
+  modalCard: {
+    backgroundColor: '#1E293B',
+    borderRadius: 32,
+    padding: 28,
     width: '100%',
-    maxWidth: 340,
+    maxWidth: 360,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  warningIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: 'rgba(245,158,11,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.2)',
+  },
+  warningIconText: {
+    color: '#F59E0B',
+    fontSize: 24,
+    fontWeight: '900',
   },
   modalTitle: {
     color: '#FFFFFF',
-    fontSize: 18,
-    fontFamily: 'PlusJakartaSans_700Bold',
-    marginBottom: 12,
+    fontSize: 20,
+    fontFamily: 'PlusJakartaSans_800ExtraBold',
+    letterSpacing: -0.5,
   },
   modalText: {
-    color: '#D1D5DB',
-    fontSize: 14,
-    fontFamily: 'PlusJakartaSans_400Regular',
-    lineHeight: 20,
-    marginBottom: 8,
+    color: '#94A3B8',
+    fontSize: 15,
+    fontFamily: 'PlusJakartaSans_500Medium',
+    lineHeight: 22,
+    marginBottom: 10,
   },
   modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 12,
-    marginTop: 16,
+    gap: 14,
+    marginTop: 28,
   },
-  modalButtonSecondary: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#4B5563',
+  modalBtnPrimary: {
+    backgroundColor: '#7065F0',
+    paddingVertical: 18,
+    borderRadius: 20,
+    alignItems: 'center',
+    shadowColor: '#7065F0',
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
   },
-  modalButtonSecondaryText: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    fontFamily: 'PlusJakartaSans_500Medium',
-  },
-  modalButtonPrimary: {
-    backgroundColor: '#10B981',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  modalButtonPrimaryText: {
+  modalBtnPrimaryText: {
     color: '#FFFFFF',
-    fontSize: 14,
-    fontFamily: 'PlusJakartaSans_600SemiBold',
+    fontSize: 16,
+    fontFamily: 'PlusJakartaSans_800ExtraBold',
+  },
+  modalBtnSecondary: {
+    paddingVertical: 16,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+  },
+  modalBtnSecondaryText: {
+    color: '#94A3B8',
+    fontSize: 15,
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
 })
