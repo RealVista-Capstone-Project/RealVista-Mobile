@@ -36,7 +36,7 @@ function extractSpzUrls(media: PropertyDetailMedia): SpzUrls {
 }
 
 export function WorldViewerScreen() {
-  const { propertyId } = useLocalSearchParams<{ propertyId: string }>()
+  const { propertyId, roomName } = useLocalSearchParams<{ propertyId: string; roomName: string }>()
   const router = useRouter()
 
   const [threeDMedia, setThreeDMedia] = useState<PropertyDetailMedia | null>(null)
@@ -60,7 +60,12 @@ export function WorldViewerScreen() {
         if (cancelled) return
 
         const detail = res.data
-        const media3d = detail?.media?.find((m) => m.media_type === 'THREE_D') ?? null
+        const media3d = roomName
+          ? (detail?.media?.find((m: PropertyDetailMedia) => {
+              const rName = (m.metadata?.room_name as string) || 'Unnamed Room'
+              return m.media_type === 'THREE_D' && rName === roomName
+            }) ?? null)
+          : (detail?.media?.find((m: PropertyDetailMedia) => m.media_type === 'THREE_D') ?? null)
 
         if (!media3d) {
           setFetchError('No 3D tour found for this property.')

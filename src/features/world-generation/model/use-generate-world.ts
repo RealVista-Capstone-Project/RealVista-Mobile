@@ -42,7 +42,7 @@ export function useGenerateWorld() {
   const handleOperationResult = useCallback(
     (op: Property3dOperation) => {
       if (op.status === 'FAILED') {
-        const errorMsg = op.errorMessage || 'World generation failed'
+        const errorMsg = op.error_message || 'World generation failed'
         setState((prev) => ({ ...prev, phase: 'failed', error: errorMsg }))
         markFailed({ code: 500, message: errorMsg })
         stopPolling()
@@ -66,12 +66,12 @@ export function useGenerateWorld() {
         }
 
         markComplete({
-          id: op.operationId,
+          id: op.operation_id,
           displayName: 'Property 3D World',
           status: 'ready',
-          operationId: op.operationId,
+          operationId: op.operation_id,
           model: 'Marble 0.1-mini',
-          createdAt: op.createdAt ?? new Date().toISOString(),
+          createdAt: op.created_at ?? new Date().toISOString(),
         })
 
         stopPolling()
@@ -92,10 +92,7 @@ export function useGenerateWorld() {
     async (propId: string) => {
       try {
         const res = await propertyApi.get3dOperations(propId)
-        // Backend may return data in ApiResponse wrapper or array directly
-        const ops: Property3dOperation[] = Array.isArray(res.data)
-          ? res.data
-          : ((res.data as unknown as Property3dOperation[]) ?? [])
+        const ops: Property3dOperation[] = res.data ?? []
 
         // Find the latest pending or most recent operation
         const pendingOp = ops.find((o) => o.status === 'PENDING')
