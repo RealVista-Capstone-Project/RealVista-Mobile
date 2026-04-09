@@ -1,6 +1,6 @@
 import { Image } from 'expo-image'
 import * as MediaLibrary from 'expo-media-library'
-import { Download, X } from 'lucide-react-native'
+import { Download, X, ZoomIn } from 'lucide-react-native'
 import React, { useCallback, useState } from 'react'
 import {
   Alert,
@@ -22,7 +22,7 @@ type ReviewModalProps = {
   images: CapturedImage[]
 }
 
-const { width } = Dimensions.get('window')
+const { width, height } = Dimensions.get('window')
 const COLUMN_WIDTH = (width - 48) / 3
 
 function DownloadButton({ path }: { path: string }) {
@@ -35,16 +35,13 @@ function DownloadButton({ path }: { path: string }) {
     try {
       const { status } = await MediaLibrary.requestPermissionsAsync()
       if (status !== 'granted') {
-        Alert.alert(
-          'Permission required',
-          'Please allow access to your photo library to save images.'
-        )
+        Alert.alert('Cần quyền truy cập', 'Vui lòng cho phép truy cập thư viện ảnh để lưu ảnh.')
         return
       }
       await MediaLibrary.saveToLibraryAsync(path)
       setSaved(true)
-    } catch (err) {
-      Alert.alert('Save failed', 'Could not save the image to your photo library.')
+    } catch {
+      Alert.alert('Lưu thất bại', 'Không thể lưu ảnh vào thư viện của bạn.')
     } finally {
       setSaving(false)
     }
@@ -61,46 +58,89 @@ function DownloadButton({ path }: { path: string }) {
   )
 }
 
+function ImagePreviewModal({
+  image,
+  onClose,
+}: {
+  image: CapturedImage | null
+  onClose: () => void
+}) {
+  if (!image) return null
+  return (
+    <Modal visible animationType='fade' transparent onRequestClose={onClose}>
+      <View style={styles.previewOverlay}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <Image
+          source={{ uri: `file://${image.path}` }}
+          style={styles.previewImage}
+          contentFit='contain'
+        />
+        <View style={styles.previewBadge}>
+          <Text style={styles.previewBadgeText}>
+            {Math.round(image.yaw)}° / {Math.round(image.pitch)}°
+          </Text>
+        </View>
+        <Pressable style={styles.previewClose} onPress={onClose}>
+          <X color='#FFFFFF' size={20} />
+        </Pressable>
+      </View>
+    </Modal>
+  )
+}
+
 export function ReviewModal({ isVisible, onClose, images }: ReviewModalProps) {
+  const [previewImage, setPreviewImage] = useState<CapturedImage | null>(null)
+
   const renderItem = ({ item }: { item: CapturedImage }) => (
-    <View style={styles.imageContainer}>
+    <Pressable
+      style={styles.imageContainer}
+      onPress={() => setPreviewImage(item)}
+      android_ripple={{ color: 'rgba(255,255,255,0.1)' }}
+    >
       <Image source={{ uri: `file://${item.path}` }} style={styles.image} contentFit='cover' />
       <View style={styles.badge}>
         <Text style={styles.badgeText}>
           {Math.round(item.yaw)}° / {Math.round(item.pitch)}°
         </Text>
       </View>
+      <View style={styles.zoomHint}>
+        <ZoomIn size={10} color='rgba(255,255,255,0.8)' strokeWidth={2.5} />
+      </View>
       <DownloadButton path={item.path} />
-    </View>
+    </Pressable>
   )
 
   return (
-    <Modal visible={isVisible} animationType='slide' transparent={false} onRequestClose={onClose}>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.title}>Review Photos</Text>
-            <Text style={styles.subtitle}>{images.length} images captured</Text>
-          </View>
-          <Pressable style={styles.closeButton} onPress={onClose}>
-            <X color='#FFFFFF' size={24} />
-          </Pressable>
-        </View>
-
-        <FlatList
-          data={images}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.path}
-          numColumns={3}
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No photos captured yet.</Text>
+    <>
+      <Modal visible={isVisible} animationType='slide' transparent={false} onRequestClose={onClose}>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.title}>Xem lại ảnh</Text>
+              <Text style={styles.subtitle}>{images.length} ảnh đã chụp</Text>
             </View>
-          }
-        />
-      </SafeAreaView>
-    </Modal>
+            <Pressable style={styles.closeButton} onPress={onClose}>
+              <X color='#FFFFFF' size={24} />
+            </Pressable>
+          </View>
+
+          <FlatList
+            data={images}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.path}
+            numColumns={3}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>Chưa có ảnh nào được chụp.</Text>
+              </View>
+            }
+          />
+        </SafeAreaView>
+      </Modal>
+
+      <ImagePreviewModal image={previewImage} onClose={() => setPreviewImage(null)} />
+    </>
   )
 }
 
@@ -126,7 +166,7 @@ const styles = StyleSheet.create({
   subtitle: {
     color: '#9CA3AF',
     fontSize: 14,
-    fontFamily: 'PlusJakartaSans_400Regular',
+    fontFamily: 'PlusJakartaSans_500Medium',
     marginTop: 2,
   },
   closeButton: {
@@ -166,7 +206,18 @@ const styles = StyleSheet.create({
   badgeText: {
     color: '#FFFFFF',
     fontSize: 10,
-    fontFamily: 'PlusJakartaSans_600SemiBold',
+    fontFamily: 'PlusJakartaSans_700Bold',
+  },
+  zoomHint: {
+    position: 'absolute',
+    top: 4,
+    left: 4,
+    width: 18,
+    height: 18,
+    borderRadius: 4,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   downloadBtn: {
     position: 'absolute',
@@ -192,5 +243,40 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     fontSize: 16,
     fontFamily: 'PlusJakartaSans_500Medium',
+  },
+  // Full-screen preview
+  previewOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.92)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  previewImage: {
+    width: width,
+    height: height * 0.75,
+  },
+  previewBadge: {
+    position: 'absolute',
+    bottom: 60,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  previewBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontFamily: 'PlusJakartaSans_700Bold',
+  },
+  previewClose: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 })

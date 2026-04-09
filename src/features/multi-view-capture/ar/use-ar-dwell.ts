@@ -18,10 +18,10 @@ const WARM_UP_MS = 1500 // ignore tracking for first 1.5s
 export type GuidanceStatus = 'hold_steady' | 'ready' | 'move_to_new_angle' | 'capturing'
 
 const STATUS_MESSAGES: Record<GuidanceStatus, string> = {
-  hold_steady: 'Hold steady',
-  ready: 'Ready to capture',
-  move_to_new_angle: 'Move to a new angle',
-  capturing: 'Capturing...',
+  hold_steady: 'Giữ yên',
+  ready: 'Sẵn sàng chụp',
+  move_to_new_angle: 'Đổi góc chụp',
+  capturing: 'Đang chụp...',
 }
 
 // ─── Anchor positions ─────────────────────────────────────────────────────────
@@ -47,8 +47,6 @@ type TakeScreenshotFn = (
 ) => Promise<{ success: boolean; url: string; errorCode: number }>
 
 export type ARDwellResult = {
-  yaw: number
-  pitch: number
   currentSlot: string
   status: GuidanceStatus
   message: string
@@ -84,26 +82,11 @@ function angleBetweenDeg(a: number[], b: number[]): number {
   return Math.acos(clamped) * (180 / Math.PI)
 }
 
-/** Convert forward vector to a 0–360 yaw (azimuth from -Z axis, clockwise) */
-function forwardToYaw(forward: number[]): number {
-  // forward = [fx, fy, fz], we care about the XZ projection
-  const yawRad = Math.atan2(forward[0], -forward[2])
-  return ((yawRad * 180) / Math.PI + 360) % 360
-}
-
-/** Convert forward vector to pitch in degrees */
-function forwardToPitch(forward: number[]): number {
-  const xz = Math.sqrt(forward[0] * forward[0] + forward[2] * forward[2])
-  return Math.atan2(forward[1], xz) * (180 / Math.PI)
-}
-
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 export function useARDwell(takeScreenshot: TakeScreenshotFn | null): ARDwellResult {
   const capturedSlots = useCaptureStore((s) => s.capturedSlots)
   const markCaptured = useCaptureStore((s) => s.markCaptured)
 
-  const [yaw, setYaw] = useState(0)
-  const [pitch, setPitch] = useState(0)
   const [isTracking, setIsTracking] = useState(false)
   const [status, setStatus] = useState<GuidanceStatus>('hold_steady')
   const [dwellProgress, setDwellProgress] = useState(0)
@@ -111,12 +94,15 @@ export function useARDwell(takeScreenshot: TakeScreenshotFn | null): ARDwellResu
   const [currentSlot, setCurrentSlot] = useState('0-0')
 
   const isWarmRef = useRef(false)
+  const isTrackingRef = useRef(false)
   const dwellStartRef = useRef<number | null>(null)
   const dwellSlotRef = useRef<string | null>(null)
   const cooldownRef = useRef(false)
   const isCapturingRef = useRef(false)
   const dwellTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const capturedSlotsRef = useRef(capturedSlots)
+  // Track current slot in ref to avoid state updates on every frame
+  const currentSlotRef = useRef('0-0')
 
   // Keep ref in sync
   useEffect(() => {
@@ -182,22 +168,16 @@ export function useARDwell(takeScreenshot: TakeScreenshotFn | null): ARDwellResu
 
   const onCameraTransformUpdate = useCallback(
     (transform: ViroCameraTransform) => {
-      if (!isWarmRef.current || isCapturingRef.current) return
+      if (!isWarmRef.current || isCapturingRef.current || !isTrackingRef.current) return
 
       const fwd = transform.forward as number[]
-      const newYaw = forwardToYaw(fwd)
-      const newPitch = forwardToPitch(fwd)
 
-      setYaw(newYaw)
-      setPitch(newPitch)
-
-      // Find the closest anchor
+      // Find the closest anchor — pure ref work, no state writes
       let closestSlot = '0-0'
       let closestAngle = Infinity
 
       for (let i = 0; i < YAW_SLOTS; i++) {
         const anchor = ANCHOR_POSITIONS[i]
-        // Direction from origin to anchor (camera is at origin in world space)
         const toAnchor = [anchor[0], anchor[1], anchor[2]]
         const angle = angleBetweenDeg(fwd, toAnchor)
         if (angle < closestAngle) {
@@ -206,14 +186,17 @@ export function useARDwell(takeScreenshot: TakeScreenshotFn | null): ARDwellResu
         }
       }
 
-      setCurrentSlot(closestSlot)
+      // Only update React state when slot actually changes
+      if (closestSlot !== currentSlotRef.current) {
+        currentSlotRef.current = closestSlot
+        setCurrentSlot(closestSlot)
+      }
 
       const isCaptured = capturedSlotsRef.current.has(closestSlot)
       const isAimed = closestAngle < DWELL_THRESHOLD_DEG
 
       // Determine status
       if (!isAimed) {
-        // Not aimed at any anchor
         setStatus('hold_steady')
         setDwellProgress(0)
         dwellStartRef.current = null
@@ -258,10 +241,14 @@ export function useARDwell(takeScreenshot: TakeScreenshotFn | null): ARDwellResu
               clearInterval(dwellTimerRef.current)
               dwellTimerRef.current = null
             }
-            // Trigger capture
+            // Trigger capture — use ref values for yaw/pitch approximation
             const slot = dwellSlotRef.current
             if (slot && !capturedSlotsRef.current.has(slot)) {
-              doCapture(slot, newYaw, newPitch)
+              const fwdSnap = fwd
+              const yawSnap = ((Math.atan2(fwdSnap[0], -fwdSnap[2]) * 180) / Math.PI + 360) % 360
+              const xz = Math.sqrt(fwdSnap[0] * fwdSnap[0] + fwdSnap[2] * fwdSnap[2])
+              const pitchSnap = Math.atan2(fwdSnap[1], xz) * (180 / Math.PI)
+              doCapture(slot, yawSnap, pitchSnap)
             }
             dwellStartRef.current = null
             dwellSlotRef.current = null
@@ -269,16 +256,14 @@ export function useARDwell(takeScreenshot: TakeScreenshotFn | null): ARDwellResu
           }
         }, 50)
       }
-      // If same slot, the interval handles progress updates
       setStatus('ready')
     },
     [doCapture]
   )
 
   const onTrackingUpdated = useCallback((state: ViroTrackingState, _reason: ViroTrackingReason) => {
-    const tracking =
-      state === ViroTrackingStateConstants.TRACKING_NORMAL ||
-      state === ViroTrackingStateConstants.TRACKING_LIMITED
+    const tracking = state === ViroTrackingStateConstants.TRACKING_NORMAL
+    isTrackingRef.current = tracking
     setIsTracking(tracking)
 
     if (!tracking) {
@@ -296,8 +281,6 @@ export function useARDwell(takeScreenshot: TakeScreenshotFn | null): ARDwellResu
   const isSlotCaptured = capturedSlots.has(currentSlot)
 
   return {
-    yaw,
-    pitch,
     currentSlot,
     status,
     message: STATUS_MESSAGES[status],

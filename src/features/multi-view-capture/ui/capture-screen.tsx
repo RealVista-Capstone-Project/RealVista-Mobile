@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useCameraPermissions } from 'expo-camera'
-import { RotateCcw, X } from 'lucide-react-native'
+import { RotateCcw, Sparkles, X } from 'lucide-react-native'
 import React, { useCallback, useRef, useState } from 'react'
 import { Alert, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { ViroARSceneNavigator } from '@reactvision/react-viro'
@@ -52,9 +52,9 @@ export function MultiViewCaptureScreen() {
   }, [progress, finishCapture])
 
   const handleReset = useCallback(() => {
-    Alert.alert('Reset Capture', 'This will discard all captured images. Continue?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Reset', style: 'destructive', onPress: reset },
+    Alert.alert('Đặt lại', 'Tất cả ảnh đã chụp sẽ bị xóa. Tiếp tục?', [
+      { text: 'Hủy', style: 'cancel' },
+      { text: 'Đặt lại', style: 'destructive', onPress: reset },
     ])
   }, [reset])
 
@@ -62,18 +62,18 @@ export function MultiViewCaptureScreen() {
   if (!permission?.granted) {
     return (
       <View style={styles.permissionContainer}>
-        <Text style={styles.permissionTitle}>Camera Permission Required</Text>
+        <Text style={styles.permissionTitle}>Cần quyền truy cập camera</Text>
         <Text style={styles.permissionText}>
-          RealVista needs camera access to capture property images for 3D reconstruction.
+          RealVista cần quyền truy cập camera để chụp ảnh không gian cho mô hình 3D.
         </Text>
         <Pressable style={styles.permissionButton} onPress={requestPermission}>
-          <Text style={styles.permissionButtonText}>Grant Permission</Text>
+          <Text style={styles.permissionButtonText}>Cấp quyền</Text>
         </Pressable>
         <Pressable
           style={[styles.permissionButton, styles.backButton]}
           onPress={() => router.back()}
         >
-          <Text style={styles.backButtonText}>Go Back</Text>
+          <Text style={styles.backButtonText}>Quay lại</Text>
         </Pressable>
       </View>
     )
@@ -83,20 +83,19 @@ export function MultiViewCaptureScreen() {
   return (
     <View style={styles.container}>
       {/* ViroReact AR camera — replaces react-native-vision-camera */}
+      {/* Live state is passed via viroAppProps so the scene component always
+          reads fresh values — avoids the stale-closure bug with initialScene. */}
       <ViroARSceneNavigator
         ref={arNavigatorRef}
         style={StyleSheet.absoluteFill}
         autofocus={true}
-        initialScene={{
-          scene: () => (
-            <ARCaptureScene
-              capturedSlots={capturedSlots}
-              currentSlot={dwell.currentSlot}
-              hideAnchors={dwell.hideAnchors}
-              onCameraTransformUpdate={dwell.onCameraTransformUpdate}
-              onTrackingUpdated={dwell.onTrackingUpdated}
-            />
-          ),
+        initialScene={{ scene: ARCaptureScene as () => React.JSX.Element }}
+        viroAppProps={{
+          capturedSlots,
+          currentSlot: dwell.currentSlot,
+          hideAnchors: dwell.hideAnchors,
+          onCameraTransformUpdate: dwell.onCameraTransformUpdate,
+          onTrackingUpdated: dwell.onTrackingUpdated,
         }}
         worldAlignment='GravityAndHeading'
       />
@@ -108,8 +107,6 @@ export function MultiViewCaptureScreen() {
           message={dwell.message}
           dwellProgress={dwell.dwellProgress}
           isTracking={dwell.isTracking}
-          yaw={dwell.yaw}
-          pitch={dwell.pitch}
         />
       )}
 
@@ -122,7 +119,7 @@ export function MultiViewCaptureScreen() {
 
         {/* Title + progress */}
         <View style={styles.topCenter}>
-          <Text style={styles.topTitle}>3D CAPTURE</Text>
+          <Text style={styles.topTitle}>CHỤP 3D</Text>
           <ProgressIndicator
             progress={progress}
             imageCount={images.length}
@@ -131,13 +128,15 @@ export function MultiViewCaptureScreen() {
           />
         </View>
 
-        {/* Spacer to balance the close button */}
-        <View style={styles.topIconBtn} />
+        {/* Reset button */}
+        <Pressable style={styles.topIconBtn} onPress={handleReset} hitSlop={12}>
+          <RotateCcw size={20} color='#FFFFFF' strokeWidth={2.5} />
+        </Pressable>
       </View>
 
       {/* ── BOTTOM BAR ──────────────────────────────────────────────────── */}
       <View style={styles.bottomBar}>
-        {/* LEFT: thumbnail + reset */}
+        {/* LEFT: thumbnail */}
         <View style={styles.bottomLeft}>
           {images.length > 0 ? (
             <Pressable style={styles.thumbnailBtn} onPress={() => setIsReviewVisible(true)}>
@@ -153,18 +152,16 @@ export function MultiViewCaptureScreen() {
           ) : (
             <View style={styles.thumbnailPlaceholder} />
           )}
-
-          <Pressable style={styles.smallIconBtn} onPress={handleReset} hitSlop={10}>
-            <RotateCcw size={16} color='rgba(255,255,255,0.55)' strokeWidth={2.2} />
-          </Pressable>
         </View>
 
-        {/* CENTRE: Done button */}
+        {/* CENTRE: Tạo 3D button */}
         <Pressable style={styles.doneBtn} onPress={handleDone}>
-          <View style={styles.doneBtnInner} />
+          <View style={styles.doneBtnGlow} />
+          <Sparkles size={14} color='rgba(255,255,255,0.9)' strokeWidth={2} />
+          <Text style={styles.doneBtnText}>Tạo 3D</Text>
         </Pressable>
 
-        {/* RIGHT: spacer to balance left side */}
+        {/* RIGHT: empty balance */}
         <View style={styles.bottomRight} />
       </View>
 
@@ -290,7 +287,6 @@ const styles = StyleSheet.create({
   bottomLeft: {
     width: 64,
     alignItems: 'center',
-    gap: 10,
   },
   thumbnailBtn: {
     width: 52,
@@ -338,29 +334,44 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // Centre — Done button (classic camera shutter style)
+  // Centre — Tạo 3D button
   doneBtn: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    borderWidth: 3,
-    borderColor: '#FFFFFF',
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
+    gap: 6,
+    backgroundColor: '#7065F0',
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    shadowColor: '#7065F0',
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 6,
+    overflow: 'hidden',
   },
-  doneBtnInner: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#FFFFFF',
+  doneBtnGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '50%',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 22,
+  },
+  doneBtnText: {
+    color: 'rgba(255,255,255,0.95)',
+    fontSize: 13,
+    fontFamily: 'PlusJakartaSans_800ExtraBold',
+    letterSpacing: 0.5,
   },
 
   // Right column
   bottomRight: {
     width: 64,
     alignItems: 'center',
-    gap: 10,
   },
 
   // ── Permission screens

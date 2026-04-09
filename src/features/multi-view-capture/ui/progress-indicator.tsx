@@ -23,9 +23,9 @@ const COVERAGE_COLORS: Record<CoverageLevel, string> = {
 }
 
 const COVERAGE_LABELS: Record<CoverageLevel, string> = {
-  low: 'Low',
-  good: 'Good',
-  excellent: 'Excellent',
+  low: 'Thấp',
+  good: 'Tốt',
+  excellent: 'Xuất sắc',
 }
 
 export const ProgressIndicator = React.memo(function ProgressIndicator({

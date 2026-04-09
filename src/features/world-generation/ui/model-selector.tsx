@@ -1,5 +1,6 @@
 import React from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Zap, Sparkles } from 'lucide-react-native'
 
 import type { MarbleModel } from '@/shared/api/marble-client'
 
@@ -9,114 +10,136 @@ type ModelSelectorProps = {
   disabled?: boolean
 }
 
+const MODELS: {
+  id: MarbleModel
+  label: string
+  description: string
+  time: string
+  credits: string
+  creditCount: string
+  icon: React.ReactNode
+}[] = [
+  {
+    id: 'Marble 0.1-mini',
+    label: 'Nhanh',
+    description: 'Phác thảo mặt bằng và xem trước phòng nhanh.',
+    time: '~45 giây',
+    credits: '1 CREDIT',
+    creditCount: '1',
+    icon: <Zap size={22} color='#7065F0' fill='#7065F0' />,
+  },
+  {
+    id: 'Marble 0.1-plus',
+    label: 'Tiêu chuẩn',
+    description: 'Kết xuất kết cấu độ phân giải cao cho phòng 3D chất lượng.',
+    time: '~5 phút',
+    credits: '3 CREDITS',
+    creditCount: '3',
+    icon: <Sparkles size={22} color='#7065F0' />,
+  },
+]
+
 export function ModelSelector({ selected, onSelect, disabled }: ModelSelectorProps) {
   return (
     <View style={styles.container}>
-      <View style={styles.options}>
-        {/* Draft Model Option */}
-        <Pressable
-          style={[
-            styles.option,
-            selected === 'Marble 0.1-mini' && styles.optionSelected,
-            disabled && styles.optionDisabled,
-          ]}
-          onPress={() => onSelect('Marble 0.1-mini')}
-          disabled={disabled}
-        >
-          <View style={styles.optionContent}>
-            <Text
-              style={[
-                styles.optionTitle,
-                selected === 'Marble 0.1-mini' && styles.optionTitleSelected,
-              ]}
-            >
-              Draft
+      {MODELS.map((m) => {
+        const isSelected = selected === m.id
+        return (
+          <Pressable
+            key={m.id}
+            style={[
+              styles.card,
+              isSelected && styles.cardSelected,
+              disabled && styles.cardDisabled,
+            ]}
+            onPress={() => onSelect(m.id)}
+            disabled={disabled}
+          >
+            <View style={styles.cardTop}>
+              <View style={styles.iconBox}>{m.icon}</View>
+              <View style={[styles.creditBadge, isSelected && styles.creditBadgeSelected]}>
+                <Text
+                  style={[styles.creditBadgeText, isSelected && styles.creditBadgeTextSelected]}
+                >
+                  {m.credits}
+                </Text>
+              </View>
+            </View>
+            <Text style={[styles.cardTitle, isSelected && styles.cardTitleSelected]}>
+              {m.label}
             </Text>
-            <Text style={styles.optionMeta}>~45s • 250 credits</Text>
-          </View>
-        </Pressable>
-
-        {/* Standard Model Option */}
-        <Pressable
-          style={[
-            styles.option,
-            selected === 'Marble 0.1-plus' && styles.optionSelected,
-            disabled && styles.optionDisabled,
-          ]}
-          onPress={() => onSelect('Marble 0.1-plus')}
-          disabled={disabled}
-        >
-          <View style={styles.optionContent}>
-            <Text
-              style={[
-                styles.optionTitle,
-                selected === 'Marble 0.1-plus' && styles.optionTitleSelected,
-              ]}
-            >
-              Standard
-            </Text>
-            <Text style={styles.optionMeta}>~5 min • 1,600 credits</Text>
-          </View>
-        </Pressable>
-      </View>
+            <Text style={styles.cardDesc}>{m.description}</Text>
+          </Pressable>
+        )
+      })}
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 32,
-    width: '100%',
+    gap: 12,
+    marginBottom: 24,
   },
-  options: {
-    flexDirection: 'row',
-    gap: 16,
-    alignSelf: 'stretch',
-  },
-  option: {
-    flex: 1,
-    backgroundColor: 'rgba(30, 41, 59, 0.5)', // Slate background
-    borderRadius: 24,
-    padding: 2,
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    overflow: 'hidden',
+    borderColor: '#E5E7EB',
   },
-  optionContent: {
-    padding: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 22,
-  },
-  optionSelected: {
+  cardSelected: {
     borderColor: '#7065F0',
-    backgroundColor: 'rgba(112, 101, 240, 0.08)',
-    shadowColor: '#7065F0',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 4,
+    backgroundColor: '#FAFAFA',
   },
-  optionDisabled: {
+  cardDisabled: {
     opacity: 0.5,
   },
-  optionTitle: {
-    color: '#94A3B8',
-    fontSize: 14,
-    fontFamily: 'PlusJakartaSans_800ExtraBold',
-    fontWeight: '800',
-    marginBottom: 4,
+  cardTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  iconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(112, 101, 240, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  creditBadge: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  creditBadgeSelected: {
+    backgroundColor: '#7065F0',
+  },
+  creditBadgeText: {
+    color: '#6B7280',
+    fontSize: 10,
+    fontFamily: 'PlusJakartaSans_700Bold',
     letterSpacing: 0.5,
   },
-  optionTitleSelected: {
+  creditBadgeTextSelected: {
     color: '#FFFFFF',
-    fontSize: 15,
   },
-  optionMeta: {
-    color: '#64748B',
-    fontSize: 11,
-    fontFamily: 'PlusJakartaSans_600SemiBold',
-    fontWeight: '600',
-    textAlign: 'center',
+  cardTitle: {
+    color: '#111827',
+    fontSize: 18,
+    fontFamily: 'PlusJakartaSans_800ExtraBold',
+    marginBottom: 4,
+  },
+  cardTitleSelected: {
+    color: '#111827',
+  },
+  cardDesc: {
+    color: '#6B7280',
+    fontSize: 13,
+    fontFamily: 'PlusJakartaSans_500Medium',
+    lineHeight: 19,
   },
 })

@@ -1,3 +1,4 @@
+import { Camera, Crosshair, RotateCcw, Timer } from 'lucide-react-native'
 import React, { useMemo } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import Svg, { Circle } from 'react-native-svg'
@@ -17,14 +18,19 @@ const STATUS_COLORS: Record<GuidanceStatus, string> = {
   capturing: '#06B6D4',
 }
 
+const STATUS_ICONS: Record<GuidanceStatus, React.ReactElement> = {
+  hold_steady: <Crosshair size={12} color='#FFFFFF' strokeWidth={2.5} />,
+  ready: <Timer size={12} color='#FFFFFF' strokeWidth={2.5} />,
+  move_to_new_angle: <RotateCcw size={12} color='#FFFFFF' strokeWidth={2.5} />,
+  capturing: <Camera size={12} color='#FFFFFF' strokeWidth={2.5} />,
+}
+
 // ─── Props ────────────────────────────────────────────────────────────────────
 type ARHudOverlayProps = {
   status: GuidanceStatus
   message: string
   dwellProgress: number // 0..1
   isTracking: boolean
-  yaw: number
-  pitch: number
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -37,20 +43,30 @@ export const ARHudOverlay = React.memo(function ARHudOverlay({
   const color = STATUS_COLORS[status]
   const strokeDashoffset = RING_CIRCUMFERENCE * (1 - dwellProgress)
 
-  const pillStyle = useMemo(() => [styles.messagePill, { backgroundColor: color + 'CC' }], [color])
+  const pillStyle = useMemo(
+    () => [
+      styles.messagePill,
+      {
+        backgroundColor: 'rgba(0,0,0,0.55)',
+        borderColor: color + '99',
+      },
+    ],
+    [color]
+  )
+
+  const dotStyle = useMemo(() => [styles.statusDot, { backgroundColor: color }], [color])
 
   return (
     <View style={styles.container} pointerEvents='none'>
       {/* Centre crosshair with dwell ring */}
       <View style={styles.crosshairArea}>
-        {/* SVG dwell progress arc */}
         <Svg width={RING_SIZE} height={RING_SIZE} style={styles.ringSvg}>
           {/* Background ring */}
           <Circle
             cx={RING_SIZE / 2}
             cy={RING_SIZE / 2}
             r={RING_RADIUS}
-            stroke='rgba(255,255,255,0.2)'
+            stroke='rgba(255,255,255,0.15)'
             strokeWidth={RING_STROKE}
             fill='none'
           />
@@ -71,23 +87,24 @@ export const ARHudOverlay = React.memo(function ARHudOverlay({
             />
           )}
         </Svg>
-
         {/* Centre dot */}
         <View style={[styles.centreDot, { backgroundColor: color }]} />
       </View>
 
-      {/* Tracking status indicator */}
-      {!isTracking && (
-        <View style={styles.trackingBanner}>
-          <Text style={styles.trackingText}>Searching for surfaces...</Text>
-        </View>
-      )}
-
-      {/* Status message pill */}
+      {/* Tracking banner OR status pill — mutually exclusive */}
       <View style={styles.messageArea}>
-        <View style={pillStyle}>
-          <Text style={styles.messageText}>{message}</Text>
-        </View>
+        {!isTracking ? (
+          <View style={styles.trackingBanner}>
+            <View style={styles.trackingDot} />
+            <Text style={styles.trackingText}>Đang khởi tạo AR...</Text>
+          </View>
+        ) : (
+          <View style={pillStyle}>
+            <View style={dotStyle} />
+            {STATUS_ICONS[status]}
+            <Text style={styles.messageText}>{message}</Text>
+          </View>
+        )}
       </View>
     </View>
   )
@@ -110,22 +127,32 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   centreDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   trackingBanner: {
-    position: 'absolute',
-    top: 120,
-    backgroundColor: 'rgba(239, 68, 68, 0.8)',
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderWidth: 1,
+    borderColor: 'rgba(239,68,68,0.4)',
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 20,
+  },
+  trackingDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#EF4444',
   },
   trackingText: {
-    color: '#FFFFFF',
-    fontSize: 13,
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 12,
     fontFamily: 'PlusJakartaSans_700Bold',
+    letterSpacing: 0.2,
   },
   messageArea: {
     position: 'absolute',
@@ -133,15 +160,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   messagePill: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  statusDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
   },
   messageText: {
-    color: '#FFFFFF',
-    fontSize: 15,
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 12,
     fontFamily: 'PlusJakartaSans_700Bold',
-    textAlign: 'center',
     letterSpacing: 0.3,
   },
 })

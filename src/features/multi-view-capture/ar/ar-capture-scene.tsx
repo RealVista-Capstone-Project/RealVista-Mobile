@@ -13,7 +13,7 @@ import {
 
 import { YAW_SLOTS, YAW_STEP } from '@/entities/capture'
 
-import { ANCHOR_DISTANCE, ANCHOR_POSITIONS } from './use-ar-dwell'
+import { ANCHOR_POSITIONS } from './use-ar-dwell'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const SPHERE_RADIUS = 0.12 // metres
@@ -38,7 +38,7 @@ ViroMaterials.createMaterials({
     lightingModel: 'Constant',
   },
   anchorCurrent: {
-    diffuseColor: 'rgba(16, 185, 129, 0.85)', // green
+    diffuseColor: 'rgba(16, 185, 129, 0.85)',
     lightingModel: 'Constant',
   },
   anchorReady: {
@@ -50,28 +50,37 @@ ViroMaterials.createMaterials({
     lightingModel: 'Constant',
   },
   anchorMoveAway: {
-    diffuseColor: 'rgba(107, 114, 128, 0.5)', // gray
+    diffuseColor: 'rgba(107, 114, 128, 0.5)',
     lightingModel: 'Constant',
   },
 })
 
 // ─── Props ────────────────────────────────────────────────────────────────────
+// ViroReact injects arSceneNavigator into every scene component.
+// We pass live state via viroAppProps on ViroARSceneNavigator so the scene
+// always reads the latest values — avoids the stale-closure problem with
+// initialScene arrow functions.
 type ARCaptureSceneProps = {
-  capturedSlots: Set<string>
-  currentSlot: string
-  hideAnchors: boolean
-  onCameraTransformUpdate: (transform: ViroCameraTransform) => void
-  onTrackingUpdated: (state: ViroTrackingState, reason: ViroTrackingReason) => void
+  arSceneNavigator?: {
+    viroAppProps?: {
+      capturedSlots?: Set<string>
+      currentSlot?: string
+      hideAnchors?: boolean
+      onCameraTransformUpdate?: (t: ViroCameraTransform) => void
+      onTrackingUpdated?: (s: ViroTrackingState, r: ViroTrackingReason) => void
+    }
+  }
 }
 
 // ─── Scene Component ──────────────────────────────────────────────────────────
-export function ARCaptureScene({
-  capturedSlots,
-  currentSlot,
-  hideAnchors,
-  onCameraTransformUpdate,
-  onTrackingUpdated,
-}: ARCaptureSceneProps) {
+export function ARCaptureScene({ arSceneNavigator }: ARCaptureSceneProps) {
+  const appProps = arSceneNavigator?.viroAppProps ?? {}
+  const capturedSlots: Set<string> = appProps.capturedSlots ?? new Set()
+  const currentSlot: string = appProps.currentSlot ?? '0-0'
+  const hideAnchors: boolean = appProps.hideAnchors ?? false
+  const onCameraTransformUpdate = appProps.onCameraTransformUpdate
+  const onTrackingUpdated = appProps.onTrackingUpdated
+
   return (
     <ViroARScene
       onCameraTransformUpdate={onCameraTransformUpdate}
@@ -106,7 +115,7 @@ export function ARCaptureScene({
                 materials={[material]}
               />
               <ViroText
-                text={isCaptured ? `✓ ${label}` : label}
+                text={label}
                 position={[0, radius + 0.08, 0]}
                 style={{
                   fontSize: 14,
@@ -115,7 +124,7 @@ export function ARCaptureScene({
                   textAlignVertical: 'center',
                   textAlign: 'center',
                 }}
-                width={0.5}
+                width={0.8}
                 height={0.2}
               />
             </ViroNode>

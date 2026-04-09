@@ -5,7 +5,8 @@ import {
   ShieldAlert,
   CheckCircle2,
   AlertTriangle,
-  Sparkles,
+  ArrowRight,
+  Info,
 } from 'lucide-react-native'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
@@ -21,8 +22,8 @@ import {
   Platform,
   TouchableOpacity,
   ScrollView,
+  KeyboardAvoidingView,
 } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
 
 import { useCaptureStore } from '@/entities/capture'
 import { useWorldStore } from '@/entities/world'
@@ -49,7 +50,6 @@ export function WorldGenerationScreen() {
   const spinAnim = useRef(new Animated.Value(0)).current
   const pulseAnim = useRef(new Animated.Value(1)).current
 
-  // Spinning animation for the globe
   useEffect(() => {
     const spin = Animated.loop(
       Animated.timing(spinAnim, {
@@ -61,11 +61,10 @@ export function WorldGenerationScreen() {
     )
     spin.start()
 
-    // Breathing pulse for the halo
     const pulse = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
-          toValue: 1.2,
+          toValue: 1.15,
           duration: 1500,
           easing: Easing.inOut(Easing.ease),
           useNativeDriver: true,
@@ -96,7 +95,6 @@ export function WorldGenerationScreen() {
 
     setStarted(true)
 
-    // Initialize store
     startStoreGeneration({
       id: '',
       displayName: roomName.trim(),
@@ -105,11 +103,9 @@ export function WorldGenerationScreen() {
       createdAt: new Date().toISOString(),
     })
 
-    // Step 1: Upload all images to Marble API
     const uploaded = await upload.uploadAll(images)
-    if (!uploaded) return // Failed or cancelled
+    if (!uploaded) return
 
-    // Step 2: Send to RealVista Backend (which orchestrates Marble generation)
     await generation.startGeneration({
       propertyId: propertyId as string,
       images: uploaded,
@@ -146,159 +142,121 @@ export function WorldGenerationScreen() {
     if (upload.isUploading) return `Đang tải lên ${upload.currentIndex}/${upload.totalImages}...`
     if (generation.phase === 'requesting') return 'Đang khởi tạo yêu cầu...'
     if (generation.phase === 'polling') return generation.progressDescription
-    if (isDone) return 'Sẵn sàng trải nghiệm tour 3D!'
+    if (isDone) return 'Phòng 3D đã sẵn sàng!'
     if (isFailed) return upload.error || generation.error || 'Thất bại'
-    return `${images.length} Ảnh đã sẵn sàng tạo tour`
+    return `${images.length} góc nhìn sẵn sàng tạo phòng 3D`
   }
 
-  // --- Premium Alert Card ---
-  const renderAlert = () => {
-    if (!isFailed) return null
-
-    // Check specifically for API Key error visually
-    const isApiKeyError = getStatusText().includes('Marble API key')
-
-    return (
-      <View style={styles.alertCard}>
-        <LinearGradient
-          colors={['rgba(239, 68, 68, 0.1)', 'rgba(239, 68, 68, 0.05)']}
-          style={StyleSheet.absoluteFill}
-        />
-        <View style={styles.alertIconBox}>
-          {isApiKeyError ? (
-            <ShieldAlert color='#EF4444' size={24} />
-          ) : (
-            <AlertTriangle color='#F59E0B' size={24} />
-          )}
-        </View>
-        <View style={styles.alertTextContent}>
-          <Text style={styles.alertTitle}>Lỗi hệ thống</Text>
-          <Text style={styles.alertMessage} numberOfLines={3}>
-            {getStatusText()}
-          </Text>
-        </View>
-      </View>
-    )
-  }
+  const estimatedTime = model === 'Marble 0.1-mini' ? '~45 giây' : '~5 phút'
 
   return (
-    <View style={styles.viewRoot}>
+    <View style={styles.root}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* Immersive Background */}
-      <LinearGradient
-        colors={['#0F172A', '#111827', '#020617']}
-        style={StyleSheet.absoluteFill}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-      />
-
-      <SafeAreaView style={styles.container}>
-        {/* Fixed Premium Header */}
+      <SafeAreaView style={styles.safeArea}>
+        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => router.back()}
-            style={styles.headerAction}
+            style={styles.backBtn}
             activeOpacity={0.7}
           >
-            <ChevronLeft color='#FFFFFF' size={28} />
+            <ChevronLeft color='#111827' size={24} />
           </TouchableOpacity>
-
-          <View style={styles.headerCenter}>
-            <Text style={styles.title}>Thế giới 3D</Text>
-            <View style={styles.statusRow}>
-              <View
-                style={[
-                  styles.statusDot,
-                  { backgroundColor: isWorking ? '#7065F0' : isDone ? '#10B981' : '#64748B' },
-                ]}
-              />
-              <Text style={styles.subtitle}>
-                {isWorking ? 'Đang khởi tạo' : isDone ? 'Hoàn tất' : 'Sẵn sàng'}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.headerAction} />
         </View>
 
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          bounces={false}
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={0}
         >
-          {/* Main Content Area */}
-          <View style={styles.content}>
-            {/* Immersive Stage - Animated Globe */}
-            <View style={styles.stage}>
-              <Animated.View
-                style={[
-                  styles.halo,
-                  { transform: [{ scale: pulseAnim }], opacity: isWorking ? 0.4 : 0.15 },
-                ]}
-              />
-              <Animated.View
-                style={[
-                  styles.globeShadowContainer,
-                  isWorking && styles.globeWorking,
-                  { transform: [{ rotateY: isWorking ? spinInterpolation : '0deg' }] },
-                ]}
-              >
-                <LinearGradient
-                  colors={['rgba(112, 101, 240, 0.25)', 'transparent']}
-                  style={[StyleSheet.absoluteFill, { borderRadius: 9999 }]}
-                />
-                {isDone ? (
-                  <CheckCircle2 color='#10B981' size={90} strokeWidth={1.2} />
-                ) : isFailed ? (
-                  <Globe color='rgba(239, 68, 68, 0.5)' size={90} strokeWidth={1.2} />
-                ) : (
-                  <Globe color={isWorking ? '#7065F0' : '#FFFFFF'} size={90} strokeWidth={1.2} />
-                )}
-              </Animated.View>
-
-              <Text style={styles.statusMainText}>{getStatusText()}</Text>
-
-              {/* Image Coverage Pill */}
-              {!started && (
-                <View style={styles.coveragePill}>
-                  <Sparkles size={14} color='#7065F0' />
-                  <Text style={styles.coveragePillText}>{images.length} góc nhìn sẵn sàng</Text>
-                </View>
-              )}
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps='handled'
+          >
+            {/* Title block */}
+            <View style={styles.titleBlock}>
+              <Text style={styles.eyebrow}>TẠO MỚI</Text>
+              <Text style={styles.mainTitle}>Thiết lập Phòng 3D</Text>
+              <Text style={styles.subtitle}>
+                Đặt tên phòng và chọn độ phân giải cho mô hình 3D chất lượng cao của bạn.
+              </Text>
             </View>
 
-            {/* Config Area - Visible only before start */}
+            {/* Working state: Globe animation */}
+            {started && (
+              <View style={styles.workingStage}>
+                <Animated.View
+                  style={[
+                    styles.globeHalo,
+                    { transform: [{ scale: pulseAnim }], opacity: isWorking ? 0.18 : 0.08 },
+                  ]}
+                />
+                <Animated.View
+                  style={[
+                    styles.globeContainer,
+                    { transform: [{ rotateY: isWorking ? spinInterpolation : '0deg' }] },
+                  ]}
+                >
+                  {isDone ? (
+                    <CheckCircle2 color='#10B981' size={64} strokeWidth={1.5} />
+                  ) : isFailed ? (
+                    <Globe color='#EF4444' size={64} strokeWidth={1.5} />
+                  ) : (
+                    <Globe color='#7065F0' size={64} strokeWidth={1.5} />
+                  )}
+                </Animated.View>
+                <Text style={styles.workingStatus}>{getStatusText()}</Text>
+              </View>
+            )}
+
+            {/* Config form */}
             {!started && (
-              <Animated.View style={styles.configArea}>
-                <View style={styles.inputCard}>
-                  <Text style={styles.inputLabel}>Tên không gian</Text>
+              <View style={styles.formCard}>
+                {/* Space Name */}
+                <Text style={styles.fieldLabel}>TÊN PHÒNG 3D</Text>
+                <View style={styles.inputWrapper}>
                   <TextInput
                     style={styles.textInput}
-                    placeholder='VD: Phòng khách, Ban công...'
-                    placeholderTextColor='rgba(255,255,255,0.3)'
+                    placeholder='VD: Phòng khách...'
+                    placeholderTextColor='#9CA3AF'
                     value={roomName}
                     onChangeText={setRoomName}
                     editable={!isWorking}
+                    numberOfLines={1}
                   />
                 </View>
 
-                <View style={styles.sectionDivider}>
-                  <Text style={styles.dividerLabel}>CHỌN ĐỘ PHÂN GIẢI</Text>
-                  <View style={styles.dividerLine} />
-                </View>
-
+                {/* Resolution */}
+                <Text style={[styles.fieldLabel, { marginTop: 20 }]}>ĐỘ PHÂN GIẢI PHÒNG 3D</Text>
                 <ModelSelector selected={model} onSelect={setModel} disabled={isWorking} />
-              </Animated.View>
+              </View>
             )}
 
-            {/* Error States Display */}
-            {renderAlert()}
+            {/* Error */}
+            {isFailed && (
+              <View style={styles.errorCard}>
+                <View style={styles.errorIcon}>
+                  {getStatusText().includes('Marble API key') ? (
+                    <ShieldAlert color='#EF4444' size={20} />
+                  ) : (
+                    <AlertTriangle color='#F59E0B' size={20} />
+                  )}
+                </View>
+                <View style={styles.errorText}>
+                  <Text style={styles.errorTitle}>Lỗi hệ thống</Text>
+                  <Text style={styles.errorMsg} numberOfLines={3}>
+                    {getStatusText()}
+                  </Text>
+                </View>
+              </View>
+            )}
 
-            {/* Progress indicators for Work flows */}
+            {/* Upload progress */}
             {upload.isUploading && (
-              <View style={styles.progressContainer}>
-                <View style={styles.progressBar}>
+              <View style={styles.progressArea}>
+                <View style={styles.progressTrack}>
                   <View
                     style={[
                       styles.progressFill,
@@ -306,12 +264,13 @@ export function WorldGenerationScreen() {
                     ]}
                   />
                 </View>
-                <Text style={styles.progressMeta}>
-                  {Math.round((upload.currentIndex / upload.totalImages) * 100)}% Hoàn thành
+                <Text style={styles.progressLabel}>
+                  {Math.round((upload.currentIndex / upload.totalImages) * 100)}% hoàn thành
                 </Text>
               </View>
             )}
 
+            {/* Polling card */}
             {isPolling && (
               <View style={styles.pollingCard}>
                 <ActivityIndicator color='#7065F0' size='small' />
@@ -320,348 +279,347 @@ export function WorldGenerationScreen() {
                 </Text>
               </View>
             )}
-          </View>
-        </ScrollView>
 
-        {/* Floating Actions Area */}
-        <SafeAreaView style={styles.floatingActions}>
-          <LinearGradient
-            colors={['transparent', 'rgba(15, 23, 42, 0.9)', '#000000']}
-            style={styles.actionsGradient}
-          />
-          <View style={styles.actionsContent}>
+            {/* Tip card */}
             {!started && (
+              <View style={styles.tipCard}>
+                <Info size={16} color='#059669' strokeWidth={2} />
+                <View style={styles.tipText}>
+                  <Text style={styles.tipTitle}>Mẹo chụp ảnh</Text>
+                  <Text style={styles.tipBody}>
+                    Đảm bảo tất cả cửa nội thất đều mở và ánh sáng đều khắp không gian để theo dõi
+                    không gian tốt nhất.
+                  </Text>
+                </View>
+              </View>
+            )}
+          </ScrollView>
+        </KeyboardAvoidingView>
+
+        {/* Bottom action */}
+        <View style={styles.bottomBar}>
+          {!started && (
+            <>
               <TouchableOpacity
                 style={[
-                  styles.primaryButton,
-                  (images.length === 0 || !roomName.trim()) && styles.buttonDisabled,
+                  styles.primaryBtn,
+                  (images.length === 0 || !roomName.trim()) && styles.primaryBtnDisabled,
                 ]}
                 onPress={handleStart}
                 disabled={images.length === 0 || !propertyId || !roomName.trim()}
+                activeOpacity={0.85}
               >
-                <LinearGradient
-                  colors={['#7065F0', '#4F46E5']}
-                  style={styles.primaryButtonGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                >
-                  <Text style={styles.primaryButtonText}>Bắt đầu tạo tour</Text>
-                </LinearGradient>
+                <Text style={styles.primaryBtnText}>Bắt đầu tạo phòng 3D</Text>
+                <ArrowRight color='#FFFFFF' size={18} strokeWidth={2.5} />
               </TouchableOpacity>
-            )}
+              <Text style={styles.estimateText}>Thời gian xử lý ước tính: {estimatedTime}</Text>
+            </>
+          )}
 
-            {isPolling && (
-              <TouchableOpacity style={styles.secondaryButton} onPress={handleBackToProperties}>
-                <Text style={styles.secondaryButtonText}>Quay lại quản lý tin đăng</Text>
-              </TouchableOpacity>
-            )}
+          {isPolling && (
+            <TouchableOpacity style={styles.secondaryBtn} onPress={handleBackToProperties}>
+              <Text style={styles.secondaryBtnText}>Quay lại quản lý tin đăng</Text>
+            </TouchableOpacity>
+          )}
 
-            {isDone && (
-              <TouchableOpacity style={styles.primaryButton} onPress={handleViewWorld}>
-                <LinearGradient
-                  colors={['#7065F0', '#4F46E5']}
-                  style={styles.primaryButtonGradient}
-                >
-                  <Text style={styles.primaryButtonText}>Trải nghiệm tour 3D ngay</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            )}
+          {isDone && (
+            <TouchableOpacity
+              style={styles.primaryBtn}
+              onPress={handleViewWorld}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.primaryBtnText}>Xem phòng 3D ngay</Text>
+              <ArrowRight color='#FFFFFF' size={18} strokeWidth={2.5} />
+            </TouchableOpacity>
+          )}
 
-            {isFailed && (
-              <TouchableOpacity style={styles.secondaryButton} onPress={() => setStarted(false)}>
-                <Text style={styles.secondaryButtonText}>Quay lại thiết lập</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </SafeAreaView>
+          {isFailed && (
+            <TouchableOpacity style={styles.secondaryBtn} onPress={() => setStarted(false)}>
+              <Text style={styles.secondaryBtnText}>Quay lại thiết lập</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </SafeAreaView>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  viewRoot: {
+  root: {
+    flex: 1,
+    backgroundColor: '#F0F2F8',
+  },
+  safeArea: {
     flex: 1,
   },
-  container: {
+  flex: {
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 0 : 20,
-    paddingBottom: 16,
-    zIndex: 10,
+    paddingTop: Platform.OS === 'ios' ? 4 : 16,
+    paddingBottom: 8,
   },
-  headerAction: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    alignItems: 'center',
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-  },
-  headerCenter: {
-    alignItems: 'center',
-  },
-  title: {
-    color: '#FFFFFF',
-    fontSize: 22,
-    fontWeight: '800',
-    fontFamily: 'PlusJakartaSans_800ExtraBold',
-    letterSpacing: -0.5,
-  },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 6,
-  },
-  subtitle: {
-    color: 'rgba(255,255,255,0.5)',
-    fontSize: 11,
-    fontWeight: '700',
-    fontFamily: 'PlusJakartaSans_600SemiBold',
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
+    borderColor: '#E5E7EB',
   },
   scrollContent: {
-    paddingBottom: 180,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
-  content: {
-    paddingHorizontal: 28,
-  },
-  stage: {
-    alignItems: 'center',
-    paddingVertical: 50,
-    marginBottom: 10,
-  },
-  halo: {
-    position: 'absolute',
-    width: 240,
-    height: 240,
-    borderRadius: 120,
-    backgroundColor: '#7065F0',
-  },
-  globeShadowContainer: {
-    width: 170,
-    height: 170,
-    borderRadius: 85,
-    backgroundColor: 'rgba(255,255,255,0.02)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-  },
-  globeWorking: {
-    shadowColor: '#7065F0',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.25,
-    shadowRadius: 30,
-    elevation: 8,
-  },
-  statusMainText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '800',
-    fontFamily: 'PlusJakartaSans_800ExtraBold',
-    textAlign: 'center',
-    marginTop: 32,
-    lineHeight: 26,
-    letterSpacing: -0.3,
-  },
-  coveragePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(112, 101, 240, 0.1)',
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 22,
-    marginTop: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(112, 101, 240, 0.25)',
-  },
-  coveragePillText: {
-    color: '#A5B4FC',
-    fontSize: 13,
-    fontWeight: '800',
-    marginLeft: 8,
-  },
-  configArea: {
-    marginTop: 10,
-  },
-  inputCard: {
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    borderRadius: 28,
-    padding: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    marginBottom: 32,
-  },
-  inputLabel: {
-    color: 'rgba(255,255,255,0.35)',
-    fontSize: 11,
-    fontWeight: '800',
-    fontFamily: 'PlusJakartaSans_800ExtraBold',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    paddingLeft: 22,
-    paddingTop: 18,
-    marginBottom: 4,
-  },
-  textInput: {
-    color: '#FFFFFF',
-    paddingHorizontal: 22,
-    paddingBottom: 18,
-    fontSize: 19,
-    fontWeight: '700',
-    fontFamily: 'PlusJakartaSans_700Bold',
-  },
-  sectionDivider: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  titleBlock: {
     marginBottom: 24,
-    paddingHorizontal: 4,
+    marginTop: 8,
   },
-  dividerLabel: {
-    color: 'rgba(255,255,255,0.3)',
+  eyebrow: {
+    color: '#7065F0',
     fontSize: 11,
-    fontWeight: '800',
+    fontFamily: 'PlusJakartaSans_700Bold',
     letterSpacing: 2,
-    marginRight: 12,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-  },
-  alertCard: {
-    flexDirection: 'row',
-    padding: 22,
-    borderRadius: 28,
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.25)',
-    overflow: 'hidden',
-    marginTop: 24,
-  },
-  alertIconBox: {
-    width: 52,
-    height: 52,
-    borderRadius: 18,
-    backgroundColor: 'rgba(239, 68, 68, 0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  alertTextContent: {
-    flex: 1,
-    marginLeft: 18,
-  },
-  alertTitle: {
-    color: '#EF4444',
-    fontSize: 17,
-    fontWeight: '800',
     marginBottom: 6,
   },
-  alertMessage: {
-    color: 'rgba(255,255,255,0.65)',
+  mainTitle: {
+    color: '#111827',
+    fontSize: 36,
+    fontFamily: 'PlusJakartaSans_800ExtraBold',
+    letterSpacing: -1,
+    lineHeight: 42,
+    marginBottom: 10,
+  },
+  subtitle: {
+    color: '#6B7280',
     fontSize: 14,
+    fontFamily: 'PlusJakartaSans_500Medium',
     lineHeight: 22,
   },
-  progressContainer: {
-    marginTop: 24,
+  formCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginBottom: 16,
+  },
+  fieldLabel: {
+    color: '#6B7280',
+    fontSize: 11,
+    fontFamily: 'PlusJakartaSans_700Bold',
+    letterSpacing: 1.5,
+    marginBottom: 8,
+  },
+  inputWrapper: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  textInput: {
+    color: '#111827',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 13,
+    fontFamily: 'PlusJakartaSans_500Medium',
+  },
+  // Working state
+  workingStage: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    marginBottom: 16,
+  },
+  globeHalo: {
+    position: 'absolute',
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: '#7065F0',
+  },
+  globeContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#7065F0',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  workingStatus: {
+    color: '#111827',
+    fontSize: 16,
+    fontFamily: 'PlusJakartaSans_700Bold',
+    marginTop: 20,
+    textAlign: 'center',
+  },
+  // Error
+  errorCard: {
+    flexDirection: 'row',
+    backgroundColor: '#FEF2F2',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    marginBottom: 16,
+    alignItems: 'flex-start',
+  },
+  errorIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#FEE2E2',
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  progressBar: {
-    width: '100%',
-    height: 8,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 4,
+  errorText: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  errorTitle: {
+    color: '#EF4444',
+    fontSize: 14,
+    fontFamily: 'PlusJakartaSans_700Bold',
+    marginBottom: 4,
+  },
+  errorMsg: {
+    color: '#6B7280',
+    fontSize: 13,
+    fontFamily: 'PlusJakartaSans_500Medium',
+    lineHeight: 20,
+  },
+  // Progress
+  progressArea: {
+    marginBottom: 16,
+  },
+  progressTrack: {
+    height: 6,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 3,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
     backgroundColor: '#7065F0',
-    borderRadius: 4,
+    borderRadius: 3,
   },
-  progressMeta: {
-    marginTop: 12,
-    color: '#A5B4FC',
-    fontSize: 13,
-    fontWeight: '800',
+  progressLabel: {
+    color: '#6B7280',
+    fontSize: 12,
+    fontFamily: 'PlusJakartaSans_500Medium',
+    marginTop: 6,
+    textAlign: 'right',
   },
+  // Polling
   pollingCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(112, 101, 240, 0.08)',
-    padding: 20,
-    borderRadius: 20,
-    marginTop: 32,
+    backgroundColor: 'rgba(112, 101, 240, 0.06)',
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: 'rgba(112, 101, 240, 0.15)',
   },
   pollingText: {
-    color: '#A5B4FC',
+    color: '#374151',
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_500Medium',
     flex: 1,
-    marginLeft: 14,
+    marginLeft: 12,
     lineHeight: 20,
   },
-  floatingActions: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  actionsGradient: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  actionsContent: {
-    padding: 28,
-    paddingTop: 44,
-  },
-  primaryButton: {
-    height: 68,
-    borderRadius: 24,
-    overflow: 'hidden',
-  },
-  primaryButtonGradient: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 19,
-    fontWeight: '800',
-    fontFamily: 'PlusJakartaSans_800ExtraBold',
-    letterSpacing: -0.2,
-  },
-  buttonDisabled: {
-    opacity: 0.4,
-  },
-  secondaryButton: {
-    height: 64,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    alignItems: 'center',
-    justifyContent: 'center',
+  // Tip
+  tipCard: {
+    flexDirection: 'row',
+    backgroundColor: '#ECFDF5',
+    borderRadius: 16,
+    padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: '#A7F3D0',
+    borderLeftWidth: 3,
+    borderLeftColor: '#059669',
+    alignItems: 'flex-start',
+    marginBottom: 16,
   },
-  secondaryButtonText: {
+  tipText: {
+    flex: 1,
+    marginLeft: 10,
+  },
+  tipTitle: {
+    color: '#065F46',
+    fontSize: 13,
+    fontFamily: 'PlusJakartaSans_700Bold',
+    marginBottom: 4,
+  },
+  tipBody: {
+    color: '#047857',
+    fontSize: 13,
+    fontFamily: 'PlusJakartaSans_500Medium',
+    lineHeight: 20,
+  },
+  // Bottom bar
+  bottomBar: {
+    paddingHorizontal: 20,
+    paddingBottom: Platform.OS === 'ios' ? 12 : 20,
+    paddingTop: 12,
+    backgroundColor: '#F0F2F8',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  primaryBtn: {
+    flexDirection: 'row',
+    height: 54,
+    borderRadius: 28,
+    backgroundColor: '#7065F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    shadowColor: '#7065F0',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  primaryBtnDisabled: {
+    opacity: 0.45,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  primaryBtnText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: 'PlusJakartaSans_700Bold',
+    letterSpacing: -0.2,
+  },
+  estimateText: {
+    color: '#9CA3AF',
+    fontSize: 12,
+    fontFamily: 'PlusJakartaSans_500Medium',
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  secondaryBtn: {
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  secondaryBtnText: {
+    color: '#374151',
+    fontSize: 15,
     fontFamily: 'PlusJakartaSans_700Bold',
   },
 })
