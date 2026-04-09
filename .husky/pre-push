@@ -4,12 +4,11 @@ NC='\033[0m'
 
 branch_name=$(git rev-parse --abbrev-ref HEAD)
 
-# List of protected branches
-PROTECTED_BRANCHES=("develop" "main")
-
-if [[ " ${PROTECTED_BRANCHES[@]} " =~ " ${branch_name} " ]]; then
-  echo -e "${RED}Pushing to '${branch_name}' is not allowed! Please create a merge request.${NC}"
-  exit 1
-fi
+case "$branch_name" in
+  develop|main)
+    echo "${RED}Pushing to '${branch_name}' is not allowed! Please create a merge request.${NC}"
+    exit 1
+    ;;
+esac
 
 echo "Push is allowed, continuing..."
