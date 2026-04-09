@@ -1,3 +1,3 @@
 export { MultiViewCaptureScreen } from './ui/capture-screen'
-export { useCaptureGuidance } from './model/use-capture-guidance'
-export { useAutoCapture } from './model/use-auto-capture'
+export { useARDwell } from './ar/use-ar-dwell'
+export type { GuidanceStatus } from './ar/use-ar-dwell'

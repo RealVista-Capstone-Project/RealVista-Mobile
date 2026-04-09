@@ -1,7 +1,9 @@
 import { Image } from 'expo-image'
-import { X } from 'lucide-react-native'
-import React from 'react'
+import * as MediaLibrary from 'expo-media-library'
+import { Download, X } from 'lucide-react-native'
+import React, { useCallback, useState } from 'react'
 import {
+  Alert,
   Dimensions,
   FlatList,
   Modal,
@@ -23,6 +25,42 @@ type ReviewModalProps = {
 const { width } = Dimensions.get('window')
 const COLUMN_WIDTH = (width - 48) / 3
 
+function DownloadButton({ path }: { path: string }) {
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  const handleDownload = useCallback(async () => {
+    if (saving || saved) return
+    setSaving(true)
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync()
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission required',
+          'Please allow access to your photo library to save images.'
+        )
+        return
+      }
+      await MediaLibrary.saveToLibraryAsync(path)
+      setSaved(true)
+    } catch (err) {
+      Alert.alert('Save failed', 'Could not save the image to your photo library.')
+    } finally {
+      setSaving(false)
+    }
+  }, [path, saving, saved])
+
+  return (
+    <Pressable
+      style={[styles.downloadBtn, saved && styles.downloadBtnSaved]}
+      onPress={handleDownload}
+      hitSlop={6}
+    >
+      <Download size={12} color={saved ? '#10B981' : '#FFFFFF'} strokeWidth={2.5} />
+    </Pressable>
+  )
+}
+
 export function ReviewModal({ isVisible, onClose, images }: ReviewModalProps) {
   const renderItem = ({ item }: { item: CapturedImage }) => (
     <View style={styles.imageContainer}>
@@ -32,6 +70,7 @@ export function ReviewModal({ isVisible, onClose, images }: ReviewModalProps) {
           {Math.round(item.yaw)}° / {Math.round(item.pitch)}°
         </Text>
       </View>
+      <DownloadButton path={item.path} />
     </View>
   )
 
@@ -118,7 +157,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 4,
     left: 4,
-    right: 4,
+    right: 28,
     backgroundColor: 'rgba(0,0,0,0.6)',
     paddingVertical: 2,
     borderRadius: 4,
@@ -128,6 +167,20 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 10,
     fontFamily: 'PlusJakartaSans_600SemiBold',
+  },
+  downloadBtn: {
+    position: 'absolute',
+    bottom: 4,
+    right: 4,
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  downloadBtnSaved: {
+    backgroundColor: 'rgba(16,185,129,0.2)',
   },
   emptyContainer: {
     flex: 1,

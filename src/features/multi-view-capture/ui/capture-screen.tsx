@@ -1,41 +1,38 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { Box, Compass, Grid3x3, RotateCcw, X, Zap, ZapOff } from 'lucide-react-native'
+import { useCameraPermissions } from 'expo-camera'
+import { RotateCcw, X } from 'lucide-react-native'
 import React, { useCallback, useRef, useState } from 'react'
 import { Alert, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import {
-  Camera,
-  type CameraRuntimeError,
-  useCameraDevice,
-  useCameraPermission,
-} from 'react-native-vision-camera'
+import { ViroARSceneNavigator } from '@reactvision/react-viro'
 
 import { Image } from 'expo-image'
 
 import { MIN_RECOMMENDED_COVERAGE, TOTAL_SLOTS, useCaptureStore } from '@/entities/capture'
 
-import { useAutoCapture } from '../model/use-auto-capture'
-import { ARTargetsOverlay } from './ar-targets-overlay'
-import { CompassCoverage } from './compass-coverage'
-import { GuidanceOverlay } from './guidance-overlay'
+import { ARCaptureScene } from '../ar/ar-capture-scene'
+import { ARHudOverlay } from '../ar/ar-hud-overlay'
+import { useARDwell } from '../ar/use-ar-dwell'
 import { ProgressIndicator } from './progress-indicator'
 import { ReviewModal } from './review-modal'
-import { Sphere3DCoverage } from './sphere-3d-coverage'
 
 export function MultiViewCaptureScreen() {
   const router = useRouter()
   const { propertyId } = useLocalSearchParams<{ propertyId: string }>()
-  const cameraRef = useRef<Camera>(null)
-  const device = useCameraDevice('back')
-  const { hasPermission, requestPermission } = useCameraPermission()
+  const arNavigatorRef = useRef<ViroARSceneNavigator>(null)
+  const [permission, requestPermission] = useCameraPermissions()
 
-  const { progress, coverageLevel, capturedSlots, images, getOutputPayload, reset } =
-    useCaptureStore()
+  const { progress, coverageLevel, capturedSlots, images, reset } = useCaptureStore()
 
-  const guidance = useAutoCapture(cameraRef)
+  // Bind takeScreenshot to the navigator ref
+  const takeScreenshot = useCallback(async (fileName: string, saveToCameraRoll: boolean) => {
+    if (!arNavigatorRef.current) {
+      return { success: false, url: '', errorCode: -1 }
+    }
+    return arNavigatorRef.current._takeScreenshot(fileName, saveToCameraRoll)
+  }, [])
 
-  const [torchOn, setTorchOn] = useState(false)
-  const [showGrid, setShowGrid] = useState(true)
-  const [gridMode, setGridMode] = useState<'sphere' | 'compass'>('sphere')
+  const dwell = useARDwell(permission?.granted ? takeScreenshot : null)
+
   const [showWarningModal, setShowWarningModal] = useState(false)
   const [isReviewVisible, setIsReviewVisible] = useState(false)
 
@@ -61,12 +58,8 @@ export function MultiViewCaptureScreen() {
     ])
   }, [reset])
 
-  const onCameraError = useCallback((error: CameraRuntimeError) => {
-    console.warn('[Camera] Error:', error.code, error.message)
-  }, [])
-
-  // ── Permission / device guards ──────────────────────────────────────────
-  if (!hasPermission) {
+  // ── Permission guard ──────────────────────────────────────────────────────
+  if (!permission?.granted) {
     return (
       <View style={styles.permissionContainer}>
         <Text style={styles.permissionTitle}>Camera Permission Required</Text>
@@ -86,57 +79,39 @@ export function MultiViewCaptureScreen() {
     )
   }
 
-  if (!device) {
-    return (
-      <View style={styles.permissionContainer}>
-        <Text style={styles.permissionTitle}>No Camera Available</Text>
-        <Text style={styles.permissionText}>Could not find a back camera on this device.</Text>
-        <Pressable
-          style={[styles.permissionButton, styles.backButton]}
-          onPress={() => router.back()}
-        >
-          <Text style={styles.backButtonText}>Go Back</Text>
-        </Pressable>
-      </View>
-    )
-  }
-
   // ── Main screen ─────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
-      {/* Camera preview */}
-      <Camera
-        ref={cameraRef}
+      {/* ViroReact AR camera — replaces react-native-vision-camera */}
+      <ViroARSceneNavigator
+        ref={arNavigatorRef}
         style={StyleSheet.absoluteFill}
-        device={device}
-        isActive={true}
-        photo={true}
-        torch={torchOn ? 'on' : 'off'}
-        onError={onCameraError}
+        autofocus={true}
+        initialScene={{
+          scene: () => (
+            <ARCaptureScene
+              capturedSlots={capturedSlots}
+              currentSlot={dwell.currentSlot}
+              hideAnchors={dwell.hideAnchors}
+              onCameraTransformUpdate={dwell.onCameraTransformUpdate}
+              onTrackingUpdated={dwell.onTrackingUpdated}
+            />
+          ),
+        }}
+        worldAlignment='GravityAndHeading'
       />
 
-      {/* Camera initializing */}
-      {!guidance.isCameraReady && (
-        <View style={styles.initOverlay}>
-          <Text style={styles.initText}>Initializing camera...</Text>
-        </View>
+      {/* HUD overlay — crosshair + dwell ring + status pill (hidden during screenshot) */}
+      {!dwell.hideAnchors && (
+        <ARHudOverlay
+          status={dwell.status}
+          message={dwell.message}
+          dwellProgress={dwell.dwellProgress}
+          isTracking={dwell.isTracking}
+          yaw={dwell.yaw}
+          pitch={dwell.pitch}
+        />
       )}
-
-      {/* Guidance crosshair */}
-      <GuidanceOverlay
-        message={guidance.message}
-        status={guidance.status}
-        yaw={guidance.yaw}
-        pitch={guidance.pitch}
-      />
-
-      {/* AR target reticles — projected onto the viewfinder */}
-      <ARTargetsOverlay
-        capturedSlots={capturedSlots}
-        currentYaw={guidance.yaw}
-        currentSlot={guidance.currentSlot}
-        status={guidance.status}
-      />
 
       {/* ── TOP BAR ─────────────────────────────────────────────────────── */}
       <View style={styles.topBar}>
@@ -156,40 +131,8 @@ export function MultiViewCaptureScreen() {
           />
         </View>
 
-        {/* Flash / torch */}
-        <Pressable
-          style={[styles.topIconBtn, torchOn && styles.topIconBtnActive]}
-          onPress={() => setTorchOn((v) => !v)}
-          hitSlop={12}
-        >
-          {torchOn ? (
-            <Zap size={20} color='#F59E0B' fill='#F59E0B' strokeWidth={2} />
-          ) : (
-            <ZapOff size={20} color='rgba(255,255,255,0.6)' strokeWidth={2} />
-          )}
-        </Pressable>
-      </View>
-
-      {/* ── MIDDLE OVERLAY (coverage widget) ───────────────────────────── */}
-      <View style={styles.middleArea} pointerEvents='none'>
-        {showGrid && (
-          <View style={styles.gridArea}>
-            {gridMode === 'sphere' ? (
-              <Sphere3DCoverage
-                capturedSlots={capturedSlots}
-                currentYaw={guidance.yaw}
-                currentPitch={guidance.pitch}
-                currentSlot={guidance.currentSlot}
-              />
-            ) : (
-              <CompassCoverage
-                capturedSlots={capturedSlots}
-                currentYaw={guidance.yaw}
-                currentSlot={guidance.currentSlot}
-              />
-            )}
-          </View>
-        )}
+        {/* Spacer to balance the close button */}
+        <View style={styles.topIconBtn} />
       </View>
 
       {/* ── BOTTOM BAR ──────────────────────────────────────────────────── */}
@@ -221,34 +164,8 @@ export function MultiViewCaptureScreen() {
           <View style={styles.doneBtnInner} />
         </Pressable>
 
-        {/* RIGHT: grid toggle + mode toggle */}
-        <View style={styles.bottomRight}>
-          <Pressable
-            style={[styles.smallIconBtn, showGrid && styles.smallIconBtnOn]}
-            onPress={() => setShowGrid((v) => !v)}
-            hitSlop={10}
-          >
-            <Grid3x3
-              size={18}
-              color={showGrid ? '#FFFFFF' : 'rgba(255,255,255,0.45)'}
-              strokeWidth={2}
-            />
-          </Pressable>
-
-          {showGrid && (
-            <Pressable
-              style={[styles.smallIconBtn, styles.smallIconBtnOn]}
-              onPress={() => setGridMode((m) => (m === 'sphere' ? 'compass' : 'sphere'))}
-              hitSlop={10}
-            >
-              {gridMode === 'sphere' ? (
-                <Box size={18} color='#FFFFFF' strokeWidth={2} />
-              ) : (
-                <Compass size={18} color='#FFFFFF' strokeWidth={2} />
-              )}
-            </Pressable>
-          )}
-        </View>
+        {/* RIGHT: spacer to balance left side */}
+        <View style={styles.bottomRight} />
       </View>
 
       {/* Review modal */}
@@ -317,19 +234,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
   },
 
-  // ── Init overlay
-  initOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-  },
-  initText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: 'PlusJakartaSans_500Medium',
-  },
-
   // ── Top bar
   topBar: {
     position: 'absolute',
@@ -354,10 +258,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  topIconBtnActive: {
-    backgroundColor: 'rgba(245,158,11,0.15)',
-    borderColor: 'rgba(245,158,11,0.35)',
-  },
   topCenter: {
     flex: 1,
     alignItems: 'center',
@@ -369,18 +269,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: 'PlusJakartaSans_800ExtraBold',
     letterSpacing: 2,
-  },
-
-  // ── Middle coverage area
-  middleArea: {
-    position: 'absolute',
-    bottom: 120,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-  },
-  gridArea: {
-    alignItems: 'center',
   },
 
   // ── Bottom bar
@@ -448,10 +336,6 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  smallIconBtnOn: {
-    backgroundColor: 'rgba(112,101,240,0.18)',
-    borderColor: 'rgba(112,101,240,0.35)',
   },
 
   // Centre — Done button (classic camera shutter style)

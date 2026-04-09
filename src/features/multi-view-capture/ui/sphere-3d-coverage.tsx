@@ -130,7 +130,6 @@ export const Sphere3DCoverage = React.memo(function Sphere3DCoverage(props: Sphe
         <CoverageGlobe
           capturedSlots={props.capturedSlots}
           currentYaw={props.currentYaw}
-          currentPitch={props.currentPitch}
           currentSlot={props.currentSlot}
         />
       </Canvas>

@@ -39,7 +39,8 @@ export function WorldViewerScreen() {
   const { propertyId, roomName } = useLocalSearchParams<{ propertyId: string; roomName: string }>()
   const router = useRouter()
 
-  const [threeDMedia, setThreeDMedia] = useState<PropertyDetailMedia | null>(null)
+  const [allRooms, setAllRooms] = useState<PropertyDetailMedia[]>([])
+  const [selectedRoomIndex, setSelectedRoomIndex] = useState(0)
   const [isLoadingData, setIsLoadingData] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [quality, setQuality] = useState<SplatQuality>('100k')
@@ -60,17 +61,23 @@ export function WorldViewerScreen() {
         if (cancelled) return
 
         const detail = res.data
-        const media3d = roomName
-          ? (detail?.media?.find((m: PropertyDetailMedia) => {
-              const rName = (m.metadata?.room_name as string) || 'Unnamed Room'
-              return m.media_type === 'THREE_D' && rName === roomName
-            }) ?? null)
-          : (detail?.media?.find((m: PropertyDetailMedia) => m.media_type === 'THREE_D') ?? null)
+        const rooms =
+          detail?.media?.filter((m: PropertyDetailMedia) => m.media_type === 'THREE_D') ?? []
 
-        if (!media3d) {
+        if (rooms.length === 0) {
           setFetchError('No 3D tour found for this property.')
         }
-        setThreeDMedia(media3d)
+
+        setAllRooms(rooms)
+
+        // Find the index matching roomName param (if provided), else default to 0
+        if (roomName && rooms.length > 0) {
+          const idx = rooms.findIndex((m: PropertyDetailMedia) => {
+            const rName = (m.metadata?.room_name as string) || 'Unnamed Room'
+            return rName === roomName
+          })
+          setSelectedRoomIndex(idx >= 0 ? idx : 0)
+        }
       } catch {
         if (!cancelled) {
           setFetchError('Failed to load property data.')
@@ -88,6 +95,9 @@ export function WorldViewerScreen() {
     }
   }, [propertyId])
 
+  // Derived: currently active room media item
+  const threeDMedia = allRooms[selectedRoomIndex] ?? null
+
   const spzUrls = useMemo(() => {
     if (!threeDMedia) return {} as SpzUrls
     return extractSpzUrls(threeDMedia)
@@ -103,6 +113,12 @@ export function WorldViewerScreen() {
       setQuality(availableQualities[0])
     }
   }, [availableQualities, quality, spzUrls])
+
+  // Reset WebView error state when room changes
+  useEffect(() => {
+    setHasWebViewError(false)
+    setIsWebViewLoading(true)
+  }, [selectedRoomIndex])
 
   const currentSpzUrl = spzUrls[quality]
 
@@ -227,6 +243,29 @@ export function WorldViewerScreen() {
         </View>
       </View>
 
+      {/* Room switcher (only when multiple rooms available) */}
+      {allRooms.length > 1 && (
+        <View style={styles.roomBar}>
+          {allRooms.map((room, index) => {
+            const name = (room.metadata?.room_name as string) || `Phòng ${index + 1}`
+            return (
+              <Pressable
+                key={room.media_id}
+                style={[styles.roomButton, selectedRoomIndex === index && styles.roomButtonActive]}
+                onPress={() => setSelectedRoomIndex(index)}
+              >
+                <Text
+                  style={[styles.roomText, selectedRoomIndex === index && styles.roomTextActive]}
+                  numberOfLines={1}
+                >
+                  {name}
+                </Text>
+              </Pressable>
+            )
+          })}
+        </View>
+      )}
+
       {/* Quality selector (only when multiple qualities available) */}
       {availableQualities.length > 1 && (
         <View style={styles.qualityBar}>
@@ -309,6 +348,36 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(31, 41, 55, 0.9)',
     borderRadius: 20,
     padding: 4,
+  },
+  roomBar: {
+    position: 'absolute',
+    bottom: 104,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 6,
+    maxWidth: '90%',
+  },
+  roomButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: 'rgba(31, 41, 55, 0.9)',
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  roomButtonActive: {
+    backgroundColor: '#7065F0',
+    borderColor: '#7065F0',
+  },
+  roomText: {
+    color: '#9CA3AF',
+    fontSize: 13,
+    fontFamily: 'PlusJakartaSans_500Medium',
+  },
+  roomTextActive: {
+    color: '#FFFFFF',
   },
   qualityButton: {
     paddingHorizontal: 16,
