@@ -10,16 +10,16 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { useAuthStore } from '@/entities/user'
 import { AppProviders } from '@/shared/config/providers'
 import { useColorScheme } from '@/shared/lib/hooks/use-color-scheme'
 import { GluestackUIProvider } from '@/shared/ui/gluestack-ui-provider'
 import { MobileHeader } from '@/widgets/mobile-header'
+import { TopNav } from '@/widgets/top-nav'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import '../global.css'
 
 const _AUTH_GROUP = '(auth)'
-const _HOME_GROUP = '(tabs)'
+const _DEFAULT_PAGE = '/(tabs)/explore'
 
 export const unstable_settings = {
   anchor: '(tabs)/explore',
@@ -27,15 +27,11 @@ export const unstable_settings = {
 
 SplashScreen.preventAutoHideAsync()
 
-const _AUTH_GROUP = '(auth)'
-const _DEFAULT_PAGE = '/(tabs)/explore'
-
 export default function RootLayout() {
   const colorScheme = useColorScheme()
   const segments = useSegments()
   const router = useRouter()
   const rootNavigationState = useRootNavigationState()
-  const segments = useSegments()
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const token = useAuthStore((state) => state.token)
   const logout = useAuthStore((state) => state.logout)

@@ -1,5 +1,5 @@
-import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
-import type { Notification, PaginatedNotificationResponse } from '../model/types'
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { PaginatedNotificationResponse } from '../model/types'
 import { notificationApi } from './index'
 import { notificationKeys } from './keys'
 import { PaginatedNotificationResponseSchema } from '../model/schema'
@@ -43,14 +43,17 @@ export const notificationQueries = {
 
   /**
    * Get unread notification count
+   * Derived from the notification list since no dedicated endpoint exists
    */
   unreadCount: () =>
     queryOptions({
       queryKey: notificationKeys.unreadCount(),
       queryFn: async () => {
         try {
-          const res = await notificationApi.getUnreadCount()
-          return res.data.count
+          const res = await notificationApi.getNotifications(0, 100)
+          const data = res.data
+          if (!data?.content) return 0
+          return data.content.filter((n) => !n.is_read).length
         } catch {
           return 0
         }
@@ -61,6 +64,14 @@ export const notificationQueries = {
       retry: false,
     }),
 } as const
+
+/**
+ * Hook: Get unread notification count
+ */
+export const useUnreadCount = () => {
+  const { data: count = 0, isLoading } = useQuery(notificationQueries.unreadCount())
+  return { count, isLoading }
+}
 
 /**
  * Mutation: Mark single notification as read

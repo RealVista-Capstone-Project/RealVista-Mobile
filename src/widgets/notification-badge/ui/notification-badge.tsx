@@ -2,6 +2,10 @@
  * Notification Badge Widget
  * Displays unread notification count on tab bar or other UI elements
  */
+import { Box } from '@/shared/ui/box'
+import { Text } from '@/shared/ui/text'
+import { useUnreadCount } from '@/entities/notification'
+
 export function NotificationBadge() {
   const { count, isLoading } = useUnreadCount()
 
