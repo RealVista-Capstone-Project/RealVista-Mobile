@@ -1,6 +1,7 @@
 import { useDrawerStore } from '@/shared/stores/drawer-store'
 import { IconSymbol } from '@/shared/ui/icon-symbol'
-import { useRouter } from 'expo-router'
+import { NotificationBadge } from '@/widgets/notification-badge'
+import { Href, useRouter } from 'expo-router'
 import { Text, TouchableOpacity, View } from 'react-native'
 import { MenuIcon } from '../../../../assets/icon/menu'
 import { NotificationIcon } from '../../../../assets/icon/notification'
@@ -15,6 +16,10 @@ export function TopNav({ title, showBack }: { title?: string; showBack?: boolean
 
   const handleBackPress = () => {
     router.back()
+  }
+
+  const handleNotificationPress = () => {
+    router.push('/notifications' as Href)
   }
 
   return (
@@ -40,8 +45,9 @@ export function TopNav({ title, showBack }: { title?: string; showBack?: boolean
       {/* Right Side - Notifications & User Avatar */}
       <View className='flex-row items-center gap-3'>
         {/* Notification Button */}
-        <TouchableOpacity className='p-2'>
+        <TouchableOpacity onPress={handleNotificationPress} className='relative p-2'>
           <NotificationIcon />
+          <NotificationBadge />
         </TouchableOpacity>
 
         {/* User Avatar with Dropdown */}

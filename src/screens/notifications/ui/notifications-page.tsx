@@ -3,7 +3,6 @@ import { Box } from '@/shared/ui/box'
 import { Text } from '@/shared/ui/text'
 import { useNotifications } from '@/features/notifications'
 import { NotificationItem } from './components'
-
 import IconLucide from '@/shared/ui/icon-lucide/icon'
 
 export function NotificationsPage() {
@@ -28,19 +27,19 @@ export function NotificationsPage() {
   return (
     <Box className='flex-1 bg-white'>
       {/* Header */}
-      <Box className='border-b border-gray-100 bg-white px-6 py-4'>
+      <Box className='bg-white px-5 pb-2 pt-4'>
         <Box className='flex-row items-center justify-between'>
-          <Text size='2xl' bold className='text-main-black'>
-            Thông báo
-          </Text>
+          <Text className='font-jakarta-bold text-2xl text-main-black'>Thông báo</Text>
           {notifications.some((n) => !n.is_read) && (
             <TouchableOpacity
               onPress={() => markAllAsRead()}
               disabled={isMarkingAllAsRead}
-              className='flex-row items-center gap-2'
+              className='flex-row items-center gap-1.5'
             >
               <IconLucide name='CheckCheck' size={18} color='#7065F0' />
-              <Text className='text-brand-primary'>Đánh dấu tất cả</Text>
+              <Text className='font-jakarta-medium text-sm text-brand-primary'>
+                Đánh dấu đã đọc
+              </Text>
             </TouchableOpacity>
           )}
         </Box>
@@ -57,18 +56,36 @@ export function NotificationsPage() {
           />
         )}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
+        contentContainerStyle={
+          notifications.length === 0
+            ? { flex: 1 }
+            : { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 24 }
+        }
+        ItemSeparatorComponent={() => <Box className='h-3' />}
         ListEmptyComponent={
-          <Box className='items-center justify-center p-12'>
-            <Box className='mb-4 h-20 w-20 items-center justify-center rounded-full bg-gray-100'>
-              <IconLucide name='Bell' size={40} color='#808494' />
+          <Box className='flex-1 items-center justify-center p-12'>
+            <Box className='mb-4 h-20 w-20 items-center justify-center rounded-full bg-purple-98'>
+              <IconLucide name='Bell' size={40} color='#9EA3AE' />
             </Box>
-            <Text className='mb-2 text-lg font-bold text-main-black'>Không có thông báo</Text>
-            <Text className='text-center text-main-black/50'>
+            <Text className='mb-2 font-jakarta-bold text-lg text-main-black'>
+              Không có thông báo
+            </Text>
+            <Text className='text-center font-jakarta text-sm text-text-muted'>
               Bạn sẽ nhận được thông báo về tin đăng mới, thay đổi giá và lịch hẹn tại đây
             </Text>
           </Box>
         }
-        contentContainerStyle={notifications.length === 0 ? { flex: 1 } : undefined}
+        ListFooterComponent={
+          notifications.length > 0 ? (
+            <Box className='items-center pb-4 pt-3'>
+              <TouchableOpacity>
+                <Text className='font-jakarta-semibold text-sm text-brand-primary'>
+                  Xem tất cả thông báo
+                </Text>
+              </TouchableOpacity>
+            </Box>
+          ) : null
+        }
       />
     </Box>
   )

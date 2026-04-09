@@ -1,33 +1,38 @@
-import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query'
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { PaginatedNotificationResponse } from '../model/types'
 import { notificationApi } from './index'
 import { notificationKeys } from './keys'
-import { NotificationListResponseSchema } from '../model/schema'
+import { PaginatedNotificationResponseSchema } from '../model/schema'
 
 /**
  * Notification Query Factory
  * TanStack Query v5 queryOptions for type-safe queries
+ *
+ * Backend contract (notification-plan.md):
+ *   GET /api/v1/notifications?page=0&size=20
+ *   Response: { success, data: { content, page, size, total_elements, total_pages } }
  */
 export const notificationQueries = {
   /**
    * Get paginated list of notifications
+   * page is 0-indexed (Spring Page convention)
    */
-  list: (page = 1, limit = 20) =>
+  list: (page = 0, size = 20) =>
     queryOptions({
       queryKey: notificationKeys.list(page),
-      queryFn: async () => {
-        const res = await notificationApi.getNotifications(page, limit)
+      queryFn: async (): Promise<PaginatedNotificationResponse> => {
+        const res = await notificationApi.getNotifications(page, size)
 
-        // Validate response with Zod
-        const validated = NotificationListResponseSchema.safeParse(res.data)
+        // Backend wraps data in { success, data: { content, ... } }
+        const validated = PaginatedNotificationResponseSchema.safeParse(res.data)
 
         if (!validated.success) {
           console.error('Invalid notification list response:', validated.error)
           throw new Error('Invalid notification data received')
         }
 
-        return validated.data
+        return validated.data as PaginatedNotificationResponse
       },
-      enabled: true,
       staleTime: 30 * 1000, // 30 seconds
       gcTime: 5 * 60 * 1000, // 5 minutes
       retry: 2,
@@ -38,14 +43,17 @@ export const notificationQueries = {
 
   /**
    * Get unread notification count
+   * Derived from the notification list since no dedicated endpoint exists
    */
   unreadCount: () =>
     queryOptions({
       queryKey: notificationKeys.unreadCount(),
       queryFn: async () => {
         try {
-          const res = await notificationApi.getUnreadCount()
-          return res.data.count
+          const res = await notificationApi.getNotifications(0, 100)
+          const data = res.data
+          if (!data?.content) return 0
+          return data.content.filter((n) => !n.is_read).length
         } catch {
           return 0
         }
@@ -58,7 +66,16 @@ export const notificationQueries = {
 } as const
 
 /**
- * Mutation: Mark notification as read
+ * Hook: Get unread notification count
+ */
+export const useUnreadCount = () => {
+  const { data: count = 0, isLoading } = useQuery(notificationQueries.unreadCount())
+  return { count, isLoading }
+}
+
+/**
+ * Mutation: Mark single notification as read
+ * PUT /api/v1/notifications/{id}/read
  */
 export const useMarkAsRead = () => {
   const queryClient = useQueryClient()
@@ -69,27 +86,27 @@ export const useMarkAsRead = () => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: notificationKeys.lists() })
 
-      // Optimistically update cache
-      queryClient.setQueriesData({ queryKey: notificationKeys.lists() }, (old: any) => {
-        if (!old) return old
-        return {
-          ...old,
-          data: old.data.map((notification: any) =>
-            notification.notification_id === notificationId
-              ? { ...notification, is_read: true }
-              : notification
-          ),
+      // Optimistically update cache — mark notification as read in content[]
+      queryClient.setQueriesData(
+        { queryKey: notificationKeys.lists() },
+        (old: PaginatedNotificationResponse | undefined) => {
+          if (!old) return old
+          return {
+            ...old,
+            content: old.content.map((notification) =>
+              notification.notification_id === notificationId
+                ? { ...notification, is_read: true }
+                : notification
+            ),
+          }
         }
-      })
+      )
     },
     onSuccess: () => {
-      // Invalidate queries to refetch
       queryClient.invalidateQueries({ queryKey: notificationKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() })
     },
-    onError: (error, notificationId, context) => {
-      console.error('Failed to mark notification as read:', error)
-      // Rollback optimistic update on error
+    onError: () => {
+      console.error('Failed to mark notification as read')
       queryClient.invalidateQueries({ queryKey: notificationKeys.lists() })
     },
   })
@@ -97,15 +114,34 @@ export const useMarkAsRead = () => {
 
 /**
  * Mutation: Mark all notifications as read
+ * PUT /api/v1/notifications/read-all
  */
 export const useMarkAllAsRead = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: () => notificationApi.markAllAsRead(),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: notificationKeys.lists() })
+
+      // Optimistically mark all as read in cache
+      queryClient.setQueriesData(
+        { queryKey: notificationKeys.lists() },
+        (old: PaginatedNotificationResponse | undefined) => {
+          if (!old) return old
+          return {
+            ...old,
+            content: old.content.map((notification) => ({ ...notification, is_read: true })),
+          }
+        }
+      )
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: notificationKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() })
+    },
+    onError: () => {
+      console.error('Failed to mark all notifications as read')
+      queryClient.invalidateQueries({ queryKey: notificationKeys.lists() })
     },
   })
 }
@@ -120,7 +156,6 @@ export const useDeleteNotification = () => {
     mutationFn: (notificationId: string) => notificationApi.deleteNotification(notificationId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: notificationKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() })
     },
   })
 }

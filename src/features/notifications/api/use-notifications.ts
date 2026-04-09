@@ -1,22 +1,29 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { notificationQueries, useMarkAsRead, useMarkAllAsRead } from '@/entities/notification'
+import type { Notification } from '@/entities/notification'
 
 /**
  * Feature Hook: Get Notifications List
- * Provides notifications with pagination and mark-as-read functionality
+ * Provides notifications with pagination and mark-as-read functionality.
+ *
+ * Backend returns Spring Page-style response:
+ *   { content, page, size, total_elements, total_pages }
+ *
+ * page param is 0-indexed (Spring convention)
  */
-export function useNotifications(page = 1, limit = 20) {
-  const query = useQuery(notificationQueries.list(page, limit))
+export function useNotifications(page = 0, size = 20) {
+  const query = useQuery(notificationQueries.list(page, size))
   const markAsRead = useMarkAsRead()
   const markAllAsRead = useMarkAllAsRead()
 
   return useMemo(
     () => ({
-      notifications: query.data?.data ?? [],
-      total: query.data?.total ?? 0,
+      notifications: query.data?.content ?? [],
+      totalElements: query.data?.total_elements ?? 0,
+      totalPages: query.data?.total_pages ?? 0,
       page: query.data?.page ?? page,
-      limit: query.data?.limit ?? limit,
+      size: query.data?.size ?? size,
       isLoading: query.isLoading,
       isError: query.isError,
       error: query.error,
@@ -26,25 +33,28 @@ export function useNotifications(page = 1, limit = 20) {
       isMarkingAsRead: markAsRead.isPending,
       isMarkingAllAsRead: markAllAsRead.isPending,
     }),
-    [query, markAsRead, markAllAsRead, page, limit]
+    [query, markAsRead, markAllAsRead, page, size]
   )
 }
 
 /**
  * Feature Hook: Get Unread Notification Count
- * Provides unread count with auto-refresh
+ *
+ * The backend has no dedicated unread-count endpoint.
+ * Count is derived client-side from the notification list already in cache.
  */
 export function useUnreadCount() {
-  const query = useQuery(notificationQueries.unreadCount())
+  const query = useQuery(notificationQueries.list(0, 100))
 
-  return useMemo(
-    () => ({
-      count: query.data ?? 0,
+  return useMemo(() => {
+    const unreadCount = query.data?.content?.filter((n: Notification) => !n.is_read).length ?? 0
+
+    return {
+      count: unreadCount,
       isLoading: query.isLoading,
       isError: query.isError,
       error: query.error,
       refetch: query.refetch,
-    }),
-    [query]
-  )
+    }
+  }, [query])
 }
