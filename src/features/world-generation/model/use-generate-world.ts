@@ -53,14 +53,14 @@ export function useGenerateWorld() {
         setState((prev) => ({
           ...prev,
           phase: 'succeeded',
-          progressDescription: 'World generation complete!',
+          progressDescription: 'Phòng 3D đã tạo xong!',
         }))
 
         // Send notification if in background
         if (!isForegroundRef.current) {
           NotificationService.scheduleLocalNotification(
-            '3D World Ready!',
-            'Your 3D tour has been generated successfully.',
+            'Phòng 3D đã sẵn sàng!',
+            'Phòng 3D của bạn đã được tạo thành công.',
             { propertyId: propertyIdRef.current }
           )
         }
@@ -82,7 +82,7 @@ export function useGenerateWorld() {
       setState((prev) => ({
         ...prev,
         phase: 'polling',
-        progressDescription: 'Backend is processing your 3D generation...',
+        progressDescription: 'Đang xử lý phòng 3D của bạn...',
       }))
     },
     [markComplete, markFailed, stopPolling]
@@ -161,7 +161,7 @@ export function useGenerateWorld() {
       setState({
         phase: 'requesting',
         propertyId: params.propertyId,
-        progressDescription: 'Submitting 3D generation request to backend...',
+        progressDescription: 'Đang gửi yêu cầu tạo phòng 3D...',
         error: null,
       })
 
@@ -181,12 +181,12 @@ export function useGenerateWorld() {
           ...prev,
           phase: 'polling',
           progressDescription:
-            'Generation accepted! Backend is processing. You can safely leave this screen.',
+            'Yêu cầu đã được gửi! Đang xử lý phòng 3D. Bạn có thể rời khỏi màn hình này.',
         }))
 
         startPolling(params.propertyId)
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Failed to start generation'
+        const message = error instanceof Error ? error.message : 'Không thể bắt đầu tạo phòng 3D'
         setState((prev) => ({ ...prev, phase: 'failed', error: message }))
         markFailed({ code: 500, message })
       }
@@ -203,7 +203,7 @@ export function useGenerateWorld() {
       setState({
         phase: 'polling',
         propertyId: propId,
-        progressDescription: 'Resuming generation tracking...',
+        progressDescription: 'Đang tiếp tục theo dõi quá trình tạo...',
         error: null,
       })
       startPolling(propId)

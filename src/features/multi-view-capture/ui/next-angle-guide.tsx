@@ -60,27 +60,27 @@ export const NextAngleGuide = React.memo(function NextAngleGuide({
 
     if (Math.abs(deltaPitch) > pitchThreshold) {
       if (deltaPitch > 0) {
-        parts.push('Tilt up')
+        parts.push('Ngẩng lên')
         arrow = '↑'
       } else {
-        parts.push('Tilt down')
+        parts.push('Cúi xuống')
         arrow = '↓'
       }
     }
 
     if (Math.abs(deltaYaw) > yawThreshold) {
       if (deltaYaw > 0) {
-        parts.push('Turn right')
+        parts.push('Quay phải')
         arrow = parts.length > 1 ? '↗' : '→'
       } else {
-        parts.push('Turn left')
+        parts.push('Quay trái')
         arrow = parts.length > 1 ? '↖' : '←'
       }
     }
 
     // Fix combined arrows
-    if (parts.includes('Tilt down') && parts.includes('Turn right')) arrow = '↘'
-    if (parts.includes('Tilt down') && parts.includes('Turn left')) arrow = '↙'
+    if (parts.includes('Cúi xuống') && parts.includes('Quay phải')) arrow = '↘'
+    if (parts.includes('Cúi xuống') && parts.includes('Quay trái')) arrow = '↙'
 
     if (parts.length === 0) return null // Already at nearest slot
 
@@ -90,7 +90,7 @@ export const NextAngleGuide = React.memo(function NextAngleGuide({
   if (!guide) {
     return (
       <View style={styles.container}>
-        <Text style={styles.completeText}>✓ All angles covered!</Text>
+        <Text style={styles.completeText}>✓ Đã bao phủ tất cả góc độ!</Text>
       </View>
     )
   }

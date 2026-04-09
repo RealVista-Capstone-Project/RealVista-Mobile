@@ -13,7 +13,6 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
-  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -32,6 +31,138 @@ import type { MarbleModel } from '@/shared/api/marble-client'
 import { useGenerateWorld } from '@/features/world-generation/model/use-generate-world'
 import { useUploadImages } from '@/features/world-generation/model/use-upload-images'
 import { ModelSelector } from '@/features/world-generation/ui/model-selector'
+
+// ── Skeleton primitives ────────────────────────────────────────────────────────
+
+function SkeletonBox({
+  width,
+  height,
+  style,
+}: {
+  width?: number | string
+  height: number
+  style?: object
+}) {
+  const shimmer = useRef(new Animated.Value(0)).current
+
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmer, {
+          toValue: 1,
+          duration: 900,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmer, {
+          toValue: 0,
+          duration: 900,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    )
+    anim.start()
+    return () => anim.stop()
+  }, [shimmer])
+
+  const opacity = shimmer.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0.7] })
+
+  return (
+    <Animated.View
+      style={[
+        { width: width ?? '100%', height, borderRadius: 10, backgroundColor: '#D1D5DB', opacity },
+        style,
+      ]}
+    />
+  )
+}
+
+function UploadSkeletonCard({
+  currentIndex,
+  totalImages,
+}: {
+  currentIndex: number
+  totalImages: number
+}) {
+  const pct = totalImages > 0 ? (currentIndex / totalImages) * 100 : 0
+  const fillAnim = useRef(new Animated.Value(pct)).current
+
+  useEffect(() => {
+    Animated.timing(fillAnim, { toValue: pct, duration: 400, useNativeDriver: false }).start()
+  }, [pct, fillAnim])
+
+  return (
+    <View style={skeletonStyles.card}>
+      {/* Header row */}
+      <View style={skeletonStyles.row}>
+        <SkeletonBox width={40} height={40} style={{ borderRadius: 12 }} />
+        <View style={{ flex: 1, gap: 8, marginLeft: 12 }}>
+          <SkeletonBox width='60%' height={14} />
+          <SkeletonBox width='40%' height={10} />
+        </View>
+        <View style={skeletonStyles.badge}>
+          <Text style={skeletonStyles.badgeText}>
+            {currentIndex}/{totalImages}
+          </Text>
+        </View>
+      </View>
+
+      {/* Progress bar */}
+      <View style={skeletonStyles.trackWrap}>
+        <View style={skeletonStyles.track}>
+          <Animated.View
+            style={[
+              skeletonStyles.fill,
+              {
+                width: fillAnim.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] }),
+              },
+            ]}
+          />
+        </View>
+        <Text style={skeletonStyles.pctText}>{Math.round(pct)}%</Text>
+      </View>
+
+      {/* Skeleton lines */}
+      <View style={{ gap: 10 }}>
+        <SkeletonBox height={12} width='80%' />
+        <SkeletonBox height={12} width='55%' />
+      </View>
+    </View>
+  )
+}
+
+function PollingSkeletonCard() {
+  return (
+    <View style={skeletonStyles.card}>
+      {/* Icon + title */}
+      <View style={skeletonStyles.row}>
+        <SkeletonBox width={40} height={40} style={{ borderRadius: 12 }} />
+        <View style={{ flex: 1, gap: 8, marginLeft: 12 }}>
+          <SkeletonBox width='70%' height={14} />
+          <SkeletonBox width='45%' height={10} />
+        </View>
+        <ActivityIndicator color='#7065F0' size='small' />
+      </View>
+
+      {/* Fake content lines */}
+      <View style={{ gap: 10, marginTop: 4 }}>
+        <SkeletonBox height={12} width='90%' />
+        <SkeletonBox height={12} width='65%' />
+        <SkeletonBox height={12} width='75%' />
+      </View>
+
+      {/* Fake step indicators */}
+      <View style={skeletonStyles.steps}>
+        {[1, 2, 3, 4].map((i) => (
+          <View key={i} style={[skeletonStyles.step, i === 1 && skeletonStyles.stepActive]} />
+        ))}
+        <View style={{ flex: 1 }} />
+        <SkeletonBox width={60} height={10} />
+      </View>
+    </View>
+  )
+}
 
 export function WorldGenerationScreen() {
   const router = useRouter()
@@ -253,32 +384,16 @@ export function WorldGenerationScreen() {
               </View>
             )}
 
-            {/* Upload progress */}
+            {/* Upload skeleton */}
             {upload.isUploading && (
-              <View style={styles.progressArea}>
-                <View style={styles.progressTrack}>
-                  <View
-                    style={[
-                      styles.progressFill,
-                      { width: `${(upload.currentIndex / upload.totalImages) * 100}%` },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.progressLabel}>
-                  {Math.round((upload.currentIndex / upload.totalImages) * 100)}% hoàn thành
-                </Text>
-              </View>
+              <UploadSkeletonCard
+                currentIndex={upload.currentIndex}
+                totalImages={upload.totalImages}
+              />
             )}
 
-            {/* Polling card */}
-            {isPolling && (
-              <View style={styles.pollingCard}>
-                <ActivityIndicator color='#7065F0' size='small' />
-                <Text style={styles.pollingText}>
-                  Đang xử lý tại trung tâm AI. Bạn có thể rời màn hình này.
-                </Text>
-              </View>
-            )}
+            {/* Polling skeleton */}
+            {isPolling && <PollingSkeletonCard />}
 
             {/* Tip card */}
             {!started && (
@@ -497,47 +612,6 @@ const styles = StyleSheet.create({
     fontFamily: 'PlusJakartaSans_500Medium',
     lineHeight: 20,
   },
-  // Progress
-  progressArea: {
-    marginBottom: 16,
-  },
-  progressTrack: {
-    height: 6,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 3,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#7065F0',
-    borderRadius: 3,
-  },
-  progressLabel: {
-    color: '#6B7280',
-    fontSize: 12,
-    fontFamily: 'PlusJakartaSans_500Medium',
-    marginTop: 6,
-    textAlign: 'right',
-  },
-  // Polling
-  pollingCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(112, 101, 240, 0.06)',
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(112, 101, 240, 0.15)',
-  },
-  pollingText: {
-    color: '#374151',
-    fontSize: 13,
-    fontFamily: 'PlusJakartaSans_500Medium',
-    flex: 1,
-    marginLeft: 12,
-    lineHeight: 20,
-  },
   // Tip
   tipCard: {
     flexDirection: 'row',
@@ -621,5 +695,73 @@ const styles = StyleSheet.create({
     color: '#374151',
     fontSize: 15,
     fontFamily: 'PlusJakartaSans_700Bold',
+  },
+})
+
+const skeletonStyles = StyleSheet.create({
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginBottom: 16,
+    gap: 16,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  badge: {
+    backgroundColor: 'rgba(112, 101, 240, 0.1)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  badgeText: {
+    color: '#7065F0',
+    fontSize: 12,
+    fontFamily: 'PlusJakartaSans_700Bold',
+  },
+  trackWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  track: {
+    flex: 1,
+    height: 6,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  fill: {
+    height: '100%',
+    backgroundColor: '#7065F0',
+    borderRadius: 3,
+  },
+  pctText: {
+    color: '#6B7280',
+    fontSize: 12,
+    fontFamily: 'PlusJakartaSans_500Medium',
+    minWidth: 36,
+    textAlign: 'right',
+  },
+  steps: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4,
+  },
+  step: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#D1D5DB',
+  },
+  stepActive: {
+    backgroundColor: '#7065F0',
+    width: 20,
+    borderRadius: 4,
   },
 })

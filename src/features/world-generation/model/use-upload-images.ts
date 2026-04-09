@@ -44,7 +44,7 @@ export function useUploadImages() {
 
       for (let i = 0; i < images.length; i++) {
         if (abortRef.current) {
-          setState((prev) => ({ ...prev, isUploading: false, error: 'Upload cancelled' }))
+          setState((prev) => ({ ...prev, isUploading: false, error: 'Tải lên đã bị hủy' }))
           return null
         }
 
