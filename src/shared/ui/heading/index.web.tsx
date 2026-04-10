@@ -164,24 +164,21 @@ const Heading = memo(
     const { isTruncated, bold, underline, strikeThrough, sub, italic, highlight } = props
 
     if (AsComp) {
-      const AnyComp = AsComp as React.ElementType<any>
-      return (
-        <AnyComp
-          className={headingStyle({
-            size,
-            isTruncated: isTruncated as boolean,
-            bold: bold as boolean,
-            underline: underline as boolean,
-            strikeThrough: strikeThrough as boolean,
-            sub: sub as boolean,
-            italic: italic as boolean,
-            highlight: highlight as boolean,
-            class: className,
-          })}
-          {...props}
-          ref={ref}
-        />
-      )
+      return React.createElement(AsComp, {
+        className: headingStyle({
+          size,
+          isTruncated: isTruncated as boolean,
+          bold: bold as boolean,
+          underline: underline as boolean,
+          strikeThrough: strikeThrough as boolean,
+          sub: sub as boolean,
+          italic: italic as boolean,
+          highlight: highlight as boolean,
+          class: className,
+        }),
+        ref,
+        ...props,
+      })
     }
 
     return <MappedHeading className={className} size={size} ref={ref} {...props} />
