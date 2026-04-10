@@ -45,7 +45,7 @@ export function buildSparkHTML(spzUrl: string): string {
 <body>
   <div id="loading">
     <div class="spinner"></div>
-    <div id="loading-text">Loading 3D World...</div>
+    <div id="loading-text">Đang tải phòng 3D...</div>
     <div id="loading-progress"></div>
   </div>
   <div id="error">
@@ -196,7 +196,7 @@ export function buildSparkHTML(spzUrl: string): string {
     } catch (err) {
       loadingEl.classList.add("hidden");
       errorEl.classList.add("show");
-      errorMsg.textContent = err.message || "Failed to load 3D world";
+      errorMsg.textContent = err.message || "Không thể tải phòng 3D";
     }
   </script>
 </body>

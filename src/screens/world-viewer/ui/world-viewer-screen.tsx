@@ -1,7 +1,18 @@
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { ExternalLink, Share2 } from 'lucide-react-native'
-import React, { useEffect, useMemo, useState } from 'react'
-import { ActivityIndicator, Linking, Pressable, Share, StyleSheet, Text, View } from 'react-native'
+import { ArrowLeft, ExternalLink } from 'lucide-react-native'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  ActivityIndicator,
+  Animated,
+  Linking,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native'
 import WebView from 'react-native-webview'
 
 import { propertyApi, type PropertyDetailMedia } from '@/entities/property'
@@ -9,31 +20,73 @@ import { propertyApi, type PropertyDetailMedia } from '@/entities/property'
 import { buildSparkHTML } from './spark-html'
 
 type SplatQuality = '100k' | '500k' | 'full_res'
-
 type SpzUrls = Partial<Record<SplatQuality, string>>
 
-/** Extract spz_urls from a THREE_D media item's metadata */
+const QUALITY_LABELS: Record<SplatQuality, string> = {
+  '100k': 'Nhanh',
+  '500k': 'Tiêu Chuẩn',
+  full_res: 'Chi Tiết',
+}
+
 function extractSpzUrls(media: PropertyDetailMedia): SpzUrls {
   const meta = media.metadata
   if (!meta) return {}
-
-  // metadata.marble_assets.splats.spz_urls
   const assets = meta.marble_assets as Record<string, unknown> | undefined
   if (!assets) return {}
-
   const splats = assets.splats as Record<string, unknown> | undefined
   if (!splats) return {}
-
   const urls = splats.spz_urls as Record<string, string> | undefined
   if (!urls) return {}
-
   const result: SpzUrls = {}
   if (urls['100k']) result['100k'] = urls['100k']
   if (urls['500k']) result['500k'] = urls['500k']
   if (urls.full_res) result.full_res = urls.full_res
-
   return result
 }
+
+// ── Room tab strip ─────────────────────────────────────────────────────────────
+
+type RoomTabsProps = {
+  rooms: PropertyDetailMedia[]
+  selected: number
+  onSelect: (i: number) => void
+}
+
+function RoomTabs({ rooms, selected, onSelect }: RoomTabsProps) {
+  const scrollRef = useRef<ScrollView>(null)
+  const indicatorAnim = useRef(new Animated.Value(0)).current
+
+  return (
+    <View style={tabStyles.wrapper}>
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={tabStyles.scroll}
+      >
+        {rooms.map((room, index) => {
+          const name = (room.metadata?.room_name as string) || `Phòng ${index + 1}`
+          const isActive = selected === index
+          return (
+            <TouchableOpacity
+              key={room.media_id}
+              style={tabStyles.tab}
+              onPress={() => onSelect(index)}
+              activeOpacity={0.7}
+            >
+              <Text style={[tabStyles.label, isActive && tabStyles.labelActive]} numberOfLines={1}>
+                {name}
+              </Text>
+              {isActive && <View style={tabStyles.underline} />}
+            </TouchableOpacity>
+          )
+        })}
+      </ScrollView>
+    </View>
+  )
+}
+
+// ── Main screen ────────────────────────────────────────────────────────────────
 
 export function WorldViewerScreen() {
   const { propertyId, roomName } = useLocalSearchParams<{ propertyId: string; roomName: string }>()
@@ -49,7 +102,7 @@ export function WorldViewerScreen() {
 
   useEffect(() => {
     if (!propertyId) {
-      setFetchError('No property ID provided')
+      setFetchError('Không tìm thấy mã bất động sản.')
       setIsLoadingData(false)
       return
     }
@@ -65,27 +118,22 @@ export function WorldViewerScreen() {
           detail?.media?.filter((m: PropertyDetailMedia) => m.media_type === 'THREE_D') ?? []
 
         if (rooms.length === 0) {
-          setFetchError('No 3D tour found for this property.')
+          setFetchError('Chưa có phòng 3D nào cho bất động sản này.')
         }
 
         setAllRooms(rooms)
 
-        // Find the index matching roomName param (if provided), else default to 0
         if (roomName && rooms.length > 0) {
           const idx = rooms.findIndex((m: PropertyDetailMedia) => {
-            const rName = (m.metadata?.room_name as string) || 'Unnamed Room'
+            const rName = (m.metadata?.room_name as string) || `Phòng ${0 + 1}`
             return rName === roomName
           })
           setSelectedRoomIndex(idx >= 0 ? idx : 0)
         }
       } catch {
-        if (!cancelled) {
-          setFetchError('Failed to load property data.')
-        }
+        if (!cancelled) setFetchError('Không thể tải dữ liệu bất động sản.')
       } finally {
-        if (!cancelled) {
-          setIsLoadingData(false)
-        }
+        if (!cancelled) setIsLoadingData(false)
       }
     }
 
@@ -95,7 +143,6 @@ export function WorldViewerScreen() {
     }
   }, [propertyId])
 
-  // Derived: currently active room media item
   const threeDMedia = allRooms[selectedRoomIndex] ?? null
 
   const spzUrls = useMemo(() => {
@@ -103,18 +150,17 @@ export function WorldViewerScreen() {
     return extractSpzUrls(threeDMedia)
   }, [threeDMedia])
 
-  const availableQualities = useMemo(() => {
-    return (['100k', '500k', 'full_res'] as const).filter((q) => !!spzUrls[q])
-  }, [spzUrls])
+  const availableQualities = useMemo(
+    () => (['100k', '500k', 'full_res'] as const).filter((q) => !!spzUrls[q]),
+    [spzUrls]
+  )
 
-  // Auto-select best available quality
   useEffect(() => {
     if (availableQualities.length > 0 && !spzUrls[quality]) {
       setQuality(availableQualities[0])
     }
   }, [availableQualities, quality, spzUrls])
 
-  // Reset WebView error state when room changes
   useEffect(() => {
     setHasWebViewError(false)
     setIsWebViewLoading(true)
@@ -129,77 +175,67 @@ export function WorldViewerScreen() {
 
   const mediaUrl = threeDMedia?.media_url
 
-  const handleShare = async () => {
-    if (!mediaUrl) return
-    try {
-      await Share.share({
-        message: `Check out this 3D tour: ${mediaUrl}`,
-        url: mediaUrl,
-      })
-    } catch {
-      // User cancelled
-    }
-  }
-
   const handleOpenExternal = () => {
-    if (mediaUrl) {
-      Linking.openURL(mediaUrl)
-    }
+    if (mediaUrl) Linking.openURL(mediaUrl)
   }
 
-  // Loading state
+  // ── Loading state ──────────────────────────────────────────────────────────
   if (isLoadingData) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator color='#3B82F6' size='large' />
-        <Text style={styles.loadingText}>Loading 3D Tour...</Text>
+      <View style={styles.center}>
+        <ActivityIndicator color='#7065F0' size='large' />
+        <Text style={styles.loadingText}>Đang tải phòng 3D...</Text>
       </View>
     )
   }
 
-  // Error / no 3D data
+  // ── Error / no data ────────────────────────────────────────────────────────
   if (fetchError || !threeDMedia) {
     return (
-      <View style={styles.centerContainer}>
-        <Text style={styles.errorTitle}>3D Tour Not Available</Text>
-        <Text style={styles.errorText}>
-          {fetchError || 'No 3D tour data found for this property.'}
+      <View style={styles.center}>
+        <Text style={styles.errorTitle}>Phòng 3D chưa sẵn sàng</Text>
+        <Text style={styles.errorBody}>
+          {fetchError || 'Không tìm thấy dữ liệu phòng 3D cho bất động sản này.'}
         </Text>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Go Back</Text>
+        <Pressable style={styles.backBtn} onPress={() => router.back()}>
+          <Text style={styles.backBtnText}>Quay lại</Text>
         </Pressable>
       </View>
     )
   }
 
-  // No SPZ URLs in metadata (e.g., still processing or media_url is the fallback)
+  // ── Assets not ready / webview error ──────────────────────────────────────
   if (!currentSpzUrl || hasWebViewError || !html) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={styles.center}>
         <Text style={styles.errorTitle}>
-          {hasWebViewError ? '3D Viewer Error' : 'Assets Not Ready'}
+          {hasWebViewError ? 'Lỗi tải phòng 3D' : 'Tài nguyên chưa sẵn sàng'}
         </Text>
-        <Text style={styles.errorText}>
+        <Text style={styles.errorBody}>
           {hasWebViewError
-            ? 'Could not load the 3D world. Try opening the link below.'
-            : 'The 3D splat assets are not yet available. The media URL might still work externally.'}
+            ? 'Không thể hiển thị phòng 3D. Thử mở liên kết bên dưới.'
+            : 'Tài nguyên 3D đang được xử lý. Vui lòng thử lại sau.'}
         </Text>
         {mediaUrl ? (
-          <Pressable style={styles.externalButton} onPress={handleOpenExternal}>
+          <Pressable style={styles.externalBtn} onPress={handleOpenExternal}>
             <ExternalLink color='#FFFFFF' size={18} />
-            <Text style={styles.externalButtonText}>Open 3D Link</Text>
+            <Text style={styles.externalBtnText}>Mở liên kết 3D</Text>
           </Pressable>
         ) : null}
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Go Back</Text>
+        <Pressable style={styles.backBtn} onPress={() => router.back()}>
+          <Text style={styles.backBtnText}>Quay lại</Text>
         </Pressable>
       </View>
     )
   }
 
+  // ── Main viewer ────────────────────────────────────────────────────────────
+  const currentRoomName =
+    (threeDMedia?.metadata?.room_name as string) || `Phòng ${selectedRoomIndex + 1}`
+
   return (
-    <View style={styles.container}>
-      {/* WebView with SparkJS */}
+    <View style={styles.root}>
+      {/* WebView */}
       <WebView
         source={{ html }}
         style={styles.webview}
@@ -213,72 +249,47 @@ export function WorldViewerScreen() {
         originWhitelist={['*']}
       />
 
-      {/* Loading overlay */}
+      {/* WebView loading overlay */}
       {isWebViewLoading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator color='#3B82F6' size='large' />
-          <Text style={styles.loadingText}>Loading 3D World...</Text>
+          <ActivityIndicator color='#7065F0' size='large' />
+          <Text style={styles.loadingText}>Đang tải phòng 3D...</Text>
         </View>
       )}
 
       {/* Top bar */}
       <View style={styles.topBar}>
-        <Pressable onPress={() => router.back()} style={styles.headerButton}>
-          <Text style={styles.headerButtonText}>← Back</Text>
-        </Pressable>
+        <TouchableOpacity onPress={() => router.back()} style={styles.iconBtn} activeOpacity={0.8}>
+          <ArrowLeft color='#111827' size={22} strokeWidth={2} />
+        </TouchableOpacity>
 
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          3D Tour
-        </Text>
-
-        <View style={styles.headerActions}>
-          <Pressable onPress={handleShare} style={styles.headerButton}>
-            <Share2 color='#FFFFFF' size={20} />
-          </Pressable>
-          {mediaUrl ? (
-            <Pressable onPress={handleOpenExternal} style={styles.headerButton}>
-              <ExternalLink color='#FFFFFF' size={20} />
-            </Pressable>
-          ) : null}
+        <View style={styles.titleBlock}>
+          <Text style={styles.titleMain} numberOfLines={1}>
+            {currentRoomName}
+          </Text>
+          <Text style={styles.titleSub}>Phòng 3D</Text>
         </View>
       </View>
 
-      {/* Room switcher (only when multiple rooms available) */}
+      {/* Room tab strip (only when multiple rooms) */}
       {allRooms.length > 1 && (
-        <View style={styles.roomBar}>
-          {allRooms.map((room, index) => {
-            const name = (room.metadata?.room_name as string) || `Phòng ${index + 1}`
-            return (
-              <Pressable
-                key={room.media_id}
-                style={[styles.roomButton, selectedRoomIndex === index && styles.roomButtonActive]}
-                onPress={() => setSelectedRoomIndex(index)}
-              >
-                <Text
-                  style={[styles.roomText, selectedRoomIndex === index && styles.roomTextActive]}
-                  numberOfLines={1}
-                >
-                  {name}
-                </Text>
-              </Pressable>
-            )
-          })}
-        </View>
+        <RoomTabs rooms={allRooms} selected={selectedRoomIndex} onSelect={setSelectedRoomIndex} />
       )}
 
-      {/* Quality selector (only when multiple qualities available) */}
+      {/* Quality selector (only when multiple qualities) */}
       {availableQualities.length > 1 && (
         <View style={styles.qualityBar}>
           {availableQualities.map((q) => (
-            <Pressable
+            <TouchableOpacity
               key={q}
-              style={[styles.qualityButton, quality === q && styles.qualityButtonActive]}
+              style={[styles.qualityBtn, quality === q && styles.qualityBtnActive]}
               onPress={() => setQuality(q)}
+              activeOpacity={0.8}
             >
-              <Text style={[styles.qualityText, quality === q && styles.qualityTextActive]}>
-                {q === 'full_res' ? 'Full' : q}
+              <Text style={[styles.qualityLabel, quality === q && styles.qualityLabelActive]}>
+                {QUALITY_LABELS[q]}
               </Text>
-            </Pressable>
+            </TouchableOpacity>
           ))}
         </View>
       )}
@@ -286,27 +297,90 @@ export function WorldViewerScreen() {
   )
 }
 
+// ── Styles ─────────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    backgroundColor: '#111827',
+    backgroundColor: '#0F0F14',
   },
   webview: {
     flex: 1,
-    backgroundColor: '#111827',
+    backgroundColor: '#0F0F14',
   },
+
+  // Center states
+  center: {
+    flex: 1,
+    backgroundColor: '#F0F2F8',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  loadingText: {
+    color: '#6B7280',
+    fontSize: 14,
+    fontFamily: 'PlusJakartaSans_500Medium',
+    marginTop: 14,
+  },
+  errorTitle: {
+    color: '#111827',
+    fontSize: 20,
+    fontFamily: 'PlusJakartaSans_700Bold',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  errorBody: {
+    color: '#6B7280',
+    fontSize: 14,
+    fontFamily: 'PlusJakartaSans_400Regular',
+    textAlign: 'center',
+    marginBottom: 28,
+    lineHeight: 22,
+  },
+  backBtn: {
+    paddingHorizontal: 28,
+    paddingVertical: 13,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    backgroundColor: '#FFFFFF',
+  },
+  backBtnText: {
+    color: '#374151',
+    fontSize: 15,
+    fontFamily: 'PlusJakartaSans_600SemiBold',
+  },
+  externalBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#7065F0',
+    paddingHorizontal: 24,
+    paddingVertical: 13,
+    borderRadius: 14,
+    gap: 8,
+    marginBottom: 12,
+    shadowColor: '#7065F0',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  externalBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontFamily: 'PlusJakartaSans_600SemiBold',
+  },
+
+  // Loading overlay (over webview)
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(17, 24, 39, 0.8)',
+    backgroundColor: 'rgba(15, 15, 20, 0.85)',
   },
-  loadingText: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    fontFamily: 'PlusJakartaSans_500Medium',
-    marginTop: 12,
-  },
+
+  // Top bar
   topBar: {
     position: 'absolute',
     top: 0,
@@ -314,135 +388,114 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 56,
-    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 54 : 16,
     paddingBottom: 12,
-    backgroundColor: 'rgba(17, 24, 39, 0.7)',
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.06)',
   },
-  headerButton: {
-    padding: 8,
+  iconBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.06)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  headerButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+  titleBlock: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    pointerEvents: 'none',
+  },
+  titleMain: {
+    color: '#111827',
+    fontSize: 15,
+    fontFamily: 'PlusJakartaSans_700Bold',
+    letterSpacing: -0.2,
+  },
+  titleSub: {
+    color: '#9CA3AF',
+    fontSize: 11,
     fontFamily: 'PlusJakartaSans_500Medium',
+    marginTop: 1,
   },
-  headerTitle: {
-    flex: 1,
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontFamily: 'PlusJakartaSans_600SemiBold',
-    textAlign: 'center',
-    marginHorizontal: 8,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 4,
-  },
+  topActions: {},
+
+  // Quality bar
   qualityBar: {
     position: 'absolute',
-    bottom: 40,
+    bottom: 36,
     alignSelf: 'center',
     flexDirection: 'row',
-    backgroundColor: 'rgba(31, 41, 55, 0.9)',
+    backgroundColor: 'rgba(255,255,255,0.92)',
     borderRadius: 20,
     padding: 4,
-  },
-  roomBar: {
-    position: 'absolute',
-    bottom: 104,
-    alignSelf: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 6,
-    maxWidth: '90%',
-  },
-  roomButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 16,
-    backgroundColor: 'rgba(31, 41, 55, 0.9)',
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: 'rgba(0,0,0,0.07)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  roomButtonActive: {
-    backgroundColor: '#7065F0',
-    borderColor: '#7065F0',
-  },
-  roomText: {
-    color: '#9CA3AF',
-    fontSize: 13,
-    fontFamily: 'PlusJakartaSans_500Medium',
-  },
-  roomTextActive: {
-    color: '#FFFFFF',
-  },
-  qualityButton: {
-    paddingHorizontal: 16,
+  qualityBtn: {
+    paddingHorizontal: 18,
     paddingVertical: 8,
     borderRadius: 16,
   },
-  qualityButtonActive: {
-    backgroundColor: '#3B82F6',
+  qualityBtnActive: {
+    backgroundColor: '#7065F0',
   },
-  qualityText: {
-    color: '#9CA3AF',
+  qualityLabel: {
+    color: '#6B7280',
     fontSize: 13,
-    fontFamily: 'PlusJakartaSans_500Medium',
-  },
-  qualityTextActive: {
-    color: '#FFFFFF',
-  },
-  // Shared states
-  centerContainer: {
-    flex: 1,
-    backgroundColor: '#111827',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-  },
-  errorTitle: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontFamily: 'PlusJakartaSans_700Bold',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  errorText: {
-    color: '#9CA3AF',
-    fontSize: 14,
-    fontFamily: 'PlusJakartaSans_400Regular',
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 20,
-  },
-  externalButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#3B82F6',
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 12,
-    gap: 8,
-    marginBottom: 12,
-  },
-  externalButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
     fontFamily: 'PlusJakartaSans_600SemiBold',
   },
-  backButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#4B5563',
+  qualityLabelActive: {
+    color: '#FFFFFF',
   },
-  backButtonText: {
+})
+
+// ── Tab strip styles ────────────────────────────────────────────────────────────
+
+const tabStyles = StyleSheet.create({
+  wrapper: {
+    position: 'absolute',
+    bottom: 100,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.06)',
+  },
+  scroll: {
+    paddingHorizontal: 16,
+    paddingVertical: 0,
+  },
+  tab: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    alignItems: 'center',
+    position: 'relative',
+  },
+  label: {
     color: '#9CA3AF',
-    fontSize: 16,
-    fontFamily: 'PlusJakartaSans_500Medium',
+    fontSize: 13,
+    fontFamily: 'PlusJakartaSans_600SemiBold',
+  },
+  labelActive: {
+    color: '#7065F0',
+  },
+  underline: {
+    position: 'absolute',
+    bottom: 0,
+    left: 12,
+    right: 12,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: '#7065F0',
   },
 })
