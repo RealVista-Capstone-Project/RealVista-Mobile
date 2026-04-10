@@ -99,7 +99,7 @@ export function RoomCard({ group, propertyId, onView, onDelete }: RoomCardProps)
   const hasModel = group.matchedMedia !== null
   const [renameVisible, setRenameVisible] = useState(false)
 
-  const dateLabel = formatDate(group.latestOperation.created_at)
+  const dateLabel = formatDate(group.latestOperation.created_at ?? undefined)
 
   return (
     <>

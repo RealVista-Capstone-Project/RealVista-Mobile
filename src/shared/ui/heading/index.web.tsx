@@ -164,8 +164,9 @@ const Heading = memo(
     const { isTruncated, bold, underline, strikeThrough, sub, italic, highlight } = props
 
     if (AsComp) {
+      const AnyComp = AsComp as React.ElementType<any>
       return (
-        <AsComp
+        <AnyComp
           className={headingStyle({
             size,
             isTruncated: isTruncated as boolean,
