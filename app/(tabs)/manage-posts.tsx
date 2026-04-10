@@ -1,5 +1,5 @@
-import ManagePostsScreen from '../manage-posts'
+import { ManagePropertiesScreen } from '@/screens/manage-properties'
 
 export default function ManagePostsTabScreen() {
-  return <ManagePostsScreen />
+  return <ManagePropertiesScreen />
 }

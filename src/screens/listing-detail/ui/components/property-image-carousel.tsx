@@ -19,16 +19,21 @@ export function PropertyImageCarousel({ images }: PropertyImageCarouselProps) {
 
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window')
 
+  // Ensure we always have at least one item to avoid blank image
+  const displayImages = images.length > 0 ? images : ['']
+
   return (
-    <Box className='mb-6'>
+    <Box className='mb-4'>
       {/* Main Image with overlay button */}
       <Box className='relative mb-3 rounded-2xl overflow-hidden'>
         <Image
-          source={{ uri: images[activeImageIndex] }}
+          source={{ uri: displayImages[activeImageIndex] }}
           style={{ width: '100%', height: 220 }}
           className='rounded-2xl'
           resizeMode='cover'
         />
+
+        {/* View Photos button — bottom right */}
         <TouchableOpacity
           className='absolute bottom-4 right-4 flex-row items-center bg-white/90 px-5 py-3 rounded-xl shadow-lg'
           style={{
@@ -45,9 +50,10 @@ export function PropertyImageCarousel({ images }: PropertyImageCarouselProps) {
           </Text>
         </TouchableOpacity>
       </Box>
+
       {/* Thumbnails below main image */}
       <Box className='flex-row gap-3'>
-        {images.slice(0, 2).map((image, index) => (
+        {displayImages.slice(0, 2).map((image, index) => (
           <TouchableOpacity
             key={index}
             onPress={() => setActiveImageIndex(index)}
@@ -77,7 +83,7 @@ export function PropertyImageCarousel({ images }: PropertyImageCarouselProps) {
           {/* Header */}
           <Box className='absolute top-0 left-0 right-0 z-10 flex-row items-center justify-between px-4 pt-12 pb-4 bg-gradient-to-b from-black/60 to-transparent'>
             <Text bold className='text-white text-lg'>
-              Ảnh ({images.length})
+              Ảnh ({displayImages.length})
             </Text>
             <TouchableOpacity onPress={() => setIsGalleryOpen(false)}>
               <IconLucide size={24} name='X' color='#FFFFFF' />
@@ -91,7 +97,7 @@ export function PropertyImageCarousel({ images }: PropertyImageCarouselProps) {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ height: screenHeight }}
           >
-            {images.map((image, index) => (
+            {displayImages.map((image, index) => (
               <Pressable
                 key={index}
                 style={{ width: screenWidth, height: screenHeight }}

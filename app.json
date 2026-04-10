@@ -12,12 +12,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.sep.realvista",
       "infoPlist": {
-        "LSApplicationQueriesSchemes": [
-          "fb",
-          "instagram",
-          "twitter",
-          "tiktoksharesdk"
-        ],
+        "LSApplicationQueriesSchemes": ["fb", "instagram", "twitter", "tiktoksharesdk"],
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -43,7 +38,6 @@
       "color": "#7065F0",
       "androidMode": "default",
       "androidCollapsedTitle": "RealVista",
-      "usesCleartextTraffic": true,
       "intentFilters": [
         {
           "action": "VIEW",
@@ -55,10 +49,7 @@
               "pathPrefix": "/vi/"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
     },
@@ -76,12 +67,7 @@
       [
         "react-native-share",
         {
-          "ios": [
-            "fb",
-            "instagram",
-            "twitter",
-            "tiktoksharesdk"
-          ],
+          "ios": ["fb", "instagram", "twitter", "tiktoksharesdk"],
           "android": [
             "com.facebook.katana",
             "com.instagram.android",
@@ -113,7 +99,30 @@
           "defaultChannel": "default"
         }
       ],
-      "expo-build-properties"
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      "@reactvision/react-viro",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "RealVista needs camera access to capture property images for 3D reconstruction."
+        }
+      ],
+      "expo-asset",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "RealVista needs access to your photo library to save captured property images.",
+          "savePhotosPermission": "RealVista needs permission to save captured property images to your photo library.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

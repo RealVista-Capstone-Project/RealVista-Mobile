@@ -12,6 +12,7 @@ import { behaviorTracker } from '@/shared/lib/analytics'
 import { LineChart, type ChartDataPoint } from '@/shared/ui/bna/line-chart'
 import { Box } from '@/shared/ui/box'
 import { Divider } from '@/shared/ui/divider'
+import IconLucide from '@/shared/ui/icon-lucide/icon'
 import { type RealVistaPropertyCardData } from '@/shared/ui/realvista-property-listing-card'
 import { Text } from '@/shared/ui/text'
 import {
@@ -64,6 +65,10 @@ export function ListingDetailPage() {
   const { mutate: toggleBookmark } = useToggleBookmark()
 
   const [isFavorite, setIsFavorite] = useState(false)
+
+  const has3D =
+    (listing?.total_3d_tours ?? 0) > 0 ||
+    (Array.isArray(listing?.media) && listing.media.some((m) => m.media_type === 'THREE_D'))
 
   useEffect(() => {
     setIsFavorite(listing?.is_favorite ?? false)
@@ -156,11 +161,11 @@ export function ListingDetailPage() {
     )
   }
 
-  // Extract media URLs (ensure non-empty array to avoid runtime errors)
+  // Extract image-only media URLs (filter out THREE_D to avoid broken images)
   const mediaUrls =
     Array.isArray(listing.media) && listing.media.length > 0
-      ? listing.media.map((m) => m.media_url)
-      : ['']
+      ? listing.media.filter((m) => m.media_type !== 'THREE_D').map((m) => m.media_url)
+      : []
 
   // Construct effective agent from listing.agent or listing.user (fallback)
   const effectiveAgent =
@@ -254,6 +259,74 @@ export function ListingDetailPage() {
             onToggleFavorite={() => handleToggleFavorite(listing.listing_id)}
           />
           <PropertyImageCarousel images={mediaUrls} />
+
+          {/* 3D Tour Card — shown separately below images when 3D is available */}
+          {has3D && (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => router.push(`/world-viewer?propertyId=${listing.property_id}`)}
+              className='mb-6 rounded-2xl overflow-hidden'
+              style={{
+                backgroundColor: '#7065F0',
+                shadowColor: '#7065F0',
+                shadowOpacity: 0.35,
+                shadowRadius: 16,
+                shadowOffset: { width: 0, height: 6 },
+                elevation: 8,
+              }}
+            >
+              <Box
+                style={{
+                  padding: 20,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 16,
+                }}
+              >
+                {/* Icon circle */}
+                <Box
+                  style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: 26,
+                    backgroundColor: 'rgba(255,255,255,0.18)',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <IconLucide name='Box' size={26} color='#FFFFFF' />
+                </Box>
+
+                {/* Text */}
+                <Box style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      color: '#FFFFFF',
+                      fontSize: 17,
+                      fontWeight: '700',
+                      fontFamily: 'PlusJakartaSans_700Bold',
+                      marginBottom: 3,
+                    }}
+                  >
+                    Khám phá không gian 3D
+                  </Text>
+                  <Text
+                    style={{
+                      color: 'rgba(255,255,255,0.75)',
+                      fontSize: 13,
+                      fontFamily: 'PlusJakartaSans_400Regular',
+                    }}
+                  >
+                    Xem toàn bộ các phòng dưới dạng ảnh 3D
+                  </Text>
+                </Box>
+
+                {/* Arrow */}
+                <IconLucide name='ChevronRight' size={22} color='rgba(255,255,255,0.8)' />
+              </Box>
+            </TouchableOpacity>
+          )}
 
           <PropertySpecifications attributes={listing.attributes || []} status={listing.status} />
 

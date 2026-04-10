@@ -63,4 +63,15 @@ export const listingApi = {
    * GET /listings/:id/price-history
    */
   getPriceHistory: (id: string) => http.get<PriceHistoryResponse>(`/listings/${id}/price-history`),
+
+  /**
+   * Attach Marble 3D world to a listing
+   * POST /listings/:id/3d-world
+   */
+  attach3DWorld: (id: string, worldId: string, assets: any) =>
+    http.post(`/listings/${id}/3d-world`, {
+      world_id: worldId,
+      assets: assets,
+      media_type: 'THREE_D',
+    }),
 } as const
