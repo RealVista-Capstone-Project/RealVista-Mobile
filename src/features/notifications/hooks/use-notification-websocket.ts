@@ -1,3 +1,4 @@
+import { billingKeys } from '@/entities/billing'
 import { notificationKeys } from '@/entities/notification'
 import { useAuthStore } from '@/entities/user'
 import { useWebSocket } from '@/shared/lib/websocket'
@@ -61,12 +62,27 @@ export function useNotificationWebSocket() {
     (message: IMessage) => {
       try {
         const raw = JSON.parse(message.body) as Record<string, unknown>
-        const id = ((raw.notificationId ?? raw.notification_id) as string) ?? ''
-        if (!id || seenIds.current.has(id)) return
-        seenIds.current.add(id)
+
+        // Deduplicate only when the backend sends an ID — if absent, always process
+        const id = ((raw.notificationId ?? raw.notification_id) as string | undefined) ?? ''
+        if (id) {
+          if (seenIds.current.has(id)) return
+          seenIds.current.add(id)
+        } else if (__DEV__) {
+          console.warn('[Notifications] WS frame missing notificationId — skipping dedup', raw)
+        }
 
         queryClient.invalidateQueries({ queryKey: notificationKeys.lists() })
         queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() })
+
+        // Invalidate quota when a 3D generation event arrives so the counter
+        // refreshes immediately without the user navigating away
+        const eventType = (raw.eventType ?? raw.event_type) as string | undefined
+        const is3dEvent =
+          eventType === 'PROPERTY_3D_GENERATED' || eventType === 'PROPERTY_3D_FAILED'
+        if (is3dEvent) {
+          queryClient.invalidateQueries({ queryKey: billingKeys.mySubscriptions() })
+        }
       } catch {
         // Ignore malformed frames
       }
