@@ -1,12 +1,15 @@
 import { Tabs } from 'expo-router'
 import React from 'react'
 
+import { useNotificationWebSocket } from '@/features/notifications'
 import { Box } from '@/shared/ui/box'
 import { HapticTab } from '@/shared/ui/haptic-tab'
 import { IconSymbol } from '@/shared/ui/icon-symbol'
 import { MobileHeader } from '@/widgets/mobile-header'
 
 export default function TabLayout() {
+  useNotificationWebSocket()
+
   return (
     <Tabs
       initialRouteName='explore'
