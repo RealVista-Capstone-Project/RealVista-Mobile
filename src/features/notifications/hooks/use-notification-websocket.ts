@@ -12,7 +12,6 @@ const NOTIFICATION_DESTINATION = '/user/queue/notifications'
 // Keep in sync with useChatWebSocket.ts — copied from that file exactly
 function getWsEndpoint(): string {
   let endpoint = process.env.EXPO_PUBLIC_WS_ENDPOINT
-  console.log(endpoint)
   if (!endpoint && process.env.EXPO_PUBLIC_API_URL) {
     const apiUrl = process.env.EXPO_PUBLIC_API_URL // e.g., http://192.168.56.1:8080/api/v1
     const parts = apiUrl.split('/api/')
