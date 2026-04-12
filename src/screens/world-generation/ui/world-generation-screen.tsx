@@ -438,7 +438,8 @@ export function WorldGenerationScreen() {
               <TouchableOpacity
                 style={[
                   styles.primaryBtn,
-                  (images.length === 0 || !roomName.trim()) && styles.primaryBtnDisabled,
+                  (isLocked || images.length === 0 || !roomName.trim()) &&
+                    styles.primaryBtnDisabled,
                 ]}
                 onPress={handleStart}
                 disabled={isLocked || images.length === 0 || !propertyId || !roomName.trim()}
