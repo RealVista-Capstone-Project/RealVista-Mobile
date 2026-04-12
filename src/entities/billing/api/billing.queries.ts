@@ -6,10 +6,7 @@ export const billingQueries = {
   mySubscriptions: () =>
     queryOptions({
       queryKey: billingKeys.mySubscriptions(),
-      queryFn: async () => {
-        const res = await billingApi.getMySubscriptions()
-        return res.data
-      },
+      queryFn: () => billingApi.getMySubscriptions().then((res) => res.data),
       staleTime: 2 * 60 * 1000,
     }),
-}
+} as const
