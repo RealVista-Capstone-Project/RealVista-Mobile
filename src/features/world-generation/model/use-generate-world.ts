@@ -4,6 +4,7 @@ import { AppState, type AppStateStatus } from 'react-native'
 import { useWorldStore } from '@/entities/world'
 import { propertyApi } from '@/entities/property'
 import type { Property3dOperation } from '@/entities/property'
+import { useThreeDQuota } from '@/entities/billing'
 import { type MarbleModel } from '@/shared/api/marble-client'
 import { NotificationService } from '@/shared/services/notification'
 
@@ -31,6 +32,7 @@ export function useGenerateWorld() {
   const propertyIdRef = useRef<string | null>(null)
 
   const { markComplete, markFailed } = useWorldStore()
+  const { isLocked, invalidateQuota } = useThreeDQuota()
 
   const stopPolling = useCallback(() => {
     if (pollTimerRef.current) {
@@ -158,6 +160,15 @@ export function useGenerateWorld() {
       model?: MarbleModel
       roomName?: string
     }) => {
+      if (isLocked) {
+        setState((prev) => ({
+          ...prev,
+          phase: 'failed',
+          error: 'Bạn đã hết lượt tạo 3D. Vui lòng nâng cấp gói.',
+        }))
+        return
+      }
+
       setState({
         phase: 'requesting',
         propertyId: params.propertyId,
@@ -176,6 +187,8 @@ export function useGenerateWorld() {
           })),
         })
 
+        invalidateQuota()
+
         // Switch to polling
         setState((prev) => ({
           ...prev,
@@ -186,12 +199,23 @@ export function useGenerateWorld() {
 
         startPolling(params.propertyId)
       } catch (error: unknown) {
-        const message = error instanceof Error ? error.message : 'Không thể bắt đầu tạo phòng 3D'
-        setState((prev) => ({ ...prev, phase: 'failed', error: message }))
-        markFailed({ code: 500, message })
+        invalidateQuota()
+        const httpError = error as { code?: string; message?: string }
+        if (httpError?.code === 'QUOTA_EXHAUSTED') {
+          setState((prev) => ({
+            ...prev,
+            phase: 'failed',
+            error: 'Bạn đã hết lượt tạo 3D. Vui lòng nâng cấp gói.',
+          }))
+          markFailed({ code: 429, message: 'Bạn đã hết lượt tạo 3D. Vui lòng nâng cấp gói.' })
+        } else {
+          const message = httpError?.message ?? 'Đã xảy ra lỗi. Vui lòng thử lại.'
+          setState((prev) => ({ ...prev, phase: 'failed', error: message }))
+          markFailed({ code: 500, message })
+        }
       }
     },
-    [startPolling, markFailed]
+    [startPolling, markFailed, isLocked, invalidateQuota]
   )
 
   /**
