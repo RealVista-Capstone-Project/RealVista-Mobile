@@ -104,6 +104,27 @@ export default function RootLayout() {
     })
   }, [])
 
+  // Handle notification tap — navigate to the relevant 3D viewer
+  useEffect(() => {
+    if (!isNavigationReady) return
+
+    const subscription = NotificationService.addNotificationResponseListener((response) => {
+      const data = response.notification.request.content.data as Record<string, unknown>
+      const propertyId = data?.propertyId as string | undefined
+      const roomName = data?.roomName as string | undefined
+
+      if (propertyId) {
+        const params: Record<string, string> = { propertyId }
+        if (roomName) params.roomName = roomName
+        router.push({ pathname: '/world-viewer', params } as Href)
+      }
+    })
+
+    return () => {
+      subscription.remove()
+    }
+  }, [isNavigationReady, router])
+
   if (!loaded || !isNavigationReady) {
     return null
   }

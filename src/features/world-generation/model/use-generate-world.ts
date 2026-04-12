@@ -61,7 +61,7 @@ export function useGenerateWorld() {
           NotificationService.scheduleLocalNotification(
             'Phòng 3D đã sẵn sàng!',
             'Phòng 3D của bạn đã được tạo thành công.',
-            { propertyId: propertyIdRef.current }
+            { propertyId: propertyIdRef.current, roomName: op.room_name ?? null }
           )
         }
 
