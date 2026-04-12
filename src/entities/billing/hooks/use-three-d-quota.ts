@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { billingKeys, billingQueries } from '../api'
 
@@ -24,9 +25,9 @@ export function useThreeDQuota(): ThreeDQuota {
 
   const isLocked = !isLoading && !isError && (!subscription || (!unlimited && remaining <= 0))
 
-  const invalidateQuota = () => {
+  const invalidateQuota = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: billingKeys.mySubscriptions() })
-  }
+  }, [queryClient])
 
   return {
     remaining,
