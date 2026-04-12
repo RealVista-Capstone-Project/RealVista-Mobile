@@ -220,7 +220,7 @@ export function Manage3dScreen({ propertyId }: Manage3dScreenProps) {
           </View>
 
           <TouchableOpacity
-            className={`w-10 h-10 rounded-2xl bg-main-primary items-center justify-center shadow-sm${isLocked ? ' opacity-40' : ''}`}
+            className={`w-10 h-10 rounded-2xl bg-main-primary items-center justify-center shadow-sm ${isLocked ? 'opacity-40' : ''}`}
             onPress={handleAddRoom}
             disabled={isLocked}
             activeOpacity={0.75}

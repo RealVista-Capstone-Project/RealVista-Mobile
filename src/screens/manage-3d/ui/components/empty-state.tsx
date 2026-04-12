@@ -28,8 +28,9 @@ export function EmptyState({ onCreatePress }: EmptyStateProps) {
       </Text>
 
       <TouchableOpacity
-        className='flex-row items-center bg-main-primary px-8 py-4 rounded-2xl'
+        className={`flex-row items-center bg-main-primary px-8 py-4 rounded-2xl ${!onCreatePress ? 'opacity-40' : ''}`}
         onPress={onCreatePress}
+        disabled={!onCreatePress}
         activeOpacity={0.85}
       >
         <Plus size={20} color='#FFFFFF' />
