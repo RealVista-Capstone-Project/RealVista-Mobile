@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native'
 import { Box, Plus } from 'lucide-react-native'
 
 interface EmptyStateProps {
-  onCreatePress: () => void
+  onCreatePress?: () => void
 }
 
 export function EmptyState({ onCreatePress }: EmptyStateProps) {
