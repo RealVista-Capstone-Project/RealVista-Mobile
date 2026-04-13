@@ -1,16 +1,26 @@
 import { billingKeys } from '@/entities/billing'
 import { notificationKeys } from '@/entities/notification'
+import type { NotificationWsPayload } from '@/entities/notification'
 import { useAuthStore } from '@/entities/user'
+import { NotificationService } from '@/shared/services/notification'
 import { useWebSocket } from '@/shared/lib/websocket'
 import type { IMessage } from '@stomp/stompjs'
 import { useQueryClient } from '@tanstack/react-query'
-import Constants from 'expo-constants'
 import { useCallback, useEffect, useRef } from 'react'
 import { Platform } from 'react-native'
 
 const NOTIFICATION_DESTINATION = '/user/queue/notifications'
 
-// Keep in sync with useChatWebSocket.ts — copied from that file exactly
+// Exported for unit testing only — do not import from outside this module
+export function getWsEndpointForTest(): string {
+  return getWsEndpoint()
+}
+
+// Exported for unit testing only
+export function buildDedupIdForTest(raw: NotificationWsPayload): string {
+  return buildDedupId(raw)
+}
+
 function getWsEndpoint(): string {
   let endpoint = process.env.EXPO_PUBLIC_WS_ENDPOINT
   if (!endpoint && process.env.EXPO_PUBLIC_API_URL) {
@@ -20,10 +30,7 @@ function getWsEndpoint(): string {
   }
 
   if (!endpoint && __DEV__) {
-    const debuggerHost = Constants.expoConfig?.hostUri
-    const ip = debuggerHost?.split(':')[0]
-    if (ip) endpoint = `ws://${ip}:8080`
-    else if (Platform.OS === 'android') endpoint = 'ws://10.0.2.2:8080'
+    if (Platform.OS === 'android') endpoint = 'ws://10.0.2.2:8080'
     else endpoint = 'ws://localhost:8080'
   }
 
@@ -38,6 +45,10 @@ function getWsEndpoint(): string {
   }
 
   return endpoint
+}
+
+function buildDedupId(raw: NotificationWsPayload): string {
+  return raw.notification_id ?? ''
 }
 
 export function useNotificationWebSocket() {
@@ -59,27 +70,28 @@ export function useNotificationWebSocket() {
   })
 
   const handleMessage = useCallback(
-    (message: IMessage) => {
+    async (message: IMessage) => {
       try {
-        const raw = JSON.parse(message.body) as Record<string, unknown>
+        const raw = JSON.parse(message.body) as NotificationWsPayload
 
-        // Deduplicate only when the backend sends an ID — if absent, always process
-        const id = ((raw.notificationId ?? raw.notification_id) as string | undefined) ?? ''
+        // Deduplicate using only snake_case notification_id
+        const id = buildDedupId(raw)
         if (id) {
           if (seenIds.current.has(id)) return
           seenIds.current.add(id)
         } else if (__DEV__) {
-          console.warn('[Notifications] WS frame missing notificationId — skipping dedup', raw)
+          console.warn('[Notifications] WS frame missing notification_id — skipping dedup', raw)
         }
 
         queryClient.invalidateQueries({ queryKey: notificationKeys.lists() })
         queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() })
 
-        // Invalidate quota when a 3D generation event arrives so the counter
-        // refreshes immediately without the user navigating away
-        const eventType = (raw.eventType ?? raw.event_type) as string | undefined
+        // Show foreground local notification
+        await NotificationService.scheduleLocalNotification(raw.title, raw.message)
+
+        // Invalidate quota when a 3D generation event arrives
         const is3dEvent =
-          eventType === 'PROPERTY_3D_GENERATED' || eventType === 'PROPERTY_3D_FAILED'
+          raw.event_type === 'PROPERTY_3D_GENERATED' || raw.event_type === 'PROPERTY_3D_FAILED'
         if (is3dEvent) {
           queryClient.invalidateQueries({ queryKey: billingKeys.mySubscriptions() })
         }
