@@ -59,11 +59,15 @@ export function usePushNotifications() {
    * Unregister device
    */
   const unregisterDevice = useCallback(async () => {
-    if (!pushToken) return
+    // Use in-memory state if available, otherwise read from AsyncStorage (fresh restart case)
+    const tokenToUnregister = pushToken ?? (await AsyncStorage.getItem('fcm_token'))
+
+    if (!tokenToUnregister) return
 
     try {
-      await notificationApi.unregisterPushToken(pushToken)
+      await notificationApi.unregisterPushToken(tokenToUnregister)
       setPushToken(null)
+      await AsyncStorage.removeItem('fcm_token')
     } catch (err) {
       console.error('Failed to unregister device:', err)
     }
