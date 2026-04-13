@@ -11,6 +11,7 @@ import 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { AppProviders } from '@/shared/config/providers'
+import { usePushNotifications } from '@/features/notifications/api/use-push-notifications'
 import { useColorScheme } from '@/shared/lib/hooks/use-color-scheme'
 import { GluestackUIProvider } from '@/shared/ui/gluestack-ui-provider'
 import { MobileHeader } from '@/widgets/mobile-header'
@@ -35,6 +36,7 @@ export default function RootLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const token = useAuthStore((state) => state.token)
   const logout = useAuthStore((state) => state.logout)
+  const { registerDevice } = usePushNotifications()
   const [isNavigationReady, setNavigationReady] = useState(false)
   const [loaded] = useFonts({
     PlusJakartaSans_500Medium: require('../assets/fonts/PlusJakartaSans-Medium.ttf'),
@@ -52,6 +54,13 @@ export default function RootLayout() {
       SplashScreen.hideAsync()
     }
   }, [loaded, rootNavigationState?.key])
+
+  // Auto-register push notifications when user authenticates
+  useEffect(() => {
+    if (isAuthenticated) {
+      registerDevice()
+    }
+  }, [isAuthenticated, registerDevice])
 
   // Validate token on app start
   useEffect(() => {
