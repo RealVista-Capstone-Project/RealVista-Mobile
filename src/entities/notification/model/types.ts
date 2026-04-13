@@ -81,3 +81,18 @@ export interface SendTestNotificationResponse {
   success: string
   messageId: string
 }
+
+// ============================================
+// WebSocket Payload (snake_case — from backend STOMP frames)
+// ============================================
+
+export interface NotificationWsPayload {
+  notification_id: string
+  user_id: string
+  title: string
+  message: string
+  event_type: string
+  entity_type?: string
+  entity_id?: string
+  metadata?: Record<string, unknown>
+}
