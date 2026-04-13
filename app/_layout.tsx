@@ -28,6 +28,37 @@ export const unstable_settings = {
 
 SplashScreen.preventAutoHideAsync()
 
+// Exported for unit testing — resolves notification tap data to a route descriptor
+export function resolveDeepLinkRoute(data: {
+  event_type: string | undefined
+  propertyId: string | undefined
+  roomName: string | undefined
+  entity_id: string | undefined
+}): { pathname: string; params: Record<string, string> } {
+  const { event_type, propertyId, roomName, entity_id } = data
+
+  switch (event_type) {
+    case 'VIRTUAL_TOUR':
+    case '3D_VIEW': {
+      const params: Record<string, string> = {}
+      if (propertyId) params.propertyId = propertyId
+      if (roomName) params.roomName = roomName
+      return { pathname: '/world-viewer', params }
+    }
+    case 'APPOINTMENT': {
+      const params: Record<string, string> = {}
+      if (entity_id) params.entity_id = entity_id
+      return { pathname: '/appointments', params }
+    }
+    case 'LISTING':
+    case 'PROPERTY': {
+      return { pathname: '/property/[id]', params: { id: entity_id ?? '' } }
+    }
+    default:
+      return { pathname: '/(tabs)', params: {} }
+  }
+}
+
 export default function RootLayout() {
   const colorScheme = useColorScheme()
   const segments = useSegments()
@@ -113,7 +144,7 @@ export default function RootLayout() {
     })
   }, [])
 
-  // Handle notification tap — navigate to the relevant 3D viewer
+  // Handle notification tap — navigate by event type
   useEffect(() => {
     if (!isNavigationReady) return
 
@@ -121,12 +152,11 @@ export default function RootLayout() {
       const data = response.notification.request.content.data as Record<string, unknown>
       const propertyId = data?.propertyId as string | undefined
       const roomName = data?.roomName as string | undefined
+      const event_type = data?.event_type as string | undefined
+      const entity_id = data?.entity_id as string | undefined
 
-      if (propertyId) {
-        const params: Record<string, string> = { propertyId }
-        if (roomName) params.roomName = roomName
-        router.push({ pathname: '/world-viewer', params } as Href)
-      }
+      const route = resolveDeepLinkRoute({ event_type, propertyId, roomName, entity_id })
+      router.push(route as Href)
     })
 
     return () => {
