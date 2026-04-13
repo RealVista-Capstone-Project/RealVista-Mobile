@@ -1,5 +1,6 @@
 import { notificationApi } from '@/entities/notification'
 import { NotificationService } from '@/shared/services/notification'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import type * as Notifications from 'expo-notifications'
 import { useCallback, useEffect, useState } from 'react'
 
@@ -39,6 +40,9 @@ export function usePushNotifications() {
         token,
         ...deviceInfo,
       })
+
+      // Persist token so unregister can retrieve it after fresh restart
+      await AsyncStorage.setItem('fcm_token', token)
 
       return token
     } catch (err) {
