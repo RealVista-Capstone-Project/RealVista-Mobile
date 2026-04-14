@@ -45,7 +45,10 @@ export function resolveDeepLinkRoute(data: {
       if (roomName) params.roomName = roomName
       return { pathname: '/world-viewer', params }
     }
-    case 'APPOINTMENT': {
+    case 'APPOINTMENT':
+    case 'APPOINTMENT_REMINDER':
+    case 'APPOINTMENT_CONFIRMED':
+    case 'APPOINTMENT_CANCELLED': {
       const params: Record<string, string> = {}
       if (entity_id) params.entity_id = entity_id
       return { pathname: '/appointments', params }
@@ -150,8 +153,8 @@ export default function RootLayout() {
 
     const subscription = NotificationService.addNotificationResponseListener((response) => {
       const data = response.notification.request.content.data as Record<string, unknown>
-      const propertyId = data?.propertyId as string | undefined
-      const roomName = data?.roomName as string | undefined
+      const propertyId = (data?.property_id ?? data?.propertyId) as string | undefined
+      const roomName = (data?.room_name ?? data?.roomName) as string | undefined
       const event_type = data?.event_type as string | undefined
       const entity_id = data?.entity_id as string | undefined
 
@@ -218,6 +221,13 @@ export default function RootLayout() {
                   options={{
                     headerShown: false,
                     animation: 'fade',
+                  }}
+                />
+                <Stack.Screen
+                  name='appointments'
+                  options={{
+                    headerShown: true,
+                    header: () => <TopNav showBack />,
                   }}
                 />
                 <Stack.Screen

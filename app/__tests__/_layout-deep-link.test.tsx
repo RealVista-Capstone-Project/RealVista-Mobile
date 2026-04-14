@@ -56,6 +56,36 @@ describe('resolveDeepLinkRoute', () => {
     expect(result).toEqual({ pathname: '/property/[id]', params: { id: 'prop-9' } })
   })
 
+  it('routes APPOINTMENT_REMINDER to /appointments', () => {
+    const result = resolveDeepLinkRoute({
+      event_type: 'APPOINTMENT_REMINDER',
+      propertyId: undefined,
+      roomName: undefined,
+      entity_id: 'appt-2',
+    })
+    expect(result).toEqual({ pathname: '/appointments', params: { entity_id: 'appt-2' } })
+  })
+
+  it('routes APPOINTMENT_CONFIRMED to /appointments', () => {
+    const result = resolveDeepLinkRoute({
+      event_type: 'APPOINTMENT_CONFIRMED',
+      propertyId: undefined,
+      roomName: undefined,
+      entity_id: 'appt-3',
+    })
+    expect(result).toEqual({ pathname: '/appointments', params: { entity_id: 'appt-3' } })
+  })
+
+  it('routes APPOINTMENT_CANCELLED to /appointments', () => {
+    const result = resolveDeepLinkRoute({
+      event_type: 'APPOINTMENT_CANCELLED',
+      propertyId: undefined,
+      roomName: undefined,
+      entity_id: 'appt-4',
+    })
+    expect(result).toEqual({ pathname: '/appointments', params: { entity_id: 'appt-4' } })
+  })
+
   it('routes unknown event_type to /(tabs)', () => {
     const result = resolveDeepLinkRoute({
       event_type: 'SYSTEM',
