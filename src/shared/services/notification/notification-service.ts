@@ -127,12 +127,17 @@ export class NotificationService {
    * Get device information for token registration
    */
   static getDeviceInfo(): {
-    device_id: string
-    platform: 'ios' | 'android' | 'web'
+    device_name: string
+    device_type: 'IOS' | 'ANDROID' | 'WEB'
   } {
+    const platformMap: Record<string, 'IOS' | 'ANDROID' | 'WEB'> = {
+      ios: 'IOS',
+      android: 'ANDROID',
+      web: 'WEB',
+    }
     return {
-      device_id: Device.deviceName || Device.modelName || 'unknown',
-      platform: Platform.OS as 'ios' | 'android' | 'web',
+      device_name: Device.deviceName || Device.modelName || 'unknown',
+      device_type: platformMap[Platform.OS] ?? 'ANDROID',
     }
   }
 

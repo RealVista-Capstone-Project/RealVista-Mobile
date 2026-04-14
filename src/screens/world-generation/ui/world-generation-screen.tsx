@@ -25,6 +25,7 @@ import {
 } from 'react-native'
 
 import { useCaptureStore } from '@/entities/capture'
+import { useThreeDQuota } from '@/entities/billing'
 import { useWorldStore } from '@/entities/world'
 import type { MarbleModel } from '@/shared/api/marble-client'
 
@@ -177,6 +178,8 @@ export function WorldGenerationScreen() {
 
   const upload = useUploadImages()
   const generation = useGenerateWorld()
+
+  const { remaining, quotaLimit, unlimited, isLocked } = useThreeDQuota()
 
   const spinAnim = useRef(new Animated.Value(0)).current
   const pulseAnim = useRef(new Animated.Value(1)).current
@@ -415,13 +418,31 @@ export function WorldGenerationScreen() {
         <View style={styles.bottomBar}>
           {!started && (
             <>
+              {!unlimited && (
+                <View
+                  className={`mb-3 rounded-lg border px-4 py-3 ${
+                    isLocked ? 'border-red-200 bg-red-50' : 'border-purple-200 bg-purple-50'
+                  }`}
+                >
+                  {isLocked ? (
+                    <Text className='text-center text-sm text-red-600'>
+                      Bạn đã hết lượt tạo 3D. Vui lòng nâng cấp gói.
+                    </Text>
+                  ) : (
+                    <Text className='text-center text-sm text-purple-700'>
+                      {`Còn ${remaining}${quotaLimit ? `/${quotaLimit}` : ''} lượt tạo 3D`}
+                    </Text>
+                  )}
+                </View>
+              )}
               <TouchableOpacity
                 style={[
                   styles.primaryBtn,
-                  (images.length === 0 || !roomName.trim()) && styles.primaryBtnDisabled,
+                  (isLocked || images.length === 0 || !roomName.trim()) &&
+                    styles.primaryBtnDisabled,
                 ]}
                 onPress={handleStart}
-                disabled={images.length === 0 || !propertyId || !roomName.trim()}
+                disabled={isLocked || images.length === 0 || !propertyId || !roomName.trim()}
                 activeOpacity={0.85}
               >
                 <Text style={styles.primaryBtnText}>Bắt đầu tạo phòng 3D</Text>

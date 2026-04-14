@@ -1,5 +1,7 @@
-import { Home, Mail, MapPin, Phone, Shield, Star, Users } from 'lucide-react-native'
-import { ScrollView, View } from 'react-native'
+import { Home, LogOut, Mail, MapPin, Phone, Shield, Star, Users } from 'lucide-react-native'
+import { ScrollView, TouchableOpacity, View } from 'react-native'
+import { useLogout } from '@/features/auth'
+import { useRouter } from 'expo-router'
 import { Text } from '@/shared/ui/text'
 
 const STATS = [
@@ -28,6 +30,8 @@ const VALUES = [
 ]
 
 export function AboutPage() {
+  const router = useRouter()
+  const { mutate: logout } = useLogout()
   return (
     <View className='flex-1 bg-white'>
       <ScrollView className='flex-1' showsVerticalScrollIndicator={false}>
@@ -143,6 +147,24 @@ export function AboutPage() {
           <Text className='text-xs text-grey-400 text-center'>
             © 2024 RealVista. Bảo lưu mọi quyền.
           </Text>
+        </View>
+
+        {/* Logout */}
+        <View className='px-6 pb-12'>
+          <View className='h-px bg-grey-200 mb-6' />
+          <TouchableOpacity
+            onPress={() => logout(undefined, { onSuccess: () => router.replace('/login') })}
+            activeOpacity={0.7}
+            className='flex-row items-center justify-center gap-3 h-12 rounded-xl border border-red-200 bg-red-50'
+          >
+            <LogOut size={18} color='#EF4444' />
+            <Text
+              className='text-sm text-red-500'
+              style={{ fontFamily: 'PlusJakartaSans_600SemiBold' }}
+            >
+              Đăng xuất
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>

@@ -1,5 +1,6 @@
 import { notificationApi } from '@/entities/notification'
 import { NotificationService } from '@/shared/services/notification'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import type * as Notifications from 'expo-notifications'
 import { useCallback, useEffect, useState } from 'react'
 
@@ -36,9 +37,12 @@ export function usePushNotifications() {
       // Register token with backend
       const deviceInfo = NotificationService.getDeviceInfo()
       await notificationApi.registerPushToken({
-        token,
+        fcm_token: token,
         ...deviceInfo,
       })
+
+      // Persist token so unregister can retrieve it after fresh restart
+      await AsyncStorage.setItem('fcm_token', token)
 
       return token
     } catch (err) {
@@ -55,11 +59,15 @@ export function usePushNotifications() {
    * Unregister device
    */
   const unregisterDevice = useCallback(async () => {
-    if (!pushToken) return
+    // Use in-memory state if available, otherwise read from AsyncStorage (fresh restart case)
+    const tokenToUnregister = pushToken ?? (await AsyncStorage.getItem('fcm_token'))
+
+    if (!tokenToUnregister) return
 
     try {
-      await notificationApi.unregisterPushToken(pushToken)
+      await notificationApi.unregisterPushToken(tokenToUnregister)
       setPushToken(null)
+      await AsyncStorage.removeItem('fcm_token')
     } catch (err) {
       console.error('Failed to unregister device:', err)
     }

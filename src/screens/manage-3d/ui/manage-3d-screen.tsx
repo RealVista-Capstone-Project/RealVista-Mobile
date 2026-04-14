@@ -16,6 +16,8 @@ import { ArrowLeft, Plus, SlidersHorizontal, AlertTriangle } from 'lucide-react-
 import { useProperty3dOperations, usePropertyDetail, propertyApi } from '@/entities/property'
 import type { PropertyDetailMedia, Property3dOperation } from '@/entities/property'
 
+import { useThreeDQuota } from '@/entities/billing'
+
 import { StatsBar } from './components/stats-bar'
 import { EmptyState } from './components/empty-state'
 import { RoomCard, AddRoomCard } from './components/room-card'
@@ -30,6 +32,8 @@ type SortOrder = 'desc' | 'asc'
 export function Manage3dScreen({ propertyId }: Manage3dScreenProps) {
   const router = useRouter()
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
+
+  const { remaining, quotaLimit, unlimited, isLocked, isLoading: isQuotaLoading } = useThreeDQuota()
 
   const {
     data: operations = [],
@@ -166,6 +170,17 @@ export function Manage3dScreen({ propertyId }: Manage3dScreenProps) {
     setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))
   }
 
+  const quotaBadge =
+    !isQuotaLoading && !unlimited ? (
+      <View className={`rounded-full px-3 py-1 ${isLocked ? 'bg-red-100' : 'bg-purple-100'}`}>
+        <Text className={`text-xs font-medium ${isLocked ? 'text-red-600' : 'text-purple-700'}`}>
+          {isLocked
+            ? 'Hết lượt – Nâng cấp'
+            : `${remaining}${quotaLimit ? `/${quotaLimit}` : ''} lượt`}
+        </Text>
+      </View>
+    ) : null
+
   if (isLoading && !isRefreshing) {
     return (
       <View className='flex-1 items-center justify-center bg-gray-50'>
@@ -188,7 +203,7 @@ export function Manage3dScreen({ propertyId }: Manage3dScreenProps) {
             <ArrowLeft color='#111827' size={20} />
           </TouchableOpacity>
 
-          <View className='flex-1 items-center'>
+          <View className='flex-1 items-center gap-1'>
             <Text
               className='text-base text-gray-900'
               style={{ fontFamily: 'PlusJakartaSans_700Bold' }}
@@ -201,11 +216,13 @@ export function Manage3dScreen({ propertyId }: Manage3dScreenProps) {
             >
               Ảnh 3D các phòng
             </Text>
+            {quotaBadge}
           </View>
 
           <TouchableOpacity
-            className='w-10 h-10 rounded-2xl bg-main-primary items-center justify-center shadow-sm'
+            className={`w-10 h-10 rounded-2xl bg-main-primary items-center justify-center shadow-sm ${isLocked ? 'opacity-40' : ''}`}
             onPress={handleAddRoom}
+            disabled={isLocked}
             activeOpacity={0.75}
           >
             <Plus color='#FFFFFF' size={20} />
@@ -250,7 +267,7 @@ export function Manage3dScreen({ propertyId }: Manage3dScreenProps) {
         {/* Cards */}
         <View className='px-5'>
           {roomGroups.length === 0 ? (
-            <EmptyState onCreatePress={handleAddRoom} />
+            <EmptyState onCreatePress={isLocked ? undefined : handleAddRoom} />
           ) : (
             <>
               {roomGroups.map((group) => (
@@ -262,7 +279,12 @@ export function Manage3dScreen({ propertyId }: Manage3dScreenProps) {
                   onDelete={handleDelete}
                 />
               ))}
-              <AddRoomCard onPress={handleAddRoom} />
+              <View
+                pointerEvents={isLocked ? 'none' : 'auto'}
+                className={isLocked ? 'opacity-40' : ''}
+              >
+                <AddRoomCard onPress={handleAddRoom} />
+              </View>
             </>
           )}
         </View>

@@ -4,8 +4,10 @@ import { Text } from '@/shared/ui/text'
 import { useNotifications } from '@/features/notifications'
 import { NotificationItem } from './components'
 import IconLucide from '@/shared/ui/icon-lucide/icon'
+import { useRouter } from 'expo-router'
 
 export function NotificationsPage() {
+  const router = useRouter()
   const { notifications, isLoading, refetch, markAsRead, markAllAsRead, isMarkingAllAsRead } =
     useNotifications()
 
@@ -43,6 +45,13 @@ export function NotificationsPage() {
             </TouchableOpacity>
           )}
         </Box>
+        <TouchableOpacity
+          onPress={() => router.push('/notification-test')}
+          className='mt-2 flex-row items-center gap-1.5'
+        >
+          <IconLucide name='FlaskConical' size={15} color='#9EA3AE' />
+          <Text className='font-jakarta text-xs text-text-muted'>Trang kiểm tra thông báo</Text>
+        </TouchableOpacity>
       </Box>
 
       {/* Notification List */}

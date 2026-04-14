@@ -98,6 +98,7 @@ export function MobileHeader() {
         <View className='relative'>
           <TouchableOpacity
             activeOpacity={0.7}
+            onPress={() => router.push('/notifications')}
             className='h-10 w-10 items-center justify-center rounded-full bg-purple-98'
           >
             <IconSymbol name='bell' size={22} color='#100A55' />
