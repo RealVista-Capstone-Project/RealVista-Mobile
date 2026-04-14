@@ -66,9 +66,9 @@ export const NotificationSchema = z.object({
 
 // Push token schema
 export const PushTokenSchema = z.object({
-  token: z.string().min(1, 'Token is required'),
-  device_id: z.string().min(1, 'Device ID is required'),
-  platform: z.enum(['ios', 'android', 'web']),
+  fcm_token: z.string().min(1, 'Token is required'),
+  device_type: z.enum(['IOS', 'ANDROID', 'WEB']),
+  device_name: z.string().optional(),
 })
 
 /**

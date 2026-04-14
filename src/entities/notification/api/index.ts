@@ -47,15 +47,16 @@ export const notificationApi = {
 
   /**
    * Register push notification token
-   * POST /api/v1/notifications/tokens
+   * POST /api/v1/device-tokens
    */
-  registerPushToken: (data: PushToken) => http.post<void>('/notifications/tokens', data),
+  registerPushToken: (data: PushToken) => http.post<void>('/device-tokens', data),
 
   /**
    * Unregister push notification token
-   * DELETE /api/v1/notifications/tokens/{token}
+   * DELETE /api/v1/device-tokens?fcm_token={token}
    */
-  unregisterPushToken: (token: string) => http.delete<void>(`/notifications/tokens/${token}`),
+  unregisterPushToken: (token: string) =>
+    http.delete<void>('/device-tokens', { params: { fcm_token: token } }),
 
   /**
    * Send test Firebase notification (EXISTING ENDPOINT)

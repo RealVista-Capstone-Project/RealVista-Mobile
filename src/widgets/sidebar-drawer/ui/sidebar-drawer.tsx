@@ -40,6 +40,8 @@ export function SidebarDrawer() {
       router.replace('/(tabs)/explore')
     } else if (itemId === 'Rent') {
       router.replace({ pathname: '/(tabs)/explore', params: { mode: 'rent' } })
+    } else if (itemId === 'Appointments') {
+      router.push('/appointments')
     } else if (itemId === 'Favorited') {
       router.replace('/(tabs)/favorite')
     } else if (itemId === 'About') {

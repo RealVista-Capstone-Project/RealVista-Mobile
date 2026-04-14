@@ -50,9 +50,9 @@ export interface Notification {
 // ============================================
 
 export interface PushToken {
-  token: string
-  device_id: string
-  platform: 'ios' | 'android' | 'web'
+  fcm_token: string
+  device_type: 'IOS' | 'ANDROID' | 'WEB'
+  device_name?: string
 }
 
 // ============================================
@@ -80,4 +80,19 @@ export interface SendTestNotificationRequest {
 export interface SendTestNotificationResponse {
   success: string
   messageId: string
+}
+
+// ============================================
+// WebSocket Payload (snake_case — from backend STOMP frames)
+// ============================================
+
+export interface NotificationWsPayload {
+  notification_id: string
+  user_id: string
+  title: string
+  message: string
+  event_type: string
+  entity_type?: string
+  entity_id?: string
+  metadata?: Record<string, unknown>
 }
