@@ -38,13 +38,19 @@ export function resolveDeepLinkRoute(data: {
   const { event_type, propertyId, roomName, entity_id } = data
 
   switch (event_type) {
+    // BE sends PROPERTY_3D_GENERATED when a 3D tour is ready — entity_id is the property ID
+    case 'PROPERTY_3D_GENERATED':
     case 'VIRTUAL_TOUR':
     case '3D_VIEW': {
       const params: Record<string, string> = {}
-      if (propertyId) params.propertyId = propertyId
+      // entity_id is the property ID for 3D/tour notifications from BE
+      const resolvedPropertyId = propertyId ?? entity_id
+      if (resolvedPropertyId) params.propertyId = resolvedPropertyId
       if (roomName) params.roomName = roomName
       return { pathname: '/world-viewer', params }
     }
+    // BE sends NEW_TOUR_REQUEST to property owner when someone books a tour
+    case 'NEW_TOUR_REQUEST':
     case 'APPOINTMENT':
     case 'APPOINTMENT_REMINDER':
     case 'APPOINTMENT_CONFIRMED':
@@ -53,9 +59,11 @@ export function resolveDeepLinkRoute(data: {
       if (entity_id) params.entity_id = entity_id
       return { pathname: '/appointments', params }
     }
+    case 'NEW_LISTING':
+    case 'PRICE_CHANGE':
     case 'LISTING':
     case 'PROPERTY': {
-      return { pathname: '/property/[id]', params: { id: entity_id ?? '' } }
+      return { pathname: '/listing/[id]', params: { id: entity_id ?? '' } }
     }
     default:
       return { pathname: '/(tabs)', params: {} }
