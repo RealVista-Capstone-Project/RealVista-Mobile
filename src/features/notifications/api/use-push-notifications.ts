@@ -37,7 +37,7 @@ export function usePushNotifications() {
       // Register token with backend
       const deviceInfo = NotificationService.getDeviceInfo()
       await notificationApi.registerPushToken({
-        token,
+        fcm_token: token,
         ...deviceInfo,
       })
 

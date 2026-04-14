@@ -50,9 +50,9 @@ export interface Notification {
 // ============================================
 
 export interface PushToken {
-  token: string
-  device_id: string
-  platform: 'ios' | 'android' | 'web'
+  fcm_token: string
+  device_type: 'IOS' | 'ANDROID' | 'WEB'
+  device_name?: string
 }
 
 // ============================================
